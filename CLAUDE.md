@@ -1,73 +1,203 @@
 # Tabagismo - Smoking Cessation App
 
-## Project Overview
-React Native Expo app helping users quit smoking. Local-only data storage using SQLite + TanStack Query.
+React Native Expo app for smoking cessation. Local-first architecture with SQLite + TanStack Query.
 
 ## Tech Stack
 - **Framework:** Expo 54 + React Native 0.81.5
-- **Navigation:** expo-router (file-based)
 - **Database:** Drizzle ORM + expo-sqlite
-- **Data Layer:** TanStack Query
+- **Data Layer:** TanStack Query v5
+- **Navigation:** expo-router (file-based)
 - **Language:** TypeScript
 
-## Data Architecture
+---
 
-### Database Pattern
-- **Schema-as-code:** Define tables in `/db/schema/*.ts`
-- **Auto migrations:** Run on app start via `runMigrations()`
-- **Repository pattern:** Typed hooks wrap all queries/mutations
-- **Local-first:** No server sync, all data stored locally
+## Creating New Features
 
-### Current Schema
-- `settings` table: Key-value store (onboarding status)
+### 1. Add Database Table
 
-### Adding New Tables
-1. Create schema file in `/db/schema/`
-2. Export from `/db/schema/index.ts`
-3. Run `npm run db:generate`
-4. Create repository with typed hooks in `/db/repositories/`
+**Create schema in `/db/schema/new-table.ts`:**
+```typescript
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+
+export const tableName = sqliteTable('table_name', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export type TableName = typeof tableName.$inferSelect;
+export type NewTableName = typeof tableName.$inferInsert;
+```
+
+**Export from `/db/schema/index.ts`:**
+```typescript
+export * from './new-table';
+```
+
+**Generate migration:**
+```bash
+npm run db:generate
+```
+
+**CRITICAL - Metro Bundler Workaround:**
+
+Drizzle generates `.sql` files that Metro can't import. Convert each new migration:
+
+1. Open `/db/migrations/XXXX_name.sql`
+2. Create `/db/migrations/XXXX_name.ts`:
+   ```typescript
+   export default `<paste SQL content here>`;
+   ```
+3. Update `/db/migrations/migrations.ts`:
+   ```typescript
+   import mXXXX from './XXXX_name'; // Remove .sql extension
+   ```
+
+### 2. Create Repository
+
+**Create `/db/repositories/entity.repository.ts`:**
+```typescript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { eq } from 'drizzle-orm';
+import { db } from '../client';
+import { tableName } from '../schema';
+
+// Query hook
+export function useEntity(id: number) {
+  return useQuery({
+    queryKey: ['entity', id],
+    queryFn: async () => {
+      return await db.select()
+        .from(tableName)
+        .where(eq(tableName.id, id))
+        .get();
+    },
+  });
+}
+
+// Mutation hook
+export function useCreateEntity() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: NewTableName) => {
+      return await db.insert(tableName).values(data).returning();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['entity'] });
+    },
+  });
+}
+```
+
+**Export from `/db/repositories/index.ts`:**
+```typescript
+export * from './entity.repository';
+```
+
+### 3. Use in Components
+
+**Import from `/db`:**
+```typescript
+import { useEntity, useCreateEntity } from '@/db';
+
+export default function MyScreen() {
+  const { data, isLoading, error } = useEntity(1);
+  const createMutation = useCreateEntity();
+
+  if (isLoading) return <LoadingSpinner />;
+  if (error) return <ErrorMessage error={error} />;
+
+  return (
+    <View>
+      <Text>{data?.name}</Text>
+      <Button
+        onPress={() => createMutation.mutate({ name: 'New' })}
+        disabled={createMutation.isPending}
+      />
+    </View>
+  );
+}
+```
+
+---
 
 ## Code Conventions
 
-### Database Access
-- **Always use repositories** - never raw SQL in components
-- **Query keys:** Scoped by domain `['entity', 'operation']`
-- **Mutations:** Always invalidate related queries on success
+### Database Access Rules
+- ✅ **Always use repository hooks** in components
+- ❌ **Never use `db` directly** in components
+- ✅ **Query keys:** `['entity', 'action', ...params]`
+- ✅ **Mutations:** Always invalidate related queries in `onSuccess`
 
 ### Error Handling
-- All errors logged automatically
-- User-facing alerts for query/mutation failures
-- Error boundary catches unhandled errors
-- Components can handle errors via returned error states
+- **Automatic logging:** All errors logged via `handleQueryError`
+- **User alerts:** TanStack Query errors trigger React Native alerts
+- **Component errors:** Caught by ErrorBoundary in `app/_layout.tsx`
+- **Manual handling:** Use error state from hooks when needed
 
-### Repository Pattern Example
+### Repository Pattern
 ```typescript
-// Good: Typed hook
-const { data, isLoading } = useOnboardingStatus();
+// ✅ Good - Type-safe, cached, error-handled
+const { data } = useOnboardingStatus();
 
-// Bad: Direct SQL in component
-const result = await db.select()...
+// ❌ Bad - No caching, no error handling, not reusable
+const result = await db.select().from(settings).where(...);
 ```
+
+---
 
 ## Project Structure
 ```
-/db               # Database layer
-  /schema         # Table definitions
-  /repositories   # Typed query/mutation hooks
-  /migrations     # Auto-generated SQL
-/lib              # Shared utilities
-/app              # expo-router pages
-/components       # Reusable components
+/db
+  /schema         # Table definitions (*.ts)
+  /repositories   # Typed hooks (*.repository.ts)
+  /migrations     # SQL as TS modules (*.ts)
+  /client.ts      # Drizzle instance
+  /migrate.ts     # Auto-migration runner
+  /index.ts       # Public API
+/lib
+  /query-client.ts   # TanStack Query config
+  /error-handler.ts  # Logging & alerts
+/app
+  /(tabs)         # Tab navigation screens
+  /_layout.tsx    # Root with providers
+/components       # Reusable UI
 ```
 
-## Key Commands
+---
+
+## Commands
+
 ```bash
-npm run db:generate  # Generate migrations from schema changes
-npm run db:studio    # Visual database browser
+npm run db:generate   # Generate migrations from schema
+npm run db:studio     # Visual database browser (localhost:4983)
+npm start             # Start Expo dev server
+npx tsc --noEmit      # Type check without building
 ```
+
+---
 
 ## Migration Workflow
-Schema changes auto-apply on app start. Run `db:generate` after editing schema files to create migration SQL.
+
+1. **Edit schema** → `/db/schema/*.ts`
+2. **Generate SQL** → `npm run db:generate`
+3. **Convert to TS** → `/db/migrations/XXXX.sql` → `/db/migrations/XXXX.ts`
+4. **Update imports** → `/db/migrations/migrations.ts`
+5. **Auto-apply** → Migrations run on app start via `runMigrations()`
+
+**Why convert SQL to TS?** Metro bundler (React Native) cannot import `.sql` files. Converting to TS modules with string exports solves this.
+
+---
+
+## Current Schema
+
+- **settings:** Key-value store (e.g., `onboardingCompleted`)
+
+---
 
 ## Design Docs
-See `/docs/plans/` for detailed architecture decisions and rationale.
+
+Detailed architecture decisions: `/docs/plans/`
