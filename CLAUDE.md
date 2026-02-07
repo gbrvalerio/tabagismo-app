@@ -4,6 +4,18 @@ React Native Expo app for smoking cessation. Local-first with SQLite.
 
 ---
 
+## Platform Support
+
+- ✅ iOS
+- ✅ Android
+- ❌ Web (not supported)
+
+---
+
+## Language/Idiom
+
+The code should be in english but the user facing strings in Brazilian Portuguese
+
 ## Tech Stack
 
 - **Framework:** Expo 54 + React Native 0.81.5
@@ -86,6 +98,7 @@ npm start          # Start Expo dev server
 ## Core Principles
 
 ### 1. Repository Pattern
+
 ✅ **DO:** Use typed hooks
 ❌ **DON'T:** Access database directly
 
@@ -98,20 +111,35 @@ const users = await db.select().from(users);
 ```
 
 ### 2. Local-First
+
 - All data stored in SQLite
 - No server sync (for now)
 - TanStack Query handles caching
 
 ### 3. Type Safety
+
 - Drizzle ORM generates types from schema
 - End-to-end TypeScript
 - No runtime schema validation needed
+
+### 4. Testing
+
+- Always develop new code by using TDD.
+- All code created should include it's tests
+- Tests should be comprehensive and test real scenarios and edge cases
+- 90% coverage is required, push and CI will fail.
+- In the red phase of the TDD development, use --no-verify to commit code skipping failing tests.
+
+### 5. Claude Files
+
+- At the end of a feature creation, fix or update, update/create the relevant CLAUDE.md files for that feature. No need to be super granular, just add relevant quick information that would affect future development.
 
 ---
 
 ## Common Tasks
 
 ### Add Database Table
+
 → [Full guide in /db/CLAUDE.md](/db/CLAUDE.md)
 
 1. Create schema in `/db/schema/users.ts`
@@ -120,6 +148,7 @@ const users = await db.select().from(users);
 4. Create repository in `/db/repositories/users.repository.ts`
 
 ### Add Screen
+
 → [Full guide in /app/CLAUDE.md](/app/CLAUDE.md)
 
 1. Create file in `/app/(tabs)/profile.tsx`
@@ -134,52 +163,6 @@ const users = await db.select().from(users);
 
 ---
 
-## Commands
-
-```bash
-# Development
-npm start              # Start Expo dev server
-npm run ios            # Run on iOS simulator
-npm run android        # Run on Android emulator
-
-# Database
-npm run db:generate    # Generate migrations
-npm run db:studio      # Open Drizzle Studio (GUI)
-
-# Code Quality
-npx tsc --noEmit       # Type check
-npm run lint           # Run linter
-```
-
----
-
-## Key Files
-
-| File | Purpose |
-|------|---------|
-| `/app/_layout.tsx` | Root layout (providers, migrations) |
-| `/db/index.ts` | Database public API |
-| `/db/client.ts` | Drizzle instance |
-| `/lib/query-client.ts` | TanStack Query config |
-| `/lib/error-handler.ts` | Error logging & alerts |
-
----
-
-## Conventions
-
-### Imports
-
-```typescript
-// Database
-import { useUsers, useCreateUser } from '@/db';
-
-// Navigation
-import { router } from 'expo-router';
-
-// React Native
-import { View, Text } from 'react-native';
-```
-
 ### File Naming
 
 - **Screens:** `kebab-case.tsx` in `/app`
@@ -190,42 +173,5 @@ import { View, Text } from 'react-native';
 ### Query Keys
 
 ```typescript
-['users']              // List
-['users', id]          // Single item
-['users', 'search']    // Specific operation
+["users"][("users", id)][("users", "search")]; // List // Single item // Specific operation
 ```
-
----
-
-## Troubleshooting
-
-### Metro bundler error: "Unable to resolve .sql"
-**Fix:** Convert migration to `.ts` → [See db/CLAUDE.md](/db/CLAUDE.md)
-
-### TypeScript errors after schema change
-**Fix:** Run `npm run db:generate` to regenerate types
-
-### Navigation not working
-**Fix:** Check file is in `/app` and exported as `export default`
-
-### Query not updating
-**Fix:** Invalidate queries in mutation `onSuccess`
-
----
-
-## Current Features
-
-- ✅ SQLite database with auto-migrations
-- ✅ Settings table (onboarding status)
-- ✅ Error handling & logging
-- ✅ Tab navigation
-- ✅ Type-safe database access
-
----
-
-## Resources
-
-- [Expo Docs](https://docs.expo.dev/)
-- [Drizzle ORM](https://orm.drizzle.team/)
-- [TanStack Query](https://tanstack.com/query/latest)
-- [Expo Router](https://docs.expo.dev/router/introduction/)
