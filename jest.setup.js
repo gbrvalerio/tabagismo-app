@@ -29,5 +29,7 @@ jest.mock('expo-sqlite', () => ({
 
 // Mock react-native Alert
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
+  default: {
+    alert: jest.fn(),
+  },
 }));
