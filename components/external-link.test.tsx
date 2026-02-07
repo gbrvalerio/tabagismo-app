@@ -61,13 +61,14 @@ function callOnPress(testID: string, event?: any) {
 describe('ExternalLink', () => {
   let originalExpoOS: string | undefined;
 
+  beforeAll(() => {
+    // Store original value once at the start of all tests
+    originalExpoOS = process.env.EXPO_OS;
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     Object.keys(mockOnPressHandlers).forEach(key => delete mockOnPressHandlers[key]);
-    // Store original value once
-    if (originalExpoOS === undefined) {
-      originalExpoOS = process.env.EXPO_OS;
-    }
   });
 
   afterEach(() => {
@@ -191,12 +192,8 @@ describe('ExternalLink', () => {
     });
   });
 
-  describe('environment-based behavior', () => {
-    it('should check EXPO_OS environment variable in onPress handler', async () => {
-      // The component's onPress handler checks process.env.EXPO_OS !== 'web'
-      // On native platforms (iOS, Android, or undefined), it prevents default and opens browser
-      // On web platforms (EXPO_OS === 'web'), it allows default behavior
-
+  describe('native platform behavior', () => {
+    it('should call preventDefault and openBrowserAsync on native platforms', async () => {
       process.env.EXPO_OS = 'ios';
       Object.keys(mockOnPressHandlers).forEach(key => delete mockOnPressHandlers[key]);
 
@@ -214,7 +211,6 @@ describe('ExternalLink', () => {
       const handler = mockOnPressHandlers['external-link'];
       expect(handler).toBeDefined();
 
-      // On iOS, the handler should call preventDefault and openBrowserAsync
       await handler(mockEvent);
 
       expect(mockEvent.preventDefault).toHaveBeenCalled();
