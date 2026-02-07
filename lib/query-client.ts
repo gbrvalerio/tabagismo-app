@@ -9,11 +9,10 @@ export const queryClient = new QueryClient({
       gcTime: 1000 * 60 * 60,       // 1 hour cache
       refetchOnWindowFocus: false,  // Mobile app
       refetchOnMount: true,
-      onError: (error) => handleQueryError(error, 'Failed to load data'),
     },
     mutations: {
       retry: 1,
-      onError: (error) => handleQueryError(error, 'Failed to save data'),
+      onError: (error: Error) => handleQueryError(error, 'Failed to save data'),
     },
   },
 });
