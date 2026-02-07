@@ -1,8 +1,11 @@
 # Tabagismo - Smoking Cessation App
 
-React Native Expo app for smoking cessation. Local-first architecture with SQLite + TanStack Query.
+React Native Expo app for smoking cessation. Local-first with SQLite.
+
+---
 
 ## Tech Stack
+
 - **Framework:** Expo 54 + React Native 0.81.5
 - **Database:** Drizzle ORM + expo-sqlite
 - **Data Layer:** TanStack Query v5
@@ -11,193 +14,218 @@ React Native Expo app for smoking cessation. Local-first architecture with SQLit
 
 ---
 
-## Creating New Features
+## Quick Links
 
-### 1. Add Database Table
-
-**Create schema in `/db/schema/new-table.ts`:**
-```typescript
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
-
-export const tableName = sqliteTable('table_name', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  name: text('name').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' })
-    .notNull()
-    .$defaultFn(() => new Date()),
-});
-
-export type TableName = typeof tableName.$inferSelect;
-export type NewTableName = typeof tableName.$inferInsert;
-```
-
-**Export from `/db/schema/index.ts`:**
-```typescript
-export * from './new-table';
-```
-
-**Generate migration:**
-```bash
-npm run db:generate
-```
-
-**CRITICAL - Metro Bundler Workaround:**
-
-Drizzle generates `.sql` files that Metro can't import. Convert each new migration:
-
-1. Open `/db/migrations/XXXX_name.sql`
-2. Create `/db/migrations/XXXX_name.ts`:
-   ```typescript
-   export default `<paste SQL content here>`;
-   ```
-3. Update `/db/migrations/migrations.ts`:
-   ```typescript
-   import mXXXX from './XXXX_name'; // Remove .sql extension
-   ```
-
-### 2. Create Repository
-
-**Create `/db/repositories/entity.repository.ts`:**
-```typescript
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { eq } from 'drizzle-orm';
-import { db } from '../client';
-import { tableName } from '../schema';
-
-// Query hook
-export function useEntity(id: number) {
-  return useQuery({
-    queryKey: ['entity', id],
-    queryFn: async () => {
-      return await db.select()
-        .from(tableName)
-        .where(eq(tableName.id, id))
-        .get();
-    },
-  });
-}
-
-// Mutation hook
-export function useCreateEntity() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: NewTableName) => {
-      return await db.insert(tableName).values(data).returning();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['entity'] });
-    },
-  });
-}
-```
-
-**Export from `/db/repositories/index.ts`:**
-```typescript
-export * from './entity.repository';
-```
-
-### 3. Use in Components
-
-**Import from `/db`:**
-```typescript
-import { useEntity, useCreateEntity } from '@/db';
-
-export default function MyScreen() {
-  const { data, isLoading, error } = useEntity(1);
-  const createMutation = useCreateEntity();
-
-  if (isLoading) return <LoadingSpinner />;
-  if (error) return <ErrorMessage error={error} />;
-
-  return (
-    <View>
-      <Text>{data?.name}</Text>
-      <Button
-        onPress={() => createMutation.mutate({ name: 'New' })}
-        disabled={createMutation.isPending}
-      />
-    </View>
-  );
-}
-```
+📁 **[Database Guide](/db/CLAUDE.md)** - Schemas, migrations, repositories
+📱 **[App & Navigation Guide](/app/CLAUDE.md)** - Screens, routing, layouts
+📋 **[Architecture Decisions](/docs/plans/)** - Detailed design docs
 
 ---
 
-## Code Conventions
+## Getting Started
 
-### Database Access Rules
-- ✅ **Always use repository hooks** in components
-- ❌ **Never use `db` directly** in components
-- ✅ **Query keys:** `['entity', 'action', ...params]`
-- ✅ **Mutations:** Always invalidate related queries in `onSuccess`
+### Run the App
 
-### Error Handling
-- **Automatic logging:** All errors logged via `handleQueryError`
-- **User alerts:** TanStack Query errors trigger React Native alerts
-- **Component errors:** Caught by ErrorBoundary in `app/_layout.tsx`
-- **Manual handling:** Use error state from hooks when needed
-
-### Repository Pattern
-```typescript
-// ✅ Good - Type-safe, cached, error-handled
-const { data } = useOnboardingStatus();
-
-// ❌ Bad - No caching, no error handling, not reusable
-const result = await db.select().from(settings).where(...);
+```bash
+npm install        # Install dependencies
+npm start          # Start Expo dev server
+# Then press 'i' for iOS or 'a' for Android
 ```
+
+### Add a Feature
+
+1. **Database table?** → See [/db/CLAUDE.md](/db/CLAUDE.md)
+2. **New screen?** → See [/app/CLAUDE.md](/app/CLAUDE.md)
+3. **Reusable component?** → Create in `/components`
+
+---
+
+## Architecture Overview
+
+```
+┌─────────────────┐
+│   Components    │  React Native UI
+├─────────────────┤
+│  TanStack Query │  Caching & state management
+├─────────────────┤
+│  Repositories   │  Typed hooks (useUsers, etc.)
+├─────────────────┤
+│  Drizzle ORM    │  Type-safe SQL builder
+├─────────────────┤
+│  SQLite         │  Local database
+└─────────────────┘
+```
+
+**Pattern:** Repository hooks → Never access `db` directly in components
 
 ---
 
 ## Project Structure
+
 ```
-/db
-  /schema         # Table definitions (*.ts)
-  /repositories   # Typed hooks (*.repository.ts)
-  /migrations     # SQL as TS modules (*.ts)
-  /client.ts      # Drizzle instance
-  /migrate.ts     # Auto-migration runner
-  /index.ts       # Public API
-/lib
-  /query-client.ts   # TanStack Query config
-  /error-handler.ts  # Logging & alerts
-/app
-  /(tabs)         # Tab navigation screens
-  /_layout.tsx    # Root with providers
-/components       # Reusable UI
+/app                # Screens (file-based routing)
+  /(tabs)           # Tab navigator
+  /_layout.tsx      # Root layout (providers)
+
+/db                 # Database layer
+  /schema           # Table definitions
+  /repositories     # Typed query/mutation hooks
+  /migrations       # Auto-generated migrations
+
+/components         # Reusable UI components
+
+/lib                # Utilities
+  /query-client.ts  # TanStack Query config
+  /error-handler.ts # Error logging & alerts
+
+/docs/plans         # Architecture decisions
 ```
+
+---
+
+## Core Principles
+
+### 1. Repository Pattern
+✅ **DO:** Use typed hooks
+❌ **DON'T:** Access database directly
+
+```typescript
+// ✅ Good
+const { data } = useUsers();
+
+// ❌ Bad
+const users = await db.select().from(users);
+```
+
+### 2. Local-First
+- All data stored in SQLite
+- No server sync (for now)
+- TanStack Query handles caching
+
+### 3. Type Safety
+- Drizzle ORM generates types from schema
+- End-to-end TypeScript
+- No runtime schema validation needed
+
+---
+
+## Common Tasks
+
+### Add Database Table
+→ [Full guide in /db/CLAUDE.md](/db/CLAUDE.md)
+
+1. Create schema in `/db/schema/users.ts`
+2. Run `npm run db:generate`
+3. Convert `.sql` to `.ts` (Metro bundler requirement)
+4. Create repository in `/db/repositories/users.repository.ts`
+
+### Add Screen
+→ [Full guide in /app/CLAUDE.md](/app/CLAUDE.md)
+
+1. Create file in `/app/(tabs)/profile.tsx`
+2. Export default component
+3. Configure tab icon in `_layout.tsx`
+
+### Add Component
+
+1. Create in `/components/Button.tsx`
+2. Export component
+3. Import in screens: `import { Button } from '@/components/Button'`
 
 ---
 
 ## Commands
 
 ```bash
-npm run db:generate   # Generate migrations from schema
-npm run db:studio     # Visual database browser (localhost:4983)
-npm start             # Start Expo dev server
-npx tsc --noEmit      # Type check without building
+# Development
+npm start              # Start Expo dev server
+npm run ios            # Run on iOS simulator
+npm run android        # Run on Android emulator
+
+# Database
+npm run db:generate    # Generate migrations
+npm run db:studio      # Open Drizzle Studio (GUI)
+
+# Code Quality
+npx tsc --noEmit       # Type check
+npm run lint           # Run linter
 ```
 
 ---
 
-## Migration Workflow
+## Key Files
 
-1. **Edit schema** → `/db/schema/*.ts`
-2. **Generate SQL** → `npm run db:generate`
-3. **Convert to TS** → `/db/migrations/XXXX.sql` → `/db/migrations/XXXX.ts`
-4. **Update imports** → `/db/migrations/migrations.ts`
-5. **Auto-apply** → Migrations run on app start via `runMigrations()`
-
-**Why convert SQL to TS?** Metro bundler (React Native) cannot import `.sql` files. Converting to TS modules with string exports solves this.
-
----
-
-## Current Schema
-
-- **settings:** Key-value store (e.g., `onboardingCompleted`)
+| File | Purpose |
+|------|---------|
+| `/app/_layout.tsx` | Root layout (providers, migrations) |
+| `/db/index.ts` | Database public API |
+| `/db/client.ts` | Drizzle instance |
+| `/lib/query-client.ts` | TanStack Query config |
+| `/lib/error-handler.ts` | Error logging & alerts |
 
 ---
 
-## Design Docs
+## Conventions
 
-Detailed architecture decisions: `/docs/plans/`
+### Imports
+
+```typescript
+// Database
+import { useUsers, useCreateUser } from '@/db';
+
+// Navigation
+import { router } from 'expo-router';
+
+// React Native
+import { View, Text } from 'react-native';
+```
+
+### File Naming
+
+- **Screens:** `kebab-case.tsx` in `/app`
+- **Components:** `PascalCase.tsx` in `/components`
+- **Schemas:** `kebab-case.ts` in `/db/schema`
+- **Repositories:** `kebab-case.repository.ts` in `/db/repositories`
+
+### Query Keys
+
+```typescript
+['users']              // List
+['users', id]          // Single item
+['users', 'search']    // Specific operation
+```
+
+---
+
+## Troubleshooting
+
+### Metro bundler error: "Unable to resolve .sql"
+**Fix:** Convert migration to `.ts` → [See db/CLAUDE.md](/db/CLAUDE.md)
+
+### TypeScript errors after schema change
+**Fix:** Run `npm run db:generate` to regenerate types
+
+### Navigation not working
+**Fix:** Check file is in `/app` and exported as `export default`
+
+### Query not updating
+**Fix:** Invalidate queries in mutation `onSuccess`
+
+---
+
+## Current Features
+
+- ✅ SQLite database with auto-migrations
+- ✅ Settings table (onboarding status)
+- ✅ Error handling & logging
+- ✅ Tab navigation
+- ✅ Type-safe database access
+
+---
+
+## Resources
+
+- [Expo Docs](https://docs.expo.dev/)
+- [Drizzle ORM](https://orm.drizzle.team/)
+- [TanStack Query](https://tanstack.com/query/latest)
+- [Expo Router](https://docs.expo.dev/router/introduction/)
