@@ -25,6 +25,30 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## Database
+
+This app uses SQLite for local data storage with Drizzle ORM and TanStack Query.
+
+### Key Commands
+
+- `npm run db:generate` - Generate migrations from schema changes
+- `npm run db:studio` - Open visual database browser
+
+### Architecture
+
+- **Schema:** `/db/schema/` - TypeScript table definitions
+- **Repositories:** `/db/repositories/` - Typed query/mutation hooks
+- **Migrations:** Auto-applied on app start
+
+### Adding New Tables
+
+1. Create schema file in `/db/schema/new-table.ts`
+2. Export from `/db/schema/index.ts`
+3. Run `npm run db:generate` to create migration
+4. Create repository file with typed hooks
+
+See `CLAUDE.md` for detailed conventions.
+
 ## Get a fresh project
 
 When you're ready, run:
