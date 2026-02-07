@@ -3,6 +3,18 @@
  * Verifies that all database modules are properly exported
  */
 
+// Mock expo-sqlite before importing db modules
+jest.mock('expo-sqlite', () => {
+  const mockDb = {
+    exec: jest.fn(),
+    close: jest.fn(),
+    serialize: jest.fn(),
+  };
+  return {
+    openDatabaseSync: jest.fn(() => mockDb),
+  };
+});
+
 describe('db/index.ts', () => {
   describe('exports', () => {
     let indexModule: Record<string, any>;
