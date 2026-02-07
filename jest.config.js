@@ -15,6 +15,7 @@ module.exports = {
     '!db/migrations/**',
     '!db/client.ts',
     '!lib/query-client.ts',
+    '!hooks/use-color-scheme.ts',
     '!**/*.config.{js,ts}',
     '!scripts/**',
     '!**/*.test.{ts,tsx}',
