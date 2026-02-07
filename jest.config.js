@@ -19,7 +19,7 @@ module.exports = {
     '!scripts/**',
     '!**/*.test.{ts,tsx}',
   ],
-  coverageThresholds: {
+  coverageThreshold: {
     global: {
       statements: 90,
       branches: 90,
