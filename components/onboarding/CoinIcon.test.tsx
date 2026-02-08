@@ -42,16 +42,36 @@ describe('CoinIcon', () => {
     expect(flatStyle.height).toBe(32);
   });
 
-  it('should apply correct border radius for circular shape', () => {
-    const { getByTestId } = render(
+  it('should render emoji coin', () => {
+    const { getByText } = render(
       <CoinIcon size={24} variant="filled" />
     );
 
-    const coin = getByTestId('coin-icon');
-    const flatStyle = Array.isArray(coin.props.style)
-      ? Object.assign({}, ...coin.props.style.flat())
-      : coin.props.style;
-    expect(flatStyle.borderRadius).toBe(12); // size / 2
+    expect(getByText('🪙')).toBeTruthy();
+  });
+
+  it('should render outlined variant with reduced opacity', () => {
+    const { getByText } = render(
+      <CoinIcon size={20} variant="outlined" />
+    );
+
+    const emoji = getByText('🪙');
+    const flatStyle = Array.isArray(emoji.props.style)
+      ? Object.assign({}, ...emoji.props.style.flat())
+      : emoji.props.style;
+    expect(flatStyle.opacity).toBe(0.35);
+  });
+
+  it('should render filled variant with full opacity', () => {
+    const { getByText } = render(
+      <CoinIcon size={20} variant="filled" />
+    );
+
+    const emoji = getByText('🪙');
+    const flatStyle = Array.isArray(emoji.props.style)
+      ? Object.assign({}, ...emoji.props.style.flat())
+      : emoji.props.style;
+    expect(flatStyle.opacity).toBe(1);
   });
 
   it('should render without highlighted by default', () => {

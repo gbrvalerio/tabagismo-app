@@ -38,7 +38,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
 });

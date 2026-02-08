@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { Text } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -7,7 +7,6 @@ import Animated, {
   withSequence,
   withSpring,
 } from 'react-native-reanimated';
-import { colors } from '@/lib/theme/tokens';
 
 interface CoinIconProps {
   size: number;
@@ -37,27 +36,23 @@ export function CoinIcon({ size, variant, highlighted = false }: CoinIconProps) 
     transform: [{ scale: scale.value }],
   }));
 
-  const coinStyle = variant === 'outlined' ? styles.outlined : styles.filled;
-
   return (
     <Animated.View
       testID="coin-icon"
       style={[
-        { width: size, height: size, borderRadius: size / 2 },
-        coinStyle,
+        { width: size, height: size, alignItems: 'center', justifyContent: 'center' },
         animatedStyle,
       ]}
-    />
+    >
+      <Text
+        style={{
+          fontSize: size * 0.8,
+          lineHeight: size,
+          opacity: variant === 'outlined' ? 0.35 : 1,
+        }}
+      >
+        🪙
+      </Text>
+    </Animated.View>
   );
 }
-
-const styles = StyleSheet.create({
-  outlined: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: colors.neutral.gray[300],
-  },
-  filled: {
-    backgroundColor: colors.accent.gold,
-  },
-});

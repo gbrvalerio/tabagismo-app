@@ -274,6 +274,7 @@ export function OnboardingContainer() {
             <View style={styles.spacer} />
             <CoinCounter testID="coin-counter" />
           </View>
+          <View style={styles.headerSeparator} testID="header-separator" />
           <CoinTrail
             testID="coin-trail"
             currentStep={currentIndex + 1}
@@ -390,6 +391,11 @@ const styles = StyleSheet.create({
   },
   spacer: {
     flex: 1,
+  },
+  headerSeparator: {
+    height: 1,
+    backgroundColor: colors.neutral.gray[200],
+    marginBottom: spacing.sm,
   },
   backButton: {
     alignSelf: "flex-start",
