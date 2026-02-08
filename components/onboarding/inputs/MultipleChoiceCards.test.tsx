@@ -16,6 +16,13 @@ jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
 }));
 
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = require('react-native-reanimated/mock');
+  Reanimated.default.call = () => {};
+  return Reanimated;
+});
+
 describe('MultipleChoiceCards', () => {
   const choices = ['Ansiedade', 'Estresse', 'Social'];
 
@@ -74,5 +81,25 @@ describe('MultipleChoiceCards', () => {
   it('should show counter when one item is selected', () => {
     render(<MultipleChoiceCards choices={choices} value={['Ansiedade']} onChange={() => {}} />);
     expect(screen.getByText('1')).toBeDefined();
+  });
+
+  it('should apply Poppins Regular font to choice text', () => {
+    render(<MultipleChoiceCards choices={choices} value={[]} onChange={() => {}} />);
+    const text = screen.getByText('Ansiedade');
+    const styles = text.props.style;
+    const flatStyle = Array.isArray(styles)
+      ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+      : styles;
+    expect(flatStyle.fontFamily).toBe('Poppins_400Regular');
+  });
+
+  it('should apply 16px font size to choice text', () => {
+    render(<MultipleChoiceCards choices={choices} value={[]} onChange={() => {}} />);
+    const text = screen.getByText('Ansiedade');
+    const styles = text.props.style;
+    const flatStyle = Array.isArray(styles)
+      ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+      : styles;
+    expect(flatStyle.fontSize).toBe(16);
   });
 });

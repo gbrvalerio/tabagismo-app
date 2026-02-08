@@ -5,7 +5,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { colors, spacing, borderRadius, typography, shadows } from '@/lib/theme/tokens';
+import { colors, spacing, borderRadius, typography } from '@/lib/theme/tokens';
 
 interface MultipleChoiceCardsProps {
   choices: string[];
@@ -66,7 +66,7 @@ function ChoiceCard({
   const scale = useSharedValue(1);
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.96);
+    scale.value = withSpring(0.97);
   };
 
   const handlePressOut = () => {
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
+    fontFamily: typography.fontFamily.poppins.regular,
     color: colors.neutral.gray[600],
   },
   counterBadge: {
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   counterText: {
     fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.bold,
+    fontFamily: typography.fontFamily.poppins.bold,
     color: colors.neutral.white,
   },
   cardWrapper: {
@@ -142,18 +142,22 @@ const styles = StyleSheet.create({
   card: {
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     borderWidth: 2,
-    borderColor: colors.neutral.gray[300],
+    borderColor: 'transparent',
     backgroundColor: colors.neutral.white,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   selectedCard: {
     borderColor: colors.secondary.base,
-    backgroundColor: colors.secondary.base,
-    ...shadows.sm,
+    backgroundColor: `${colors.secondary.base}0D`, // 5% opacity
   },
   checkbox: {
     width: 24,
@@ -166,24 +170,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxSelected: {
-    borderColor: colors.neutral.white,
-    backgroundColor: colors.neutral.white,
+    borderColor: colors.secondary.base,
+    backgroundColor: colors.secondary.base,
   },
   checkboxText: {
     fontSize: 16,
-    fontWeight: typography.fontWeight.black,
-    color: colors.secondary.base,
+    fontFamily: typography.fontFamily.poppins.bold,
+    color: colors.neutral.white,
   },
   text: {
     fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.medium,
+    fontFamily: typography.fontFamily.poppins.regular,
     color: colors.neutral.black,
     flex: 1,
   },
   selectedText: {
     fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.white,
+    fontFamily: typography.fontFamily.poppins.semibold,
+    color: colors.secondary.dark,
     flex: 1,
   },
 });
