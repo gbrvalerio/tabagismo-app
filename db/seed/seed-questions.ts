@@ -25,11 +25,11 @@ export const onboardingQuestionsData: NewQuestion[] = [
   {
     key: "age",
     order: 3,
-    type: QuestionType.NUMBER,
+    type: QuestionType.SINGLE_CHOICE,
     category: QuestionCategory.PROFILE,
     questionText: "Qual é a sua idade?",
     required: true,
-    metadata: {},
+    metadata: { choices: ["12-17", "18-24", "25-44", "45-64", "65+"] },
   },
   {
     key: "addiction_type",
