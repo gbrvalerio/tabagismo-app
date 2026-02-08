@@ -38,31 +38,33 @@ export function ProgressBar({ progress, currentStep, totalSteps }: ProgressBarPr
 
   return (
     <View style={styles.container}>
-      {/* Progress bar and step counter in a row */}
-      <View style={styles.barRow}>
-        <View style={styles.trackContainer}>
+      {/* Main row: progress section on left, step counter on right */}
+      <View style={styles.mainRow}>
+        {/* Progress bar and dots */}
+        <View style={styles.progressSection}>
           <View style={styles.track}>
             <Animated.View style={[styles.fill, animatedStyle]} />
           </View>
+          {/* Progress dots */}
+          <View style={styles.dotsContainer}>
+            {Array.from({ length: totalSteps }).map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  index < currentStep && styles.dotCompleted,
+                  index === currentStep - 1 && styles.dotActive,
+                ]}
+              />
+            ))}
+          </View>
         </View>
+        {/* Step counter badge */}
         <Animated.View style={pulseStyle}>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{currentStep}/{totalSteps}</Text>
           </View>
         </Animated.View>
-      </View>
-      {/* Progress dots */}
-      <View style={styles.dotsContainer}>
-        {Array.from({ length: totalSteps }).map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              index < currentStep && styles.dotCompleted,
-              index === currentStep - 1 && styles.dotActive,
-            ]}
-          />
-        ))}
       </View>
     </View>
   );
@@ -74,13 +76,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
   },
-  barRow: {
+  mainRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    marginBottom: spacing.sm,
   },
-  trackContainer: {
+  progressSection: {
     flex: 1,
   },
   track: {
@@ -88,11 +89,17 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     backgroundColor: colors.neutral.gray[200],
     overflow: 'hidden',
+    marginBottom: spacing.sm,
   },
   fill: {
     height: '100%',
     borderRadius: borderRadius.full,
     backgroundColor: colors.primary.base,
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 2,
   },
   badge: {
     backgroundColor: colors.neutral.white,
@@ -106,11 +113,6 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.md,
     fontWeight: typography.fontWeight.bold,
     color: colors.primary.base,
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 2,
   },
   dot: {
     width: 8,
