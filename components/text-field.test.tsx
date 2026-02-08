@@ -126,4 +126,81 @@ describe('TextField', () => {
       expect(input.props.autoCapitalize).toBe('none');
     });
   });
+
+  describe('Error state', () => {
+    it('should render error message', () => {
+      render(<TextField error="Campo obrigatório" testID="text-field" />);
+
+      expect(screen.getByText('Campo obrigatório')).toBeTruthy();
+    });
+
+    it('should apply error border color', () => {
+      render(<TextField error="Erro" testID="text-field" />);
+
+      const input = screen.getByTestId('text-field-input');
+      const inputStyle = input.props.style;
+      const flatStyle = Array.isArray(inputStyle)
+        ? Object.assign({}, ...inputStyle.filter(Boolean))
+        : inputStyle;
+      expect(flatStyle.borderColor).toBe('#FF4757');
+    });
+
+    it('should display error text in error color', () => {
+      render(<TextField error="Erro" testID="text-field" />);
+
+      const errorText = screen.getByText('Erro');
+      const errorStyle = errorText.props.style;
+      const flatStyle = Array.isArray(errorStyle)
+        ? Object.assign({}, ...errorStyle.filter(Boolean))
+        : errorStyle;
+      expect(flatStyle.color).toBe('#FF4757');
+    });
+
+    it('should show error instead of helper text when both provided', () => {
+      render(
+        <TextField
+          error="Erro"
+          helperText="Ajuda"
+          testID="text-field"
+        />
+      );
+
+      expect(screen.getByText('Erro')).toBeTruthy();
+      expect(screen.queryByText('Ajuda')).toBeNull();
+    });
+
+    it('should apply error color to label when error is present', () => {
+      render(
+        <TextField label="Email" error="Inválido" testID="text-field" />
+      );
+
+      const label = screen.getByText('Email');
+      const labelStyle = label.props.style;
+      const flatStyle = Array.isArray(labelStyle)
+        ? Object.assign({}, ...labelStyle.filter(Boolean))
+        : labelStyle;
+      expect(flatStyle.color).toBe('#FF4757');
+    });
+  });
+
+  describe('Loading state', () => {
+    it('should show loading indicator when loading', () => {
+      render(<TextField loading testID="text-field" />);
+
+      expect(screen.getByTestId('text-field-loading')).toBeTruthy();
+    });
+
+    it('should not show loading indicator when not loading', () => {
+      render(<TextField testID="text-field" />);
+
+      expect(screen.queryByTestId('text-field-loading')).toBeNull();
+    });
+
+    it('should be non-editable when loading', () => {
+      render(<TextField loading testID="text-field" />);
+
+      const input = screen.getByTestId('text-field-input');
+      expect(input.props.editable).toBe(false);
+    });
+  });
 });
