@@ -1,5 +1,5 @@
 import { Text, StyleSheet } from 'react-native';
-import { colors, spacing, typography } from '@/lib/theme/tokens';
+import { colors, spacing, typographyPresets } from '@/lib/theme/tokens';
 
 interface QuestionTextProps {
   text: string;
@@ -11,11 +11,9 @@ export function QuestionText({ text }: QuestionTextProps) {
 
 const styles = StyleSheet.create({
   text: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
+    ...typographyPresets.hero,
     marginBottom: spacing.sm,
     marginTop: 0,
     color: colors.neutral.black,
-    lineHeight: typography.fontSize.lg * typography.lineHeight.normal,
   },
 });
