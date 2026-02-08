@@ -32,18 +32,6 @@ The code should be in english but the user facing strings in Brazilian Portugues
 📱 **[App & Navigation Guide](/app/CLAUDE.md)** - Screens, routing, layouts
 📋 **[Architecture Decisions](/docs/plans/)** - Detailed design docs
 
----
-
-## Getting Started
-
-### Run the App
-
-```bash
-npm install        # Install dependencies
-npm start          # Start Expo dev server
-# Then press 'i' for iOS or 'a' for Android
-```
-
 ### Add a Feature
 
 1. **Database table?** → See [/db/CLAUDE.md](/db/CLAUDE.md)

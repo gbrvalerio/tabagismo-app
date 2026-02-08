@@ -49,3 +49,12 @@ jest.mock('@/components/haptic-tab', () => ({
 jest.mock('@/components/ui/icon-symbol', () => ({
   IconSymbol: jest.fn((props) => null),
 }));
+
+// Set shorter timeout to prevent hanging
+jest.setTimeout(5000);
+
+// Clean up after each test
+afterEach(() => {
+  jest.clearAllTimers();
+  jest.useRealTimers();
+});
