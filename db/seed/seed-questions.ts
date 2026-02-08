@@ -182,6 +182,25 @@ export const onboardingQuestionsData: NewQuestion[] = [
       ],
     },
   },
+  {
+    key: "religion",
+    order: 14,
+    type: QuestionType.SINGLE_CHOICE,
+    category: QuestionCategory.PROFILE,
+    questionText: "Qual é a sua crença ou espiritualidade?",
+    required: true,
+    metadata: {
+      choices: [
+        "Católica",
+        "Evangélica",
+        "Espírita",
+        "Umbanda",
+        "Candomblé",
+        "Não tenho crença",
+        "Outro",
+      ],
+    },
+  },
 ];
 
 export async function seedOnboardingQuestions() {
