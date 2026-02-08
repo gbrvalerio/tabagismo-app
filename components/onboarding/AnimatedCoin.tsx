@@ -16,6 +16,7 @@ interface AnimatedCoinProps {
   size: number;
   variant: 'outlined' | 'filled';
   animate?: boolean;
+  animateToSize?: number;
   highlighted?: boolean;
   showGlow?: boolean;
   onAnimationComplete?: () => void;
@@ -26,6 +27,7 @@ export function AnimatedCoin({
   size,
   variant,
   animate = false,
+  animateToSize,
   highlighted = false,
   showGlow = false,
   onAnimationComplete,
@@ -34,6 +36,7 @@ export function AnimatedCoin({
   const scaleX = useSharedValue(1);
   const scale = useSharedValue(1);
   const glowRadius = useSharedValue(4);
+  const animatedSize = useSharedValue(size);
   const hasAnimated = useRef(false);
 
   useEffect(() => {
@@ -54,6 +57,14 @@ export function AnimatedCoin({
         withTiming(6, { duration: 300, easing: Easing.inOut(Easing.cubic) })
       );
 
+      // Size growth animation: size → animateToSize over 600ms
+      if (animateToSize && animateToSize !== size) {
+        animatedSize.value = withTiming(animateToSize, {
+          duration: 600,
+          easing: Easing.inOut(Easing.cubic),
+        });
+      }
+
       // Call onAnimationComplete after 600ms
       if (onAnimationComplete) {
         const timeout = setTimeout(() => {
@@ -62,7 +73,7 @@ export function AnimatedCoin({
         return () => clearTimeout(timeout);
       }
     }
-  }, [animate, scaleX, glowRadius, onAnimationComplete]);
+  }, [animate, scaleX, glowRadius, animatedSize, animateToSize, size, onAnimationComplete]);
 
   useEffect(() => {
     if (highlighted) {
@@ -84,6 +95,8 @@ export function AnimatedCoin({
       { scaleX: scaleX.value },
       { scale: scale.value },
     ],
+    width: animatedSize.value,
+    height: animatedSize.value,
   }));
 
   const glowStyle = useAnimatedStyle(() => ({
@@ -94,10 +107,13 @@ export function AnimatedCoin({
     elevation: 4,
   }));
 
+  // Use target size for CoinSvg so SVG renders at full resolution
+  const svgSize = animateToSize ?? size;
+
   const coinContent = (
-    <Animated.View testID={testID} style={animatedStyle}>
+    <Animated.View testID={testID} style={[animatedStyle, { overflow: 'hidden' }]}>
       <CoinSvg
-        size={size}
+        size={svgSize}
         variant={variant}
         showGlow={showGlow}
       />

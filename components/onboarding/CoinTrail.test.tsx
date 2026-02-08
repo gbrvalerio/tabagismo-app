@@ -197,6 +197,25 @@ describe('CoinTrail', () => {
     expect(progressLineContainer.props.style.right).toBe(28);
   });
 
+  it('should render coins above progress line with z-index', () => {
+    const { toJSON } = render(
+      <CoinTrail
+        testID="coin-trail"
+        currentStep={1}
+        totalSteps={3}
+        answeredQuestions={[]}
+      />
+    );
+
+    const tree = toJSON();
+    const progressLineContainer = (tree as any).children[0];
+    const coinsRow = (tree as any).children[1];
+    expect(progressLineContainer.props.style.zIndex).toBe(0);
+    expect(progressLineContainer.props.style.elevation).toBe(0);
+    expect(coinsRow.props.style.zIndex).toBe(1);
+    expect(coinsRow.props.style.elevation).toBe(1);
+  });
+
   it('should render coins with showGlow for answered coins', () => {
     const { getAllByTestId } = render(
       <CoinTrail

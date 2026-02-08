@@ -158,6 +158,21 @@ describe('AnimatedCoin', () => {
     expect(onComplete).not.toHaveBeenCalled();
   });
 
+  it('should accept animateToSize prop for size growth animation', () => {
+    const { getByTestId, rerender } = render(
+      <AnimatedCoin size={20} variant="outlined" animate={false} animateToSize={24} />
+    );
+
+    expect(getByTestId('animated-coin')).toBeTruthy();
+
+    rerender(
+      <AnimatedCoin size={20} variant="outlined" animate={true} animateToSize={24} />
+    );
+
+    // Component should render without crashing during size animation
+    expect(getByTestId('animated-coin')).toBeTruthy();
+  });
+
   it('should render glow wrapper for animated shadow', () => {
     const { getByTestId } = render(
       <AnimatedCoin size={16} variant="filled" showGlow animate={false} />

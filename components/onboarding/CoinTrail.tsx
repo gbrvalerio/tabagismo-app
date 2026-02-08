@@ -50,7 +50,8 @@ export function CoinTrail({
           return (
             <AnimatedCoin
               key={index}
-              size={isAnswered ? COIN_SIZE_EARNED : COIN_SIZE_UNEARNED}
+              size={isAnimating ? COIN_SIZE_UNEARNED : (isAnswered ? COIN_SIZE_EARNED : COIN_SIZE_UNEARNED)}
+              animateToSize={isAnimating ? COIN_SIZE_EARNED : undefined}
               variant={isAnswered ? 'filled' : 'outlined'}
               highlighted={isCurrent}
               showGlow={isAnswered}
@@ -77,6 +78,8 @@ const styles = StyleSheet.create({
     top: '50%',
     height: 2,
     marginTop: -1,
+    zIndex: 0,
+    elevation: 0,
   },
   progressBackground: {
     position: 'absolute',
@@ -94,5 +97,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    zIndex: 1,
+    elevation: 1,
   },
 });
