@@ -157,4 +157,24 @@ describe('AnimatedCoin', () => {
 
     expect(onComplete).not.toHaveBeenCalled();
   });
+
+  it('should render glow wrapper for animated shadow', () => {
+    const { getByTestId } = render(
+      <AnimatedCoin size={16} variant="filled" showGlow animate={false} />
+    );
+    expect(getByTestId('animated-coin-glow')).toBeTruthy();
+  });
+
+  it('should animate glow pulse when flip animation triggers', () => {
+    const { getByTestId, rerender } = render(
+      <AnimatedCoin size={16} variant="outlined" showGlow animate={false} />
+    );
+
+    rerender(
+      <AnimatedCoin size={16} variant="outlined" showGlow animate={true} />
+    );
+
+    // Glow wrapper should exist during animation
+    expect(getByTestId('animated-coin-glow')).toBeTruthy();
+  });
 });

@@ -7,7 +7,6 @@ import Animated, {
   withSpring,
   withTiming,
   Easing,
-  runOnJS,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
@@ -34,6 +33,7 @@ export function AnimatedCoin({
 }: AnimatedCoinProps) {
   const scaleX = useSharedValue(1);
   const scale = useSharedValue(1);
+  const glowRadius = useSharedValue(4);
   const hasAnimated = useRef(false);
 
   useEffect(() => {
@@ -48,6 +48,12 @@ export function AnimatedCoin({
         withTiming(1, { duration: 300, easing: Easing.inOut(Easing.cubic) })
       );
 
+      // Glow pulse synchronized with flip: 4 → 12 → 6px
+      glowRadius.value = withSequence(
+        withTiming(12, { duration: 300, easing: Easing.inOut(Easing.cubic) }),
+        withTiming(6, { duration: 300, easing: Easing.inOut(Easing.cubic) })
+      );
+
       // Call onAnimationComplete after 600ms
       if (onAnimationComplete) {
         const timeout = setTimeout(() => {
@@ -56,7 +62,7 @@ export function AnimatedCoin({
         return () => clearTimeout(timeout);
       }
     }
-  }, [animate, scaleX, onAnimationComplete]);
+  }, [animate, scaleX, glowRadius, onAnimationComplete]);
 
   useEffect(() => {
     if (highlighted) {
@@ -80,7 +86,15 @@ export function AnimatedCoin({
     ],
   }));
 
-  return (
+  const glowStyle = useAnimatedStyle(() => ({
+    shadowColor: '#F7A531',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: glowRadius.value,
+    elevation: 4,
+  }));
+
+  const coinContent = (
     <Animated.View testID={testID} style={animatedStyle}>
       <CoinSvg
         size={size}
@@ -89,4 +103,14 @@ export function AnimatedCoin({
       />
     </Animated.View>
   );
+
+  if (showGlow) {
+    return (
+      <Animated.View testID={`${testID}-glow`} style={glowStyle}>
+        {coinContent}
+      </Animated.View>
+    );
+  }
+
+  return coinContent;
 }
