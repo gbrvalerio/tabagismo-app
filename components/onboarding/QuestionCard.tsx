@@ -76,12 +76,15 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     marginTop: spacing.xs,
+    flexGrow: 1, // Allows card to grow when space is available
   },
   shadowWrapper: {
+    flex: 1, // Takes available space from container
     borderRadius: borderRadius.xl,
     ...shadows.md,
   },
   card: {
+    flex: 1, // Takes available space from shadowWrapper
     padding: spacing.xl,
     borderRadius: borderRadius.xl,
     backgroundColor: colors.neutral.white,

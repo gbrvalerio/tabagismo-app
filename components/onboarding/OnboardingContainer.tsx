@@ -362,16 +362,18 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   cardWrapper: {
-    // Card sizes to content, not stretched
+    flexGrow: 1, // Grows to fill space when button is hidden, shrinks when button is shown
   },
   questionHeader: {
     marginBottom: spacing.sm,
   },
   scrollView: {
-    maxHeight: 400, // Limit height so card doesn't grow too large
+    flexGrow: 1, // Grows to fill available space in card
+    flexShrink: 1, // Shrinks when constrained
   },
   scrollContent: {
     paddingBottom: spacing.xl,
+    flexGrow: 1, // Ensures content can expand to fill ScrollView
   },
   footer: {
     paddingHorizontal: spacing.md,

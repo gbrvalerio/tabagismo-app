@@ -27,7 +27,7 @@ describe('QuestionCard', () => {
     expect(toJSON()).toBeDefined();
   });
 
-  it('should size to content width', () => {
+  it('should grow to fill available space', () => {
     const { getByTestId } = render(
       <QuestionCard questionKey="test-key">
         <Text>Content</Text>
@@ -40,8 +40,8 @@ describe('QuestionCard', () => {
       ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
       : styles;
 
-    // Card should size to content (no flex: 1) but maintain full width
-    expect(flatStyle.flex).toBeUndefined();
+    // Card should have flexGrow to fill available space when button is hidden
+    expect(flatStyle.flexGrow).toBe(1);
     expect(flatStyle.width).toBe('100%');
   });
 
