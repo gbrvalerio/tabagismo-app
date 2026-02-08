@@ -24,7 +24,9 @@ jest.mock('expo-router', () => {
   };
 });
 
-// Mock expo-sqlite
+// Mock expo-sqlite - NOTE: This is a generic mock that returns a default database object.
+// Tests that need specific mock behavior for openDatabaseSync should define their own
+// jest.mock('expo-sqlite') in their test file before any imports.
 jest.mock('expo-sqlite', () => ({
   openDatabaseSync: jest.fn(() => ({
     execSync: jest.fn(),
@@ -40,6 +42,17 @@ jest.mock('react-native/Libraries/Alert/Alert', () => ({
     alert: jest.fn(),
   },
 }));
+
+// Mock drizzle-orm/expo-sqlite
+jest.mock('drizzle-orm/expo-sqlite', () => {
+  const migrateFn = jest.fn().mockResolvedValue(undefined);
+  const drizzleFn = jest.fn(() => ({}));
+
+  return {
+    drizzle: drizzleFn,
+    migrate: migrateFn,
+  };
+});
 
 // Mock missing components - HapticTab should render Pressable with children
 jest.mock('@/components/haptic-tab', () => {
