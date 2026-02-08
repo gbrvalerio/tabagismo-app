@@ -1,13 +1,11 @@
 import { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withSequence,
-  withTiming,
 } from 'react-native-reanimated';
-import { colors, spacing, borderRadius, typography, shadows } from '@/lib/theme/tokens';
+import { colors, spacing, borderRadius, shadows } from '@/lib/theme/tokens';
 import { animations } from '@/lib/theme/animations';
 
 interface ProgressBarProps {
@@ -21,6 +19,7 @@ export function ProgressBar({ progress, currentStep, totalSteps }: ProgressBarPr
 
   useEffect(() => {
     width.value = withSpring(progress, animations.gentleSpring);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress]);
 
   const animatedStyle = useAnimatedStyle(() => ({

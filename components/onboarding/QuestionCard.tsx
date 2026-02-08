@@ -1,14 +1,14 @@
-import { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { animations } from "@/lib/theme/animations";
+import { borderRadius, colors, shadows, spacing } from "@/lib/theme/tokens";
+import { useEffect } from "react";
+import { StyleSheet, View } from "react-native";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withTiming,
-  withSpring,
+  useSharedValue,
   withSequence,
-} from 'react-native-reanimated';
-import { colors, spacing, borderRadius, shadows } from '@/lib/theme/tokens';
-import { animations } from '@/lib/theme/animations';
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 
 interface QuestionCardProps {
   children: React.ReactNode;
@@ -26,8 +26,9 @@ export function QuestionCard({ children }: QuestionCardProps) {
     opacity.value = withTiming(1, { duration: 400 });
     rotate.value = withSequence(
       withSpring(2, { ...animations.gentleSpring, damping: 8 }),
-      withSpring(0, animations.gentleSpring)
+      withSpring(0, animations.gentleSpring),
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -40,7 +41,10 @@ export function QuestionCard({ children }: QuestionCardProps) {
   }));
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]} testID="question-card">
+    <Animated.View
+      style={[styles.container, animatedStyle]}
+      testID="question-card"
+    >
       <View style={styles.shadowWrapper}>
         <View style={styles.card}>
           <View style={styles.accentBar} />
@@ -53,21 +57,24 @@ export function QuestionCard({ children }: QuestionCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    flex: 1,
+    width: "100%",
     marginTop: spacing.xs,
   },
   shadowWrapper: {
+    flex: 1,
     borderRadius: borderRadius.xl,
     ...shadows.md,
   },
   card: {
+    flex: 1,
     padding: spacing.xl,
     borderRadius: borderRadius.xl,
     backgroundColor: colors.neutral.white,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   accentBar: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,

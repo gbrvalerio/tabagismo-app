@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect } from '@jest/globals';
-import { render, screen } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { ProgressBar } from './ProgressBar';
 
 jest.mock('expo-linear-gradient', () => ({

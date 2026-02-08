@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import { View, Text } from 'react-native';
+import { Text } from 'react-native';
 import { ThemedView } from './themed-view';
 
 import { useThemeColor } from '@/hooks/use-theme-color';

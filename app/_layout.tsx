@@ -1,26 +1,31 @@
-import { useEffect, useState } from 'react';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+import { ErrorBoundary, FallbackProps } from "react-error-boundary";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import "react-native-reanimated";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { queryClient } from '@/lib/query-client';
-import { runMigrations } from '@/db';
-import { seedOnboardingQuestions } from '@/db/seed/seed-questions';
-import { db } from '@/db/client';
-import { questions } from '@/db/schema';
-import { OnboardingGuard } from '@/components/onboarding/OnboardingGuard';
+import { OnboardingGuard } from "@/components/onboarding/OnboardingGuard";
+import { runMigrations } from "@/db";
+import { db } from "@/db/client";
+import { questions } from "@/db/schema";
+import { seedOnboardingQuestions } from "@/db/seed/seed-questions";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { queryClient } from "@/lib/query-client";
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: "(tabs)",
 };
 
 function ErrorFallback({ error }: FallbackProps) {
-  const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+  const errorMessage =
+    error instanceof Error ? error.message : "An unknown error occurred";
   return (
     <View style={styles.errorContainer}>
       <Text style={styles.errorTitle}>Something went wrong</Text>
@@ -41,31 +46,31 @@ function LoadingScreen() {
 const styles = StyleSheet.create({
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   errorTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   errorMessage: {
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
 });
 
@@ -77,7 +82,7 @@ export default function RootLayout() {
     async function initDatabase() {
       await runMigrations();
       const existingQuestions = await db.select().from(questions).all();
-      if (existingQuestions.length === 0) {
+      if (existingQuestions.length === 0 || __DEV__) {
         await seedOnboardingQuestions();
       }
     }
@@ -85,7 +90,7 @@ export default function RootLayout() {
     initDatabase()
       .then(() => setDbReady(true))
       .catch((error) => {
-        console.error('Failed to initialize database:', error);
+        console.error("Failed to initialize database:", error);
         setDbReady(true); // Continue anyway to show error boundary
       });
   }, []);
@@ -97,15 +102,20 @@ export default function RootLayout() {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
           <OnboardingGuard>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+              <Stack.Screen
+                name="modal"
+                options={{ presentation: "modal", title: "Modal" }}
+              />
               <Stack.Screen
                 name="onboarding"
                 options={{
-                  presentation: 'modal',
+                  presentation: "modal",
                   headerShown: false,
                   gestureEnabled: false,
                 }}

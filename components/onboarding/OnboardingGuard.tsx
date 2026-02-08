@@ -14,7 +14,7 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
     if (!isLoading && onboardingCompleted === false) {
       router.replace('/onboarding');
     }
-  }, [onboardingCompleted, isLoading]);
+  }, [onboardingCompleted, isLoading, router]);
 
   if (isLoading) {
     return null;

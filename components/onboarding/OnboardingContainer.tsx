@@ -1,31 +1,48 @@
-import { useState, useEffect, useRef } from 'react';
 import {
-  View,
-  Text,
+  useCompleteOnboarding,
+  useDeleteDependentAnswers,
+  useOnboardingAnswers,
+  useOnboardingQuestions,
+  useSaveAnswer,
+} from "@/db/repositories";
+import {
+  calculateProgress,
+  computeApplicableQuestions,
+} from "@/lib/onboarding-flow";
+import { useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import {
   ActivityIndicator,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
   KeyboardAvoidingView,
-  Platform
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useOnboardingQuestions, useOnboardingAnswers, useSaveAnswer, useDeleteDependentAnswers, useCompleteOnboarding } from '@/db/repositories';
-import { useRouter } from 'expo-router';
-import { computeApplicableQuestions, calculateProgress } from '@/lib/onboarding-flow';
-import { ProgressBar } from './ProgressBar';
-import { QuestionCard } from './QuestionCard';
-import { QuestionText } from './QuestionText';
-import { QuestionInput } from './QuestionInput';
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ProgressBar } from "./ProgressBar";
+import { QuestionCard } from "./QuestionCard";
+import { QuestionInput } from "./QuestionInput";
+import { QuestionText } from "./QuestionText";
 
-import { colors, spacing, borderRadius, typography, shadows } from '@/lib/theme/tokens';
+import {
+  borderRadius,
+  colors,
+  shadows,
+  spacing,
+  typography,
+} from "@/lib/theme/tokens";
 
 export function OnboardingContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answersCache, setAnswersCache] = useState<Record<string, unknown>>({});
 
-  const { data: allQuestions, isLoading: questionsLoading } = useOnboardingQuestions();
-  const { data: existingAnswers, isLoading: answersLoading } = useOnboardingAnswers();
+  const { data: allQuestions, isLoading: questionsLoading } =
+    useOnboardingQuestions();
+  const { data: existingAnswers, isLoading: answersLoading } =
+    useOnboardingAnswers();
   const saveAnswerMutation = useSaveAnswer();
   const deleteDependentAnswersMutation = useDeleteDependentAnswers();
   const completeOnboardingMutation = useCompleteOnboarding();
@@ -40,20 +57,23 @@ export function OnboardingContainer() {
     initialLoadDone.current = true;
 
     // Load existing answers into cache
-    const cache = existingAnswers.reduce((acc, answer) => {
-      try {
-        acc[answer.questionKey] = JSON.parse(answer.answer);
-      } catch {
-        acc[answer.questionKey] = answer.answer;
-      }
-      return acc;
-    }, {} as Record<string, unknown>);
+    const cache = existingAnswers.reduce(
+      (acc, answer) => {
+        try {
+          acc[answer.questionKey] = JSON.parse(answer.answer);
+        } catch {
+          acc[answer.questionKey] = answer.answer;
+        }
+        return acc;
+      },
+      {} as Record<string, unknown>,
+    );
 
     setAnswersCache(cache);
 
     // Find first unanswered question
     const applicable = computeApplicableQuestions(allQuestions, cache);
-    const firstUnanswered = applicable.findIndex(q => !cache[q.key]);
+    const firstUnanswered = applicable.findIndex((q) => !cache[q.key]);
     setCurrentIndex(firstUnanswered === -1 ? 0 : firstUnanswered);
   }, [allQuestions, existingAnswers]);
 
@@ -75,15 +95,21 @@ export function OnboardingContainer() {
 
     // Delete dependent answers if this question has dependents
     if (allQuestions) {
-      const hasDependents = allQuestions.some(q => q.dependsOnQuestionKey === questionKey);
+      const hasDependents = allQuestions.some(
+        (q) => q.dependsOnQuestionKey === questionKey,
+      );
       if (hasDependents) {
         await deleteDependentAnswersMutation.mutateAsync({
           parentQuestionKey: questionKey,
         });
 
         // Remove dependent answers and all answers for questions that come after
-        const dependentQuestions = allQuestions.filter(q => q.dependsOnQuestionKey === questionKey);
-        const minDependentOrder = Math.min(...dependentQuestions.map(q => q.order));
+        const dependentQuestions = allQuestions.filter(
+          (q) => q.dependsOnQuestionKey === questionKey,
+        );
+        const minDependentOrder = Math.min(
+          ...dependentQuestions.map((q) => q.order),
+        );
 
         // Clear all answers from the minimum dependent order onwards
         for (const q of allQuestions) {
@@ -107,15 +133,23 @@ export function OnboardingContainer() {
 
   const currentQuestion = applicableQuestions[currentIndex];
   // Calculate progress based on current position in the question sequence
-  const progress = calculateProgress(currentIndex + 1, applicableQuestions.length);
+  const progress = calculateProgress(
+    currentIndex + 1,
+    applicableQuestions.length,
+  );
 
-  const currentAnswer = currentQuestion ? answersCache[currentQuestion.key] : null;
-  const isAnswered = currentAnswer !== undefined && currentAnswer !== null && currentAnswer !== '';
+  const currentAnswer = currentQuestion
+    ? answersCache[currentQuestion.key]
+    : null;
+  const isAnswered =
+    currentAnswer !== undefined &&
+    currentAnswer !== null &&
+    currentAnswer !== "";
   const isLastQuestion = currentIndex === applicableQuestions.length - 1;
 
   const handleFinish = async () => {
     await completeOnboardingMutation.mutateAsync();
-    router.replace('/(tabs)/' as any);
+    router.replace("/(tabs)/" as any);
   };
 
   const handleNext = () => {
@@ -131,9 +165,13 @@ export function OnboardingContainer() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']} testID="safe-area-container">
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={["top", "bottom"]}
+      testID="safe-area-container"
+    >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
         testID="keyboard-avoiding-view"
       >
@@ -159,26 +197,34 @@ export function OnboardingContainer() {
         {/* Content - Scrollable middle section */}
         <View style={styles.content}>
           {currentQuestion && (
-            <QuestionCard>
-              {/* Fixed question text */}
-              <View style={styles.questionHeader}>
-                <QuestionText text={currentQuestion.questionText} />
-              </View>
+            <View style={styles.cardWrapper}>
+              <QuestionCard>
+                {/* Fixed question text */}
+                <View style={styles.questionHeader}>
+                  <QuestionText text={currentQuestion.questionText} />
+                </View>
 
-              {/* Scrollable input area */}
-              <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-                testID="content-scroll-view"
-              >
-                <QuestionInput
-                  question={currentQuestion}
-                  value={(answersCache[currentQuestion.key] as string | number | string[] | undefined) ?? null}
-                  onChange={(value) => handleAnswer(currentQuestion.key, value)}
-                />
-              </ScrollView>
-            </QuestionCard>
+                {/* Scrollable input area */}
+                <ScrollView
+                  style={styles.scrollView}
+                  contentContainerStyle={styles.scrollContent}
+                  showsVerticalScrollIndicator={false}
+                  testID="content-scroll-view"
+                >
+                  <QuestionInput
+                    question={currentQuestion}
+                    value={
+                      (answersCache[currentQuestion.key] as
+                        | string
+                        | number
+                        | string[]
+                        | undefined) ?? null
+                    }
+                    onChange={(value) => handleAnswer(currentQuestion.key, value)}
+                  />
+                </ScrollView>
+              </QuestionCard>
+            </View>
           )}
         </View>
 
@@ -218,8 +264,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     paddingHorizontal: spacing.md,
@@ -227,7 +273,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xs,
   },
   backButton: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     paddingVertical: spacing.sm,
     marginBottom: spacing.sm,
   },
@@ -240,12 +286,14 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: spacing.md,
   },
+  cardWrapper: {
+    flex: 1,
+  },
   questionHeader: {
     marginBottom: spacing.sm,
   },
   scrollView: {
-    flexGrow: 0,
-    flexShrink: 1,
+    flex: 1,
   },
   scrollContent: {
     paddingBottom: spacing.xl,
@@ -255,21 +303,21 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   nextButton: {
-    width: '100%',
+    width: "100%",
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     backgroundColor: colors.primary.base,
     borderRadius: borderRadius.full,
-    alignItems: 'center',
+    alignItems: "center",
     ...shadows.md,
   },
   finishButton: {
-    width: '100%',
+    width: "100%",
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     backgroundColor: colors.semantic.success,
     borderRadius: borderRadius.full,
-    alignItems: 'center',
+    alignItems: "center",
     ...shadows.md,
   },
   buttonText: {

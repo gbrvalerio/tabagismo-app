@@ -58,12 +58,12 @@ describe('MultipleChoiceCards', () => {
   });
 
   it('should trigger haptic feedback on press', () => {
-    const Haptics = require('expo-haptics');
     const onChange = jest.fn();
+    const { impactAsync, ImpactFeedbackStyle } = jest.requireMock('expo-haptics');
     render(<MultipleChoiceCards choices={choices} value={[]} onChange={onChange} />);
 
     fireEvent.press(screen.getByText('Ansiedade'));
-    expect(Haptics.impactAsync).toHaveBeenCalledWith(Haptics.ImpactFeedbackStyle.Medium);
+    expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
   });
 
   it('should show selection counter when items are selected', () => {
