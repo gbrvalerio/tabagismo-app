@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { computeApplicableQuestions } from './onboarding-flow';
+import { computeApplicableQuestions, calculateProgress } from './onboarding-flow';
 
 // Define the type inline since the schema may not exist yet
 type MockQuestion = {
@@ -104,5 +104,29 @@ describe('computeApplicableQuestions', () => {
     expect(result[0].order).toBe(1);
     expect(result[1].order).toBe(2);
     expect(result[2].order).toBe(3);
+  });
+});
+
+describe('calculateProgress', () => {
+  it('should calculate percentage based on applicable questions', () => {
+    const answered = 5;
+    const total = 10;
+    const result = calculateProgress(answered, total);
+    expect(result).toBe(50);
+  });
+
+  it('should return 0 when no questions answered', () => {
+    const result = calculateProgress(0, 10);
+    expect(result).toBe(0);
+  });
+
+  it('should return 100 when all questions answered', () => {
+    const result = calculateProgress(10, 10);
+    expect(result).toBe(100);
+  });
+
+  it('should handle edge case of 0 total questions', () => {
+    const result = calculateProgress(0, 0);
+    expect(result).toBe(0);
   });
 });

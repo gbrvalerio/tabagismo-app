@@ -20,3 +20,8 @@ export function computeApplicableQuestions<T extends QuestionLike>(
       return parentAnswer === question.dependsOnValue;
     });
 }
+
+export function calculateProgress(answeredCount: number, totalCount: number): number {
+  if (totalCount === 0) return 0;
+  return Math.round((answeredCount / totalCount) * 100);
+}
