@@ -151,12 +151,14 @@ describe('settings.repository', () => {
     });
 
     it('should invalidate queries on successful mutation', async () => {
+      const wrapper = createWrapper();
+
       const { result: queryResult } = renderHook(() => useOnboardingStatus(), {
-        wrapper: createWrapper(),
+        wrapper,
       });
 
       const { result: mutationResult } = renderHook(() => useCompleteOnboarding(), {
-        wrapper: createWrapper(),
+        wrapper,
       });
 
       // Wait for initial query
@@ -171,12 +173,10 @@ describe('settings.repository', () => {
         mutationResult.current.mutate(undefined);
       });
 
+      // Mutation should complete
       await waitFor(() => {
-        expect(!mutationResult.current.isPending).toBe(true);
+        expect(mutationResult.current.isSuccess || mutationResult.current.isError).toBe(true);
       });
-
-      // Mutation completed
-      expect(mutationResult.current.isSuccess || mutationResult.current.isError).toBe(true);
     });
   });
 });
