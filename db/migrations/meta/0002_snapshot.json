@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6551dd92-15fd-405e-9222-fdc8b19a7d3d",
-  "prevId": "6689efa7-4980-490a-b00c-71106d4fb02f",
+  "id": "9d4f9fa5-2f49-41c5-922c-18bc30d94dc4",
+  "prevId": "6551dd92-15fd-405e-9222-fdc8b19a7d3d",
   "tables": {
     "settings": {
       "name": "settings",
@@ -162,6 +162,14 @@
           "notNull": true,
           "autoincrement": false
         },
+        "coin_awarded": {
+          "name": "coin_awarded",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
         "answered_at": {
           "name": "answered_at",
           "type": "integer",
@@ -186,6 +194,38 @@
           "isUnique": true
         }
       },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "users": {
+      "name": "users",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "coins": {
+          "name": "coins",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

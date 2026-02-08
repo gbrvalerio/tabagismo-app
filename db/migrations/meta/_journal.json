@@ -15,6 +15,13 @@
       "when": 1770519891786,
       "tag": "0001_add_onboarding_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1770573947246,
+      "tag": "0002_add_coins",
+      "breakpoints": true
     }
   ]
 }
