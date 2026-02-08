@@ -271,31 +271,31 @@ export function OnboardingContainer() {
           {currentQuestion && (
             <Animated.View style={styles.cardWrapper} layout={Layout.springify().damping(20).stiffness(120)}>
               <QuestionCard questionKey={currentQuestion.key}>
-                {/* Fixed question text */}
-                <View style={styles.questionHeader}>
-                  <QuestionText text={currentQuestion.questionText} />
-                </View>
+                  {/* Fixed question text */}
+                  <View style={styles.questionHeader}>
+                    <QuestionText text={currentQuestion.questionText} />
+                  </View>
 
-                {/* Scrollable input area */}
-                <ScrollView
-                  style={styles.scrollView}
-                  contentContainerStyle={styles.scrollContent}
-                  showsVerticalScrollIndicator={false}
-                  testID="content-scroll-view"
-                >
-                  <QuestionInput
-                    question={currentQuestion}
-                    value={
-                      (answersCache[currentQuestion.key] as
-                        | string
-                        | number
-                        | string[]
-                        | undefined) ?? null
-                    }
-                    onChange={(value) => handleAnswer(currentQuestion.key, value)}
-                  />
-                </ScrollView>
-              </QuestionCard>
+                  {/* Scrollable input area */}
+                  <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    testID="content-scroll-view"
+                  >
+                    <QuestionInput
+                      question={currentQuestion}
+                      value={
+                        (answersCache[currentQuestion.key] as
+                          | string
+                          | number
+                          | string[]
+                          | undefined) ?? null
+                      }
+                      onChange={(value) => handleAnswer(currentQuestion.key, value)}
+                    />
+                  </ScrollView>
+                </QuestionCard>
             </Animated.View>
           )}
         </View>
@@ -304,32 +304,34 @@ export function OnboardingContainer() {
         <View style={styles.footer} testID="onboarding-footer">
           {isAnswered && !isLastQuestion && (
             <Animated.View
-              style={buttonAnimatedStyle}
               entering={FadeInDown.springify().damping(18).stiffness(140)}
               key={`next-${currentQuestion?.key}`}
             >
-              <TouchableOpacity
-                onPress={handleNext}
-                activeOpacity={0.7}
-                style={styles.nextButton}
-              >
-                <Text style={styles.buttonText}>Próxima →</Text>
-              </TouchableOpacity>
+              <Animated.View style={buttonAnimatedStyle}>
+                <TouchableOpacity
+                  onPress={handleNext}
+                  activeOpacity={0.7}
+                  style={styles.nextButton}
+                >
+                  <Text style={styles.buttonText}>Próxima →</Text>
+                </TouchableOpacity>
+              </Animated.View>
             </Animated.View>
           )}
           {isAnswered && isLastQuestion && (
             <Animated.View
-              style={buttonAnimatedStyle}
               entering={FadeInDown.springify().damping(18).stiffness(140)}
               key={`finish-${currentQuestion?.key}`}
             >
-              <TouchableOpacity
-                onPress={handleFinish}
-                activeOpacity={0.7}
-                style={styles.finishButton}
-              >
-                <Text style={styles.finishButtonText}>✓ Concluir</Text>
-              </TouchableOpacity>
+              <Animated.View style={buttonAnimatedStyle}>
+                <TouchableOpacity
+                  onPress={handleFinish}
+                  activeOpacity={0.7}
+                  style={styles.finishButton}
+                >
+                  <Text style={styles.finishButtonText}>✓ Concluir</Text>
+                </TouchableOpacity>
+              </Animated.View>
             </Animated.View>
           )}
         </View>
