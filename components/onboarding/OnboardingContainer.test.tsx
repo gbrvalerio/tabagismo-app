@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react-native';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react-native';
 import { OnboardingContainer } from './OnboardingContainer';
 
 jest.mock('expo-linear-gradient', () => ({
@@ -1128,6 +1128,64 @@ describe('OnboardingContainer - Idle Animations', () => {
     expect(screen.getByText('First?')).toBeDefined();
   });
 
+  it('should clear active idle timer when navigating back', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First?')).toBeDefined();
+    });
+
+    // Answer first question to start idle timer
+    const input = screen.getByDisplayValue('');
+    fireEvent.changeText(input, 'Answer');
+
+    await waitFor(() => {
+      expect(screen.getByText('Próxima →')).toBeDefined();
+    });
+
+    // Navigate to second question
+    fireEvent.press(screen.getByText('Próxima →'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeDefined();
+    });
+
+    // Answer second question to start an idle timer
+    const input2 = screen.getByDisplayValue('');
+    fireEvent.changeText(input2, 'Answer 2');
+
+    await waitFor(() => {
+      expect(screen.getByText('✓ Concluir')).toBeDefined();
+    });
+
+    // Advance time partially so idle timer is pending
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    // Navigate back — this should clear the active idle timer
+    fireEvent.press(screen.getByText('← Voltar'));
+
+    await waitFor(() => {
+      expect(screen.getByText('First?')).toBeDefined();
+    });
+
+    // Advance past the 3s threshold — no crash or unexpected behavior
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+    });
+    expect(screen.getByText('First?')).toBeDefined();
+  });
+
   it('should not trigger idle animation when question is not answered', async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
@@ -1309,70 +1367,3 @@ describe('coin award logic', () => {
   });
 });
 
-describe('coin burst animation', () => {
-  const mockSaveMutateAsync = jest.fn().mockResolvedValue(undefined);
-  const mockIncrementMutateAsync = jest.fn().mockResolvedValue(undefined);
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockSaveMutateAsync });
-    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
-    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
-    mockUseUserCoins.mockReturnValue({ data: 0, isLoading: false, isSuccess: true });
-    mockUseIncrementCoins.mockReturnValue({ mutateAsync: mockIncrementMutateAsync });
-  });
-
-  it('should show animation on first answer', async () => {
-    mockUseOnboardingQuestions.mockReturnValue({
-      data: mockQuestions,
-      isLoading: false,
-      isSuccess: true,
-    });
-    mockUseOnboardingAnswers.mockReturnValue({
-      data: [],
-      isLoading: false,
-      isSuccess: true,
-    });
-
-    render(<OnboardingContainer />);
-
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('')).toBeDefined();
-    });
-
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Test answer');
-
-    await waitFor(() => {
-      expect(screen.getByTestId('coin-burst')).toBeDefined();
-    });
-  });
-
-  it('should not show animation on answer update', async () => {
-    mockUseOnboardingQuestions.mockReturnValue({
-      data: mockQuestions,
-      isLoading: false,
-      isSuccess: true,
-    });
-    mockUseOnboardingAnswers.mockReturnValue({
-      data: [{ questionKey: 'name', answer: JSON.stringify('First answer'), coinAwarded: true }],
-      isLoading: false,
-      isSuccess: true,
-    });
-
-    render(<OnboardingContainer />);
-
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('First answer')).toBeDefined();
-    });
-
-    const input = screen.getByDisplayValue('First answer');
-    fireEvent.changeText(input, 'Updated answer');
-
-    await waitFor(() => {
-      expect(mockSaveMutateAsync).toHaveBeenCalled();
-    });
-
-    expect(screen.queryByTestId('coin-burst')).toBeNull();
-  });
-});

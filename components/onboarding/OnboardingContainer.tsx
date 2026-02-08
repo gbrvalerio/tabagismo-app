@@ -31,10 +31,8 @@ import Animated, {
   FadeInDown,
   Layout,
 } from "react-native-reanimated";
-import { CoinBurstAnimation } from "./CoinBurstAnimation";
 import { CoinCounter } from "./CoinCounter";
 import { CoinTrail } from "./CoinTrail";
-import { QuestionCard } from "./QuestionCard";
 import { QuestionInput } from "./QuestionInput";
 import { QuestionText } from "./QuestionText";
 
@@ -50,7 +48,6 @@ import { animations } from "@/lib/theme/animations";
 export function OnboardingContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answersCache, setAnswersCache] = useState<Record<string, unknown>>({});
-  const [showCoinAnimation, setShowCoinAnimation] = useState(false);
 
   const { data: allQuestions, isLoading: questionsLoading } =
     useOnboardingQuestions();
@@ -182,7 +179,6 @@ export function OnboardingContainer() {
 
     // Award coin only for new answers
     if (isFirstTime) {
-      setShowCoinAnimation(true);
       await incrementCoinsMutation.mutateAsync(1);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
@@ -274,7 +270,6 @@ export function OnboardingContainer() {
             <View style={styles.spacer} />
             <CoinCounter testID="coin-counter" />
           </View>
-          <View style={styles.headerSeparator} testID="header-separator" />
           <CoinTrail
             testID="coin-trail"
             currentStep={currentIndex + 1}
@@ -291,32 +286,30 @@ export function OnboardingContainer() {
         <View style={styles.content}>
           {currentQuestion && (
             <Animated.View style={styles.cardWrapper} layout={Layout.springify().damping(20).stiffness(120)}>
-              <QuestionCard questionKey={currentQuestion.key}>
-                  {/* Fixed question text */}
-                  <View style={styles.questionHeader}>
-                    <QuestionText text={currentQuestion.questionText} />
-                  </View>
+                {/* Fixed question text */}
+                <View style={styles.questionHeader}>
+                  <QuestionText text={currentQuestion.questionText} />
+                </View>
 
-                  {/* Scrollable input area */}
-                  <ScrollView
-                    style={styles.scrollView}
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                    testID="content-scroll-view"
-                  >
-                    <QuestionInput
-                      question={currentQuestion}
-                      value={
-                        (answersCache[currentQuestion.key] as
-                          | string
-                          | number
-                          | string[]
-                          | undefined) ?? null
-                      }
-                      onChange={(value) => handleAnswer(currentQuestion.key, value)}
-                    />
-                  </ScrollView>
-                </QuestionCard>
+                {/* Scrollable input area */}
+                <ScrollView
+                  style={styles.scrollView}
+                  contentContainerStyle={styles.scrollContent}
+                  showsVerticalScrollIndicator={false}
+                  testID="content-scroll-view"
+                >
+                  <QuestionInput
+                    question={currentQuestion}
+                    value={
+                      (answersCache[currentQuestion.key] as
+                        | string
+                        | number
+                        | string[]
+                        | undefined) ?? null
+                    }
+                    onChange={(value) => handleAnswer(currentQuestion.key, value)}
+                  />
+                </ScrollView>
             </Animated.View>
           )}
         </View>
@@ -357,10 +350,6 @@ export function OnboardingContainer() {
           )}
         </View>
       </KeyboardAvoidingView>
-      <CoinBurstAnimation
-        isVisible={showCoinAnimation}
-        onComplete={() => setShowCoinAnimation(false)}
-      />
     </SafeAreaView>
   );
 }
@@ -391,11 +380,6 @@ const styles = StyleSheet.create({
   },
   spacer: {
     flex: 1,
-  },
-  headerSeparator: {
-    height: 1,
-    backgroundColor: colors.neutral.gray[200],
-    marginBottom: spacing.sm,
   },
   backButton: {
     alignSelf: "flex-start",
