@@ -29,6 +29,8 @@ import Animated, {
   withSpring,
   withTiming,
   Easing,
+  FadeInDown,
+  Layout,
 } from "react-native-reanimated";
 import { ProgressBar } from "./ProgressBar";
 import { QuestionCard } from "./QuestionCard";
@@ -267,7 +269,7 @@ export function OnboardingContainer() {
         {/* Content - Scrollable middle section */}
         <View style={styles.content}>
           {currentQuestion && (
-            <View style={styles.cardWrapper}>
+            <Animated.View style={styles.cardWrapper} layout={Layout.springify().damping(20).stiffness(120)}>
               <QuestionCard questionKey={currentQuestion.key}>
                 {/* Fixed question text */}
                 <View style={styles.questionHeader}>
@@ -294,14 +296,18 @@ export function OnboardingContainer() {
                   />
                 </ScrollView>
               </QuestionCard>
-            </View>
+            </Animated.View>
           )}
         </View>
 
         {/* Footer - Fixed at bottom */}
         <View style={styles.footer} testID="onboarding-footer">
           {isAnswered && !isLastQuestion && (
-            <Animated.View style={buttonAnimatedStyle}>
+            <Animated.View
+              style={buttonAnimatedStyle}
+              entering={FadeInDown.springify().damping(18).stiffness(140)}
+              key={`next-${currentQuestion?.key}`}
+            >
               <TouchableOpacity
                 onPress={handleNext}
                 activeOpacity={0.7}
@@ -312,7 +318,11 @@ export function OnboardingContainer() {
             </Animated.View>
           )}
           {isAnswered && isLastQuestion && (
-            <Animated.View style={buttonAnimatedStyle}>
+            <Animated.View
+              style={buttonAnimatedStyle}
+              entering={FadeInDown.springify().damping(18).stiffness(140)}
+              key={`finish-${currentQuestion?.key}`}
+            >
               <TouchableOpacity
                 onPress={handleFinish}
                 activeOpacity={0.7}
