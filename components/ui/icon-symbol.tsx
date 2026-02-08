@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
 export function IconSymbol({
   size,
@@ -10,5 +10,12 @@ export function IconSymbol({
   color?: string;
   name: string;
 }) {
-  return <View />;
+  const styles = StyleSheet.create({
+    icon: {
+      ...(size !== undefined && { width: size, height: size }),
+      ...(color !== undefined && { tintColor: color }),
+    },
+  });
+
+  return <View testID="icon-symbol" style={styles.icon} />;
 }

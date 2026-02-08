@@ -45,13 +45,10 @@ describe('settings.repository', () => {
         wrapper: createWrapper(),
       });
 
-      // Test that query executes and resolves
-      await waitFor(() => {
-        expect(result.current.isLoading || !result.current.isLoading).toBe(true);
-      });
-
       // Should finish loading
-      expect(!result.current.isLoading).toBe(true);
+      await waitFor(() => {
+        expect(!result.current.isLoading).toBe(true);
+      });
     });
 
     it('should properly compare value with "true" string', async () => {
@@ -147,12 +144,10 @@ describe('settings.repository', () => {
         result.current.mutate(undefined);
       });
 
-      await waitFor(() => {
-        expect(!result.current.isPending).toBe(true);
-      });
-
       // Mutation should complete
-      expect(result.current.isSuccess || result.current.isError).toBe(true);
+      await waitFor(() => {
+        expect(result.current.isSuccess || result.current.isError).toBe(true);
+      });
     });
 
     it('should invalidate queries on successful mutation', async () => {
