@@ -77,19 +77,16 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: spacing.xs,
     flexShrink: 1, // Allows card to shrink when constrained by footer
-    minHeight: 0, // Enables proper flexbox shrinking
   },
   shadowWrapper: {
     borderRadius: borderRadius.xl,
     ...shadows.md,
-    flex: 1, // Takes available space from container
   },
   card: {
     padding: spacing.xl,
     borderRadius: borderRadius.xl,
     backgroundColor: colors.neutral.white,
     overflow: "hidden",
-    flex: 1, // Takes available space from shadowWrapper
   },
   accentBar: {
     position: "absolute",
