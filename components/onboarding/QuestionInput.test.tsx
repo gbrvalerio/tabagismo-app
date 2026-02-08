@@ -17,6 +17,13 @@ jest.mock('expo-haptics', () => ({
   impactAsync: jest.fn(),
 }));
 
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = require('react-native-reanimated/mock');
+  Reanimated.default.call = () => {};
+  return Reanimated;
+});
+
 const makeQuestion = (overrides: Partial<Question>): Question => ({
   id: 1,
   key: 'test',
@@ -36,13 +43,13 @@ describe('QuestionInput', () => {
   it('should render TextInput for TEXT type', () => {
     const question = makeQuestion({ key: 'name', type: 'TEXT' });
     render(<QuestionInput question={question} value="" onChange={() => {}} />);
-    expect(screen.getByPlaceholderText('Digite sua resposta')).toBeDefined();
+    expect(screen.getByText('Digite sua resposta')).toBeDefined();
   });
 
   it('should render NumberInput for NUMBER type', () => {
     const question = makeQuestion({ key: 'age', type: 'NUMBER' });
     render(<QuestionInput question={question} value={null} onChange={() => {}} />);
-    expect(screen.getByPlaceholderText('Digite um número')).toBeDefined();
+    expect(screen.getByText('Digite um número')).toBeDefined();
   });
 
   it('should render SingleChoiceCards for SINGLE_CHOICE type', () => {

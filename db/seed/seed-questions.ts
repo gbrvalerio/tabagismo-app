@@ -123,7 +123,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     questionText: "Quantas vezes você já tentou parar?",
     required: true,
     metadata: {
-      choices: ["1 vez", "2 vezes", "3 vezes", "4 vezes", "5+ vezes"],
+      choices: ["Nunca tentei", "1 vez", "2-5 vezes", "Já perdi a conta"],
     },
   },
   {
@@ -131,7 +131,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     order: 11,
     type: QuestionType.SINGLE_CHOICE,
     category: QuestionCategory.MOTIVATION,
-    questionText: "Quando você deseja parar de fumar?",
+    questionText: "Em quanto tempo você quer parar de fumar?",
     required: true,
     metadata: {
       choices: [

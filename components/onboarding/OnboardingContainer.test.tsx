@@ -199,10 +199,10 @@ describe('OnboardingContainer - Answer Handling', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('Digite sua resposta')).toBeDefined();
+      expect(screen.getByDisplayValue('')).toBeDefined();
     });
 
-    const input = screen.getByPlaceholderText('Digite sua resposta');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'João');
 
     await waitFor(() => {
@@ -229,10 +229,10 @@ describe('OnboardingContainer - Answer Handling', () => {
 
     // On first question (index 0)
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('Digite sua resposta')).toBeDefined();
+      expect(screen.getByDisplayValue('')).toBeDefined();
     });
 
-    const input = screen.getByPlaceholderText('Digite sua resposta');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'Answer');
 
     // After answering, next button should appear
@@ -275,7 +275,7 @@ describe('OnboardingContainer - Navigation', () => {
       expect(screen.getByText('First?')).toBeDefined();
     });
 
-    const input = screen.getByPlaceholderText('Digite sua resposta');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'Answer');
 
     await waitFor(() => {
@@ -301,7 +301,7 @@ describe('OnboardingContainer - Navigation', () => {
       expect(screen.getByText('First?')).toBeDefined();
     });
 
-    const input = screen.getByPlaceholderText('Digite sua resposta');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'Answer');
 
     await waitFor(() => {
@@ -421,7 +421,7 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
       expect(screen.getByText('First?')).toBeDefined();
     });
 
-    const input = screen.getByPlaceholderText('Digite sua resposta');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'Answer');
 
     await waitFor(() => {
@@ -592,7 +592,7 @@ describe('OnboardingContainer - Infinite Loop Prevention', () => {
     });
 
     // Navigate to second question and answer it
-    const input = screen.getByPlaceholderText('Digite sua resposta');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'Answer 2');
 
     await waitFor(() => {
@@ -678,7 +678,7 @@ describe('OnboardingContainer - Completion', () => {
       expect(screen.getByText('Qual é o seu nome?')).toBeDefined();
     });
 
-    const input = screen.getByPlaceholderText('Digite sua resposta');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'João');
 
     await waitFor(() => {
@@ -704,7 +704,7 @@ describe('OnboardingContainer - Completion', () => {
       expect(screen.getByText('Qual é o seu nome?')).toBeDefined();
     });
 
-    const input = screen.getByPlaceholderText('Digite sua resposta');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'João');
 
     await waitFor(() => {
@@ -911,7 +911,7 @@ describe('Integration: Complete onboarding flow', () => {
     expect(screen.getByTestId('keyboard-avoiding-view')).toBeDefined();
 
     // Answer first question
-    const input = screen.getByPlaceholderText('Digite sua resposta');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'Answer 1');
 
     await waitFor(() => {
@@ -933,7 +933,7 @@ describe('Integration: Complete onboarding flow', () => {
     expect(screen.getByText('← Voltar')).toBeDefined();
 
     // Answer second question
-    const input2 = screen.getByPlaceholderText('Digite sua resposta');
+    const input2 = screen.getByDisplayValue('');
     fireEvent.changeText(input2, 'Answer 2');
 
     await waitFor(() => {
@@ -1025,7 +1025,7 @@ describe('OnboardingContainer - Idle Animations', () => {
     });
 
     // Answer the question
-    const input = screen.getByPlaceholderText('Digite sua resposta');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'Answer');
 
     await waitFor(() => {
@@ -1056,7 +1056,7 @@ describe('OnboardingContainer - Idle Animations', () => {
     });
 
     // Answer first question
-    const input = screen.getByPlaceholderText('Digite sua resposta');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'Answer');
 
     await waitFor(() => {

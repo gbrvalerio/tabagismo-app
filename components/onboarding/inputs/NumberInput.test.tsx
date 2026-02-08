@@ -1,22 +1,38 @@
 import React from 'react';
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { OnboardingNumberInput } from './NumberInput';
 
-// Mock the useThemeColor hook
-jest.mock('@/hooks/use-theme-color', () => ({
-  useThemeColor: () => '#000000',
+// Mock expo-haptics
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: {
+    Light: 'light',
+    Medium: 'medium',
+    Heavy: 'heavy',
+  },
 }));
 
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = require('react-native-reanimated/mock');
+  Reanimated.default.call = () => {};
+  return Reanimated;
+});
+
 describe('OnboardingNumberInput', () => {
-  it('should render with placeholder', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should render with placeholder as floating label', () => {
     render(<OnboardingNumberInput value={null} onChange={() => {}} placeholder="Idade" />);
-    expect(screen.getByPlaceholderText('Idade')).toBeDefined();
+    expect(screen.getByText('Idade')).toBeDefined();
   });
 
   it('should have numeric keyboard', () => {
     render(<OnboardingNumberInput value={null} onChange={() => {}} placeholder="Idade" />);
-    const input = screen.getByPlaceholderText('Idade');
+    const input = screen.getByDisplayValue('');
     expect(input.props.keyboardType).toBe('numeric');
   });
 
@@ -24,7 +40,7 @@ describe('OnboardingNumberInput', () => {
     const onChange = jest.fn();
     render(<OnboardingNumberInput value={null} onChange={onChange} placeholder="Idade" />);
 
-    const input = screen.getByPlaceholderText('Idade');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, '25');
 
     expect(onChange).toHaveBeenCalledWith(25);
@@ -34,7 +50,7 @@ describe('OnboardingNumberInput', () => {
     const onChange = jest.fn();
     render(<OnboardingNumberInput value={null} onChange={onChange} placeholder="Idade" />);
 
-    const input = screen.getByPlaceholderText('Idade');
+    const input = screen.getByDisplayValue('');
     fireEvent.changeText(input, 'abc');
 
     expect(onChange).not.toHaveBeenCalled();
@@ -47,7 +63,7 @@ describe('OnboardingNumberInput', () => {
 
   it('should display empty string when value is null', () => {
     render(<OnboardingNumberInput value={null} onChange={() => {}} placeholder="Idade" />);
-    const input = screen.getByPlaceholderText('Idade');
+    const input = screen.getByDisplayValue('');
     expect(input.props.value).toBe('');
   });
 
@@ -57,13 +73,13 @@ describe('OnboardingNumberInput', () => {
 
     render(<OnboardingNumberInput value={null} onChange={onChange} placeholder="Idade" />);
 
-    // Verify timer is scheduled (there should be 1 timer pending)
+    // Verify timer is scheduled
     expect(jest.getTimerCount()).toBe(1);
 
     // Fast-forward past the 300ms delay
     jest.advanceTimersByTime(300);
 
-    // Timer should have executed
+    // After timeout, timer should be cleared
     expect(jest.getTimerCount()).toBe(0);
 
     jest.useRealTimers();
@@ -72,7 +88,9 @@ describe('OnboardingNumberInput', () => {
   it('should cleanup timer on unmount', () => {
     jest.useFakeTimers();
     const onChange = jest.fn();
-    const { unmount } = render(<OnboardingNumberInput value={null} onChange={onChange} placeholder="Idade" />);
+    const { unmount } = render(
+      <OnboardingNumberInput value={null} onChange={onChange} placeholder="Idade" />
+    );
 
     unmount();
 
@@ -105,5 +123,20 @@ describe('OnboardingNumberInput', () => {
     // Clear completely
     fireEvent.changeText(input, '');
     expect(onChange).toHaveBeenCalledWith(null);
+  });
+
+  it('should trigger haptic feedback on focus', () => {
+    const Haptics = require('expo-haptics');
+    render(<OnboardingNumberInput value={null} onChange={() => {}} placeholder="Idade" />);
+
+    const input = screen.getByDisplayValue('');
+    fireEvent(input, 'focus');
+
+    expect(Haptics.impactAsync).toHaveBeenCalledWith('light');
+  });
+
+  it('should show number badge when valid number is entered', () => {
+    render(<OnboardingNumberInput value={25} onChange={() => {}} placeholder="Idade" />);
+    expect(screen.getByText('#')).toBeDefined();
   });
 });
