@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { useOnboardingQuestions, useOnboardingAnswers } from '@/db/repositories';
+import { useOnboardingQuestions, useOnboardingAnswers, useSaveAnswer, useDeleteDependentAnswers } from '@/db/repositories';
 import { computeApplicableQuestions, calculateProgress } from '@/lib/onboarding-flow';
 import { ProgressBar } from './ProgressBar';
 import { QuestionCard } from './QuestionCard';
@@ -16,6 +16,8 @@ export function OnboardingContainer() {
 
   const { data: allQuestions, isLoading: questionsLoading } = useOnboardingQuestions();
   const { data: existingAnswers, isLoading: answersLoading } = useOnboardingAnswers();
+  const saveAnswerMutation = useSaveAnswer();
+  const deleteDependentAnswersMutation = useDeleteDependentAnswers();
 
   const isLoading = questionsLoading || answersLoading;
 
@@ -38,6 +40,24 @@ export function OnboardingContainer() {
     const firstUnanswered = applicable.findIndex(q => !cache[q.key]);
     setCurrentIndex(firstUnanswered === -1 ? 0 : firstUnanswered);
   }, [allQuestions, existingAnswers]);
+
+  const handleAnswer = async (questionKey: string, value: unknown) => {
+    // Update cache immediately (optimistic)
+    const newCache = { ...answersCache, [questionKey]: value };
+    setAnswersCache(newCache);
+
+    // Save to database
+    await saveAnswerMutation.mutateAsync({
+      questionKey,
+      answer: JSON.stringify(value),
+    });
+
+    // Recalculate applicable questions
+    if (allQuestions) {
+      const newApplicable = computeApplicableQuestions(allQuestions, newCache);
+      setApplicableQuestions(newApplicable);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -62,7 +82,7 @@ export function OnboardingContainer() {
           <QuestionInput
             question={currentQuestion}
             value={answersCache[currentQuestion.key] ?? null}
-            onChange={() => {}}
+            onChange={(value) => handleAnswer(currentQuestion.key, value)}
           />
         </QuestionCard>
       )}

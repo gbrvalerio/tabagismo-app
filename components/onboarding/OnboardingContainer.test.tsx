@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { render, screen, waitFor } from '@testing-library/react-native';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react-native';
 import { OnboardingContainer } from './OnboardingContainer';
 
 jest.mock('@/hooks/use-theme-color', () => ({
@@ -24,6 +24,35 @@ const mockQuestions = [
     type: 'TEXT',
     category: 'PROFILE',
     questionText: 'Qual é o seu nome?',
+    required: true,
+    dependsOnQuestionKey: null,
+    dependsOnValue: null,
+    metadata: {},
+    createdAt: new Date(),
+  },
+];
+
+const mockTwoQuestions = [
+  {
+    id: 1,
+    key: 'q1',
+    order: 1,
+    type: 'TEXT',
+    category: 'PROFILE',
+    questionText: 'First?',
+    required: true,
+    dependsOnQuestionKey: null,
+    dependsOnValue: null,
+    metadata: {},
+    createdAt: new Date(),
+  },
+  {
+    id: 2,
+    key: 'q2',
+    order: 2,
+    type: 'TEXT',
+    category: 'PROFILE',
+    questionText: 'Second?',
     required: true,
     dependsOnQuestionKey: null,
     dependsOnValue: null,
@@ -102,6 +131,71 @@ describe('OnboardingContainer', () => {
 
     await waitFor(() => {
       expect(screen.getByText('0%')).toBeDefined();
+    });
+  });
+});
+
+describe('OnboardingContainer - Answer Handling', () => {
+  const mockMutateAsync = jest.fn().mockResolvedValue(undefined);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockMutateAsync });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+  });
+
+  it('should save answer when input changes', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Digite sua resposta')).toBeDefined();
+    });
+
+    const input = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input, 'João');
+
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith({
+        questionKey: 'name',
+        answer: JSON.stringify('João'),
+      });
+    });
+  });
+
+  it('should update progress after answering', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('0%')).toBeDefined();
+    });
+
+    const input = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input, 'Answer');
+
+    await waitFor(() => {
+      expect(screen.getByText('50%')).toBeDefined();
     });
   });
 });
