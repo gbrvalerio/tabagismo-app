@@ -442,6 +442,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
+    backgroundColor: '#F8F9FB', // Match gradient bottom color
   },
   nextButton: {
     width: "100%",
