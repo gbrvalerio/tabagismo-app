@@ -1,6 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 
+// Import the mock after it's been set up
+import { openBrowserAsync } from 'expo-web-browser';
+import { ExternalLink } from './external-link';
+
 // Mock expo-web-browser first
 jest.mock('expo-web-browser', () => ({
   openBrowserAsync: jest.fn(),
@@ -15,7 +19,7 @@ jest.mock('expo-router', () => {
   const React = require('react');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Pressable, Text } = require('react-native');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+   
   const originalModule = jest.requireActual('expo-router');
   return {
     ...originalModule,
@@ -37,10 +41,6 @@ jest.mock('expo-router', () => {
     }),
   };
 });
-
-// Import the mock after it's been set up
-import { openBrowserAsync } from 'expo-web-browser';
-import { ExternalLink } from './external-link';
 
 describe('ExternalLink', () => {
   beforeEach(() => {

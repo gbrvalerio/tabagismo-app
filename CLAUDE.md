@@ -30,13 +30,15 @@ The code should be in english but the user facing strings in Brazilian Portugues
 
 📁 **[Database Guide](/db/CLAUDE.md)** - Schemas, migrations, repositories
 📱 **[App & Navigation Guide](/app/CLAUDE.md)** - Screens, routing, layouts
+🎨 **[Design System](/components/CLAUDE.md)** - Tokens, components, theming
 📋 **[Architecture Decisions](/docs/plans/)** - Detailed design docs
 
 ### Add a Feature
 
 1. **Database table?** → See [/db/CLAUDE.md](/db/CLAUDE.md)
 2. **New screen?** → See [/app/CLAUDE.md](/app/CLAUDE.md)
-3. **Reusable component?** → Create in `/components`
+3. **Reusable component?** → See [/components/CLAUDE.md](/components/CLAUDE.md)
+4. **Design tokens?** → See `/constants/theme.ts`
 
 ---
 
@@ -73,6 +75,10 @@ The code should be in english but the user facing strings in Brazilian Portugues
   /migrations       # Auto-generated migrations
 
 /components         # Reusable UI components
+  /ui               # Design system components
+
+/constants          # App constants
+  /theme.ts         # Design tokens (colors, fonts)
 
 /lib                # Utilities
   /query-client.ts  # TanStack Query config
@@ -145,9 +151,21 @@ const users = await db.select().from(users);
 
 ### Add Component
 
-1. Create in `/components/Button.tsx`
-2. Export component
-3. Import in screens: `import { Button } from '@/components/Button'`
+→ [Full guide in /components/CLAUDE.md](/components/CLAUDE.md)
+
+1. Create in `/components/ComponentName.tsx`
+2. Use design tokens from `@/constants/theme`
+3. Use `useThemeColor` hook for dark/light mode support
+4. Export component
+5. Import in screens: `import { ComponentName } from '@/components/ComponentName'`
+
+### Start New Feature
+
+1. **Design tokens needed?** → Add to `/constants/theme.ts`
+2. **UI component needed?** → Create in `/components/` using design tokens
+3. **Database table?** → See [/db/CLAUDE.md](/db/CLAUDE.md)
+4. **New screen?** → See [/app/CLAUDE.md](/app/CLAUDE.md)
+5. **Write tests** → TDD approach, 90% coverage required
 
 ---
 

@@ -5,6 +5,8 @@
  * We avoid testing the actual migrate() call since it's tightly coupled to drizzle-orm internals.
  */
 
+import { runMigrations } from './migrate';
+
 jest.mock('./migrations/migrations', () => ({
   __esModule: true,
   default: {
@@ -16,8 +18,6 @@ jest.mock('./migrations/migrations', () => ({
 jest.mock('drizzle-orm/expo-sqlite/migrator', () => ({
   migrate: jest.fn().mockResolvedValue(undefined),
 }));
-
-import { runMigrations } from './migrate';
 
 describe('db/migrate.ts - runMigrations', () => {
   let mockOpenDatabaseSync: jest.Mock;
