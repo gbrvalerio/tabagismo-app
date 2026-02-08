@@ -20,7 +20,7 @@ jest.mock('expo-router', () => {
   return {
     ...originalModule,
     // eslint-disable-next-line react/display-name
-    Link: React.forwardRef((props, ref) => {
+    Link: React.forwardRef((props: any, ref: any) => {
       const { onPress, children, href, testID, ...rest } = props;
       return React.createElement(
         Pressable,
@@ -371,9 +371,9 @@ describe('ExternalLink', () => {
     });
 
     it('should preserve href type safety with string URIs', () => {
-      const href: string = 'https://example.com/path';
+      const href = 'https://example.com/path';
       render(
-        <ExternalLink href={href}>
+        <ExternalLink href={href as any}>
           Link
         </ExternalLink>
       );
