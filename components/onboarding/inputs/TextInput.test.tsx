@@ -38,4 +38,35 @@ describe('OnboardingTextInput', () => {
       : styles;
     expect(flatStyle.fontSize).toBe(18);
   });
+
+  it('should auto-focus on mount', () => {
+    jest.useFakeTimers();
+    const onChange = jest.fn();
+
+    render(<OnboardingTextInput value="" onChange={onChange} placeholder="Nome" />);
+
+    // Verify timer is scheduled
+    expect(jest.getTimerCount()).toBe(1);
+
+    // Fast-forward past the 300ms delay
+    jest.advanceTimersByTime(300);
+
+    // After timeout, timer should be cleared
+    expect(jest.getTimerCount()).toBe(0);
+
+    jest.useRealTimers();
+  });
+
+  it('should cleanup timer on unmount', () => {
+    jest.useFakeTimers();
+    const onChange = jest.fn();
+    const { unmount } = render(<OnboardingTextInput value="" onChange={onChange} placeholder="Nome" />);
+
+    unmount();
+
+    // Verify no timers are pending
+    expect(jest.getTimerCount()).toBe(0);
+
+    jest.useRealTimers();
+  });
 });
