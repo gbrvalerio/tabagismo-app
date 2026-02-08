@@ -55,11 +55,7 @@ jest.mock('@/components/ui/icon-symbol', () => ({
   IconSymbol: jest.fn((props) => null),
 }));
 
-// Mock react-native useColorScheme hook
-jest.mock('react-native', () => {
-  const actualReactNative = jest.requireActual('react-native');
-  return {
-    ...actualReactNative,
-    useColorScheme: jest.fn(() => 'light'),
-  };
-});
+// Mock useColorScheme hook
+jest.mock('@/hooks/use-color-scheme', () => ({
+  useColorScheme: jest.fn(() => 'light'),
+}));
