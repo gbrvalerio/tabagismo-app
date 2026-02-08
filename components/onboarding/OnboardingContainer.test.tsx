@@ -423,6 +423,138 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
 
     expect(mockDeleteDependentMutateAsync).not.toHaveBeenCalled();
   });
+
+  it('should clear answers for questions after dependent when parent answer changes', async () => {
+    // Simulate full question flow with dependencies
+    const fullQuestionFlow = [
+      {
+        id: 1,
+        key: 'name',
+        order: 1,
+        type: 'TEXT',
+        category: 'PROFILE',
+        questionText: 'Nome?',
+        required: true,
+        dependsOnQuestionKey: null,
+        dependsOnValue: null,
+        metadata: {},
+        createdAt: new Date(),
+      },
+      {
+        id: 2,
+        key: 'addiction_type',
+        order: 2,
+        type: 'SINGLE_CHOICE',
+        category: 'ADDICTION',
+        questionText: 'Tipo de dependência?',
+        required: true,
+        dependsOnQuestionKey: null,
+        dependsOnValue: null,
+        metadata: { choices: ['Cigarro', 'Vape'] },
+        createdAt: new Date(),
+      },
+      {
+        id: 3,
+        key: 'cigarettes_per_day',
+        order: 3,
+        type: 'NUMBER',
+        category: 'HABITS',
+        questionText: 'Cigarros por dia?',
+        required: true,
+        dependsOnQuestionKey: 'addiction_type',
+        dependsOnValue: 'Cigarro',
+        metadata: {},
+        createdAt: new Date(),
+      },
+      {
+        id: 4,
+        key: 'pod_duration',
+        order: 4,
+        type: 'NUMBER',
+        category: 'HABITS',
+        questionText: 'Duração do pod?',
+        required: true,
+        dependsOnQuestionKey: 'addiction_type',
+        dependsOnValue: 'Vape',
+        metadata: {},
+        createdAt: new Date(),
+      },
+      {
+        id: 5,
+        key: 'years_smoking',
+        order: 5,
+        type: 'NUMBER',
+        category: 'HABITS',
+        questionText: 'Anos fumando?',
+        required: true,
+        dependsOnQuestionKey: null,
+        dependsOnValue: null,
+        metadata: {},
+        createdAt: new Date(),
+      },
+      {
+        id: 6,
+        key: 'motivation',
+        order: 6,
+        type: 'TEXT',
+        category: 'MOTIVATION',
+        questionText: 'Motivação?',
+        required: true,
+        dependsOnQuestionKey: null,
+        dependsOnValue: null,
+        metadata: {},
+        createdAt: new Date(),
+      },
+    ];
+
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: fullQuestionFlow,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    // Start with user having completed flow with "Vape" path
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [
+        { questionKey: 'name', answer: JSON.stringify('João') },
+        { questionKey: 'addiction_type', answer: JSON.stringify('Vape') },
+        { questionKey: 'pod_duration', answer: JSON.stringify(5) },
+        { questionKey: 'years_smoking', answer: JSON.stringify(10) },
+        { questionKey: 'motivation', answer: JSON.stringify('Saúde') },
+      ],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    // Component loads - it navigates to first unanswered question (Nome in this case)
+    // BUG: Initially shows 6/5 because answeredCount includes all 5 answers in cache
+    // plus currentStep adds 1, giving us 6/5
+    await waitFor(() => {
+      expect(screen.getByText('Nome?')).toBeDefined();
+    });
+
+    // Navigate to addiction_type question
+    fireEvent.press(screen.getByText('Próxima →'));
+    await waitFor(() => {
+      expect(screen.getByText('Tipo de dependência?')).toBeDefined();
+    });
+
+    // User changes addiction_type from Vape to Cigarro
+    fireEvent.press(screen.getByText('Cigarro'));
+
+    // After changing addiction_type:
+    // - Applicable questions: name, addiction_type, cigarettes_per_day, years_smoking, motivation = 5 total
+    // - pod_duration should be removed from cache (dependent on Vape)
+    // - years_smoking and motivation should ALSO be removed (come after the changed dependency)
+    // - Only name and addiction_type should remain answered = 2 answered
+    // - Current step should be 3 (on cigarettes_per_day which is unanswered)
+    // - Should show 3/5
+    await waitFor(() => {
+      expect(screen.getByText('3/5')).toBeDefined();
+    });
+  });
 });
 
 describe('OnboardingContainer - Infinite Loop Prevention', () => {

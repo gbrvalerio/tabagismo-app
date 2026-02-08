@@ -71,13 +71,17 @@ export function OnboardingContainer() {
           parentQuestionKey: questionKey,
         });
 
-        // Remove dependent answers from cache
-        const dependentKeys = allQuestions
-          .filter(q => q.dependsOnQuestionKey === questionKey)
-          .map(q => q.key);
-        for (const key of dependentKeys) {
-          delete newCache[key];
+        // Remove dependent answers and all answers for questions that come after
+        const dependentQuestions = allQuestions.filter(q => q.dependsOnQuestionKey === questionKey);
+        const minDependentOrder = Math.min(...dependentQuestions.map(q => q.order));
+
+        // Clear all answers from the minimum dependent order onwards
+        for (const q of allQuestions) {
+          if (q.order >= minDependentOrder && q.key !== questionKey) {
+            delete newCache[q.key];
+          }
         }
+
         setAnswersCache({ ...newCache });
       }
     }
