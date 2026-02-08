@@ -35,13 +35,15 @@ export function useSaveAnswer() {
     mutationFn: async ({
       questionKey,
       answer,
+      isFirstTime = false,
     }: {
       questionKey: string;
       answer: string;
+      isFirstTime?: boolean;
     }) => {
       return await db
         .insert(onboardingAnswers)
-        .values({ questionKey, answer })
+        .values({ questionKey, answer, coinAwarded: isFirstTime })
         .onConflictDoUpdate({
           target: onboardingAnswers.questionKey,
           set: {

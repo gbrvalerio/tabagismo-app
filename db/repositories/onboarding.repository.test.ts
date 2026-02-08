@@ -194,6 +194,65 @@ describe('onboarding.repository', () => {
       expect(result.current.reset).toBeDefined();
       expect(typeof result.current.reset).toBe('function');
     });
+
+    it('should pass coinAwarded as isFirstTime for new answers', async () => {
+      const mockReturning = jest.fn().mockResolvedValue([{ id: 1 }]);
+      const mockOnConflictDoUpdate = jest.fn(() => ({ returning: mockReturning }));
+      const mockValues = jest.fn(() => ({
+        returning: mockReturning,
+        onConflictDoUpdate: mockOnConflictDoUpdate,
+      }));
+      (db.insert as jest.Mock).mockReturnValue({ values: mockValues });
+
+      const { result } = renderHook(() => useSaveAnswer(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          questionKey: 'test_question',
+          answer: 'test answer',
+          isFirstTime: true,
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(mockValues).toHaveBeenCalledWith(
+        expect.objectContaining({ coinAwarded: true })
+      );
+    });
+
+    it('should default isFirstTime to false', async () => {
+      const mockReturning = jest.fn().mockResolvedValue([{ id: 1 }]);
+      const mockOnConflictDoUpdate = jest.fn(() => ({ returning: mockReturning }));
+      const mockValues = jest.fn(() => ({
+        returning: mockReturning,
+        onConflictDoUpdate: mockOnConflictDoUpdate,
+      }));
+      (db.insert as jest.Mock).mockReturnValue({ values: mockValues });
+
+      const { result } = renderHook(() => useSaveAnswer(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({
+          questionKey: 'test_question',
+          answer: 'test answer',
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(mockValues).toHaveBeenCalledWith(
+        expect.objectContaining({ coinAwarded: false })
+      );
+    });
   });
 
   describe('useDeleteDependentAnswers', () => {
