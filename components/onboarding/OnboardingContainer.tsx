@@ -306,6 +306,7 @@ export function OnboardingContainer() {
 
                   {/* Scrollable input area */}
                   <ScrollView
+                    key={currentQuestion.key}
                     style={styles.scrollView}
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
