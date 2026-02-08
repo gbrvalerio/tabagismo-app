@@ -41,10 +41,16 @@ jest.mock('react-native/Libraries/Alert/Alert', () => ({
   },
 }));
 
-// Mock missing components
-jest.mock('@/components/haptic-tab', () => ({
-  HapticTab: jest.fn((props) => null),
-}));
+// Mock missing components - HapticTab should render Pressable with children
+jest.mock('@/components/haptic-tab', () => {
+  const React = require('react');
+  const { Pressable } = require('react-native');
+  return {
+    HapticTab: React.forwardRef(({ children, ...props }, ref) =>
+      React.createElement(Pressable, { ref, ...props }, children)
+    ),
+  };
+});
 
 // Set shorter timeout to prevent hanging
 jest.setTimeout(5000);
