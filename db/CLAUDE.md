@@ -205,10 +205,13 @@ export default function UsersScreen() {
 ## Query Keys Pattern
 
 ```typescript
-['users']              // List all users
-['users', userId]      // Single user
-['users', 'search']    // Search results
-['settings', 'theme']  // Specific setting
+['users']                             // List all users
+['users', userId]                     // Single user
+['users', 'search']                   // Search results
+['settings', 'theme']                 // Specific setting
+['settings', 'onboarding_completed']  // Onboarding status
+['onboarding', 'questions']           // All onboarding questions
+['onboarding', 'answers']             // All onboarding answers
 ```
 
 **Why scoped?** TanStack Query uses keys for caching and invalidation.
@@ -385,11 +388,16 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 ```
 /db
   /schema
-    /settings.ts      # Settings table schema
-    /index.ts         # Export all schemas
+    /settings.ts              # Settings table schema
+    /questions.ts             # Questions table + QuestionType/QuestionCategory enums
+    /onboarding-answers.ts    # Onboarding answers table
+    /index.ts                 # Export all schemas
   /repositories
-    /settings.repository.ts   # Settings hooks
+    /settings.repository.ts   # Settings hooks (useOnboardingStatus, useCompleteOnboarding)
+    /onboarding.repository.ts # Onboarding hooks (useOnboardingQuestions, useOnboardingAnswers, useSaveAnswer, useDeleteDependentAnswers)
     /index.ts                 # Export all repositories
+  /seed
+    /seed-questions.ts        # Seeds initial onboarding questions
   /migrations
     /0000_name.ts     # Migration as TS module
     /migrations.ts    # Migration registry
@@ -404,6 +412,34 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 ## Current Tables
 
 - **settings:** Key-value store (`key`, `value`, `updatedAt`)
+- **questions:** Onboarding questions (`id`, `key`, `order`, `type`, `category`, `questionText`, `required`, `dependsOnQuestionKey`, `dependsOnValue`, `metadata`, `createdAt`)
+- **onboarding_answers:** User answers (`id`, `questionKey`, `userId`, `answer`, `answeredAt`, `updatedAt`)
+
+### Question Types & Categories
+
+```typescript
+enum QuestionType { TEXT, NUMBER, SINGLE_CHOICE, MULTIPLE_CHOICE }
+enum QuestionCategory { PROFILE, ADDICTION, HABITS, MOTIVATION, GOALS }
+```
+
+### Onboarding Repository Hooks
+
+| Hook | Type | Query Key | Description |
+|------|------|-----------|-------------|
+| `useOnboardingQuestions()` | Query | `['onboarding', 'questions']` | All questions ordered by `order` |
+| `useOnboardingAnswers()` | Query | `['onboarding', 'answers']` | All saved answers |
+| `useSaveAnswer()` | Mutation | Invalidates answers | Upserts answer by `questionKey` |
+| `useDeleteDependentAnswers()` | Mutation | Invalidates answers | Deletes answers for questions that depend on a parent |
+| `useOnboardingStatus()` | Query | `['settings', 'onboarding_completed']` | Returns `boolean` — whether onboarding is done |
+| `useCompleteOnboarding()` | Mutation | Invalidates status | Sets `onboarding_completed` to `true` |
+
+### Conditional Questions
+
+Questions can depend on a parent question's answer via `dependsOnQuestionKey` and `dependsOnValue`. The flow engine (`lib/onboarding-flow.ts`) filters applicable questions at runtime.
+
+### Auto-Seeding
+
+On first launch, `_layout.tsx` checks if questions table is empty and runs `seedOnboardingQuestions()` from `db/seed/seed-questions.ts`.
 
 ---
 

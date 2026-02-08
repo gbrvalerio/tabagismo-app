@@ -83,6 +83,67 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 
 ---
 
+## Onboarding Components
+
+All onboarding UI lives in `components/onboarding/`. Uses design tokens from `@/lib/theme/tokens`.
+
+### OnboardingGuard
+
+**File:** `onboarding/OnboardingGuard.tsx`
+
+Wraps the app's `Stack` in `_layout.tsx`. Checks `useOnboardingStatus()` and redirects to `/onboarding` if not completed.
+
+### OnboardingContainer
+
+**File:** `onboarding/OnboardingContainer.tsx`
+
+Main orchestrator. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/onboarding-flow`. Handles answer saving, navigation (Voltar/Proxima/Concluir), and completion.
+
+**Hooks used:** `useOnboardingQuestions`, `useOnboardingAnswers`, `useSaveAnswer`, `useDeleteDependentAnswers`, `useCompleteOnboarding`
+
+### QuestionCard
+
+**File:** `onboarding/QuestionCard.tsx`
+
+Animated wrapper for question content. Uses `react-native-reanimated` with slide-in (`translateX`), scale, and fade animations via `withSpring` and `withTiming`.
+
+### QuestionText
+
+**File:** `onboarding/QuestionText.tsx`
+
+Displays question text. Uses `useThemeColor({}, 'text')` for theming. Font size 24, weight 700.
+
+### QuestionInput (Factory)
+
+**File:** `onboarding/QuestionInput.tsx`
+
+Routes to the correct input component based on `question.type`:
+- `TEXT` → `OnboardingTextInput`
+- `NUMBER` → `OnboardingNumberInput`
+- `SINGLE_CHOICE` → `SingleChoiceCards`
+- `MULTIPLE_CHOICE` → `MultipleChoiceCards`
+
+Extracts `choices` from `question.metadata` for choice-based types.
+
+### ProgressBar
+
+**File:** `onboarding/ProgressBar.tsx`
+
+Animated progress bar. Takes `progress` (0-100). Uses `withSpring` for smooth width transitions.
+
+### Input Components
+
+Located in `onboarding/inputs/`:
+
+| Component | File | Description |
+|-----------|------|-------------|
+| `OnboardingTextInput` | `inputs/TextInput.tsx` | Text input with bottom border, uses `icon` theme color |
+| `OnboardingNumberInput` | `inputs/NumberInput.tsx` | Numeric input with `keyboardType="numeric"`, `parseInt` validation |
+| `SingleChoiceCards` | `inputs/SingleChoiceCards.tsx` | Touchable cards with haptic feedback, single selection |
+| `MultipleChoiceCards` | `inputs/MultipleChoiceCards.tsx` | Touchable cards with haptic feedback, toggle selection |
+
+---
+
 ## Design System Components (Planned)
 
 Components being added as part of the gamified design system:

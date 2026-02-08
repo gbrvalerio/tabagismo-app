@@ -256,6 +256,8 @@ Already configured with:
 - ✅ QueryClientProvider (TanStack Query)
 - ✅ Database migrations on startup
 - ✅ Theme provider
+- ✅ OnboardingGuard (redirects to `/onboarding` if not completed)
+- ✅ Auto-seeds onboarding questions on first launch
 
 **Don't modify unless adding global providers.**
 
@@ -333,10 +335,23 @@ import { useUsers, useCreateUser } from '@/db';
     /_layout.tsx    # Tab navigator config
     /index.tsx      # Home tab
     /explore.tsx    # Explore tab
-  /_layout.tsx      # Root layout (providers)
+  /_layout.tsx      # Root layout (providers, OnboardingGuard)
+  /onboarding.tsx   # Onboarding screen (modal, no header, no gesture dismiss)
   /modal.tsx        # Modal screen
   /+not-found.tsx   # 404 page
 ```
+
+---
+
+## Onboarding Flow
+
+The onboarding screen is a full-screen modal (`gestureEnabled: false`) that appears on first launch.
+
+**Route:** `/onboarding` — Registered in `_layout.tsx` as a modal `Stack.Screen`.
+
+**Guard:** `OnboardingGuard` component wraps the `Stack` and checks `useOnboardingStatus()`. If onboarding is not completed, it redirects via `router.replace('/onboarding')`.
+
+**Completion:** When the user answers the last question and taps "Concluir", `useCompleteOnboarding()` is called which sets the `onboarding_completed` setting to `true`, then navigates to `/(tabs)` via `router.replace`.
 
 ---
 
