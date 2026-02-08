@@ -115,4 +115,130 @@ describe('Button', () => {
       expect(flatStyle.paddingHorizontal).toBe(24); // spacing.lg
     });
   });
+
+  describe('Secondary variant', () => {
+    it('should apply secondary background color', () => {
+      render(<Button label="Salvar" onPress={() => {}} variant="secondary" />);
+      const button = screen.getByTestId('button');
+      const styles = button.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+      expect(flatStyle.backgroundColor).toBe('#4ECDC4');
+    });
+
+    it('should render white text for secondary variant', () => {
+      render(<Button label="Salvar" onPress={() => {}} variant="secondary" />);
+      const text = screen.getByText('Salvar');
+      const styles = text.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+      expect(flatStyle.color).toBe('#FFFFFF');
+    });
+
+    it('should call onPress when pressed', () => {
+      const onPress = jest.fn();
+      render(<Button label="Salvar" onPress={onPress} variant="secondary" />);
+      fireEvent.press(screen.getByText('Salvar'));
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('should support disabled state', () => {
+      const onPress = jest.fn();
+      render(
+        <Button label="Salvar" onPress={onPress} variant="secondary" disabled />
+      );
+      fireEvent.press(screen.getByText('Salvar'));
+      expect(onPress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Outline variant', () => {
+    it('should have transparent background', () => {
+      render(<Button label="Cancelar" onPress={() => {}} variant="outline" />);
+      const button = screen.getByTestId('button');
+      const styles = button.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+      expect(flatStyle.backgroundColor).toBe('transparent');
+    });
+
+    it('should have primary color border', () => {
+      render(<Button label="Cancelar" onPress={() => {}} variant="outline" />);
+      const button = screen.getByTestId('button');
+      const styles = button.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+      expect(flatStyle.borderWidth).toBe(2);
+      expect(flatStyle.borderColor).toBe('#FF6B35');
+    });
+
+    it('should render primary color text', () => {
+      render(<Button label="Cancelar" onPress={() => {}} variant="outline" />);
+      const text = screen.getByText('Cancelar');
+      const styles = text.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+      expect(flatStyle.color).toBe('#FF6B35');
+    });
+
+    it('should call onPress when pressed', () => {
+      const onPress = jest.fn();
+      render(
+        <Button label="Cancelar" onPress={onPress} variant="outline" />
+      );
+      fireEvent.press(screen.getByText('Cancelar'));
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Minimal variant', () => {
+    it('should have transparent background', () => {
+      render(<Button label="Pular" onPress={() => {}} variant="minimal" />);
+      const button = screen.getByTestId('button');
+      const styles = button.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+      expect(flatStyle.backgroundColor).toBe('transparent');
+    });
+
+    it('should not have a border', () => {
+      render(<Button label="Pular" onPress={() => {}} variant="minimal" />);
+      const button = screen.getByTestId('button');
+      const styles = button.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+      expect(flatStyle.borderWidth).toBeUndefined();
+    });
+
+    it('should render primary color text', () => {
+      render(<Button label="Pular" onPress={() => {}} variant="minimal" />);
+      const text = screen.getByText('Pular');
+      const styles = text.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+      expect(flatStyle.color).toBe('#FF6B35');
+    });
+
+    it('should call onPress when pressed', () => {
+      const onPress = jest.fn();
+      render(<Button label="Pular" onPress={onPress} variant="minimal" />);
+      fireEvent.press(screen.getByText('Pular'));
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('should support loading state', () => {
+      render(
+        <Button label="Pular" onPress={() => {}} variant="minimal" loading />
+      );
+      expect(screen.getByTestId('button-loading')).toBeTruthy();
+    });
+  });
 });
