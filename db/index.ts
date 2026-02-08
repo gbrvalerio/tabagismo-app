@@ -9,3 +9,6 @@ export { runMigrations } from './migrate';
 
 // Export schema types (for type annotations)
 export type { Setting, NewSetting } from './schema/settings';
+export type { Question, NewQuestion } from './schema/questions';
+export { QuestionType, QuestionCategory } from './schema/questions';
+export type { OnboardingAnswer, NewOnboardingAnswer } from './schema/onboarding-answers';

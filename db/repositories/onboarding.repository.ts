@@ -39,27 +39,17 @@ export function useSaveAnswer() {
       questionKey: string;
       answer: string;
     }) => {
-      const existing = await db
-        .select()
-        .from(onboardingAnswers)
-        .where(eq(onboardingAnswers.questionKey, questionKey))
-        .get();
-
-      if (existing) {
-        return await db
-          .update(onboardingAnswers)
-          .set({
+      return await db
+        .insert(onboardingAnswers)
+        .values({ questionKey, answer })
+        .onConflictDoUpdate({
+          target: onboardingAnswers.questionKey,
+          set: {
             answer,
             updatedAt: new Date(),
-          })
-          .where(eq(onboardingAnswers.questionKey, questionKey))
-          .returning();
-      } else {
-        return await db
-          .insert(onboardingAnswers)
-          .values({ questionKey, answer })
-          .returning();
-      }
+          },
+        })
+        .returning();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['onboarding', 'answers'] });
@@ -73,14 +63,24 @@ export function useDeleteDependentAnswers() {
   return useMutation({
     mutationFn: async ({ parentQuestionKey }: { parentQuestionKey: string }) => {
       const allQuestions = await db.select().from(questions).all();
-      const dependentQuestions = allQuestions.filter(
-        q => q.dependsOnQuestionKey === parentQuestionKey
-      );
 
-      for (const question of dependentQuestions) {
+      // Recursively find all descendant question keys
+      const keysToDelete = new Set<string>();
+      const findDescendants = (parentKey: string) => {
+        for (const question of allQuestions) {
+          if (question.dependsOnQuestionKey === parentKey && !keysToDelete.has(question.key)) {
+            keysToDelete.add(question.key);
+            findDescendants(question.key);
+          }
+        }
+      };
+      findDescendants(parentQuestionKey);
+
+      // Delete answers for all descendant questions
+      for (const key of keysToDelete) {
         await db
           .delete(onboardingAnswers)
-          .where(eq(onboardingAnswers.questionKey, question.key))
+          .where(eq(onboardingAnswers.questionKey, key))
           .execute();
       }
     },

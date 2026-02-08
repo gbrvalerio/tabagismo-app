@@ -5,7 +5,7 @@ export const getDefaultAnswerUpdatedAt = () => new Date();
 
 export const onboardingAnswers = sqliteTable('onboarding_answers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  questionKey: text('question_key').notNull(),
+  questionKey: text('question_key').notNull().unique(),
   userId: integer('user_id'),
   answer: text('answer').notNull(),
   answeredAt: integer('answered_at', { mode: 'timestamp' })
