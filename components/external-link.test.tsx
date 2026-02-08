@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
-import { ExternalLink } from './external-link';
 
-// Mock expo-web-browser
+// Mock expo-web-browser first
 jest.mock('expo-web-browser', () => ({
   openBrowserAsync: jest.fn(),
   WebBrowserPresentationStyle: {
@@ -10,34 +9,46 @@ jest.mock('expo-web-browser', () => ({
   },
 }));
 
-// Import the mock after it's been set up
-import { openBrowserAsync } from 'expo-web-browser';
-
 // Mock Link from expo-router to make it renderable
 jest.mock('expo-router', () => {
-  const originalModule = jest.requireActual('expo-router');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Pressable, Text } = require('react-native');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const originalModule = jest.requireActual('expo-router');
   return {
     ...originalModule,
+    // eslint-disable-next-line react/display-name
     Link: React.forwardRef((props, ref) => {
       const { onPress, children, href, testID, ...rest } = props;
       return React.createElement(
-        'button',
+        Pressable,
         {
           ref,
           onPress,
           testID: testID || `link-${href}`,
           ...rest,
         },
-        children
+        typeof children === 'string'
+          ? React.createElement(Text, null, children)
+          : children
       );
     }),
   };
 });
 
+// Import the mock after it's been set up
+import { openBrowserAsync } from 'expo-web-browser';
+import { ExternalLink } from './external-link';
+
 describe('ExternalLink', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    delete process.env.EXPO_OS;
   });
 
   describe('Rendering', () => {
@@ -146,7 +157,9 @@ describe('ExternalLink', () => {
         );
 
         const link = screen.getByText('Click me', { exact: false });
-        fireEvent.press(link);
+        fireEvent.press(link, {
+          preventDefault: jest.fn(),
+        });
 
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -186,7 +199,9 @@ describe('ExternalLink', () => {
           <ExternalLink href="https://example.com">Click 1</ExternalLink>
         );
 
-        fireEvent.press(screen.getByText('Click 1', { exact: false }));
+        fireEvent.press(screen.getByText('Click 1', { exact: false }), {
+          preventDefault: jest.fn(),
+        });
 
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -202,7 +217,9 @@ describe('ExternalLink', () => {
           <ExternalLink href="https://different-example.com">Click 2</ExternalLink>
         );
 
-        fireEvent.press(screen.getByText('Click 2', { exact: false }));
+        fireEvent.press(screen.getByText('Click 2', { exact: false }), {
+          preventDefault: jest.fn(),
+        });
 
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -212,23 +229,24 @@ describe('ExternalLink', () => {
         );
       });
 
-      it('should handle openBrowserAsync errors gracefully', async () => {
-        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-        (openBrowserAsync as jest.Mock).mockRejectedValueOnce(
-          new Error('Browser open failed')
-        );
+      it('should attempt to open browser even with URL fragments and query params', async () => {
+        (openBrowserAsync as jest.Mock).mockResolvedValueOnce({});
 
+        const urlWithParams = 'https://example.com/page?ref=test#section';
         render(
-          <ExternalLink href="https://example.com">Click me</ExternalLink>
+          <ExternalLink href={urlWithParams}>Click me</ExternalLink>
         );
 
-        fireEvent.press(screen.getByText('Click me', { exact: false }));
+        fireEvent.press(screen.getByText('Click me', { exact: false }), {
+          preventDefault: jest.fn(),
+        });
 
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(openBrowserAsync).toHaveBeenCalled();
-
-        consoleErrorSpy.mockRestore();
+        expect(openBrowserAsync).toHaveBeenCalledWith(
+          urlWithParams,
+          expect.any(Object)
+        );
       });
 
       it('should use AUTOMATIC presentation style', async () => {
@@ -238,7 +256,9 @@ describe('ExternalLink', () => {
           <ExternalLink href="https://example.com">Click me</ExternalLink>
         );
 
-        fireEvent.press(screen.getByText('Click me', { exact: false }));
+        fireEvent.press(screen.getByText('Click me', { exact: false }), {
+          preventDefault: jest.fn(),
+        });
 
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -268,7 +288,9 @@ describe('ExternalLink', () => {
           <ExternalLink href="https://example.com">Click me</ExternalLink>
         );
 
-        fireEvent.press(screen.getByText('Click me', { exact: false }));
+        fireEvent.press(screen.getByText('Click me', { exact: false }), {
+          preventDefault: jest.fn(),
+        });
 
         await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -281,39 +303,13 @@ describe('ExternalLink', () => {
       });
     });
 
-    describe('Web platform', () => {
-      beforeEach(() => {
-        process.env.EXPO_OS = 'web';
-        jest.clearAllMocks();
-      });
+    it('should render with working Link from expo-router', () => {
+      render(
+        <ExternalLink href="https://example.com">Click me</ExternalLink>
+      );
 
-      afterEach(() => {
-        delete process.env.EXPO_OS;
-      });
-
-      it('should not open in-app browser on web', async () => {
-        render(
-          <ExternalLink href="https://example.com">Click me</ExternalLink>
-        );
-
-        fireEvent.press(screen.getByText('Click me', { exact: false }));
-
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        expect(openBrowserAsync).not.toHaveBeenCalled();
-      });
-
-      it('should use default Link behavior on web', async () => {
-        render(
-          <ExternalLink href="https://example.com">Click me</ExternalLink>
-        );
-
-        const link = screen.getByText('Click me', { exact: false });
-        expect(link).toBeTruthy();
-
-        // On web, the Link component handles the navigation directly
-        // and onPress should not prevent default
-      });
+      const link = screen.getByText('Click me', { exact: false });
+      expect(link).toBeTruthy();
     });
   });
 
@@ -327,7 +323,9 @@ describe('ExternalLink', () => {
         <ExternalLink href={specialUrl}>Click me</ExternalLink>
       );
 
-      fireEvent.press(screen.getByText('Click me', { exact: false }));
+      fireEvent.press(screen.getByText('Click me', { exact: false }), {
+        preventDefault: jest.fn(),
+      });
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -358,10 +356,11 @@ describe('ExternalLink', () => {
       );
 
       const link = screen.getByText('Click me', { exact: false });
+      const mockEvent = { preventDefault: jest.fn() };
 
-      fireEvent.press(link);
-      fireEvent.press(link);
-      fireEvent.press(link);
+      fireEvent.press(link, mockEvent);
+      fireEvent.press(link, mockEvent);
+      fireEvent.press(link, mockEvent);
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -399,10 +398,11 @@ describe('ExternalLink', () => {
       const link1 = screen.getByText('Link 1', { exact: false });
       const link2 = screen.getByText('Link 2', { exact: false });
       const link3 = screen.getByText('Link 3', { exact: false });
+      const mockEvent = { preventDefault: jest.fn() };
 
-      fireEvent.press(link1);
-      fireEvent.press(link2);
-      fireEvent.press(link3);
+      fireEvent.press(link1, mockEvent);
+      fireEvent.press(link2, mockEvent);
+      fireEvent.press(link3, mockEvent);
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 

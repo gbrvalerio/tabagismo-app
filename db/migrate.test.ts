@@ -1,25 +1,22 @@
-// Mock migrations first (before importing anything else)
+const mockOpenDatabaseSync = jest.fn();
+const mockDrizzle = jest.fn();
+const mockMigrate = jest.fn();
+
+jest.mock('expo-sqlite', () => ({
+  openDatabaseSync: mockOpenDatabaseSync,
+}));
+
+jest.mock('drizzle-orm/expo-sqlite', () => ({
+  drizzle: mockDrizzle,
+  migrate: mockMigrate,
+}));
+
 jest.mock('./migrations/migrations', () => ({
   __esModule: true,
   default: {
     journal: { version: 1 },
     migrations: { m0000: 'CREATE TABLE...' },
   },
-}));
-
-// Mock expo-sqlite
-const mockOpenDatabaseSync = jest.fn();
-jest.mock('expo-sqlite', () => ({
-  openDatabaseSync: mockOpenDatabaseSync,
-}));
-
-// Mock drizzle-orm
-const mockDrizzleFunction = jest.fn();
-const mockMigrateFunction = jest.fn();
-
-jest.mock('drizzle-orm/expo-sqlite', () => ({
-  drizzle: mockDrizzleFunction,
-  migrate: mockMigrateFunction,
 }));
 
 import { runMigrations } from './migrate';
@@ -37,17 +34,20 @@ describe('db/migrate.ts - runMigrations', () => {
 
   describe('Successful Migration Execution', () => {
     it('should open the database with correct name', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
       await runMigrations();
 
-      expect(mockOpenDatabase).toHaveBeenCalledWith('tabagismo.db');
-      expect(mockOpenDatabase).toHaveBeenCalledTimes(1);
+      expect(mockOpenDatabaseSync).toHaveBeenCalledWith('tabagismo.db');
+      expect(mockOpenDatabaseSync).toHaveBeenCalledTimes(1);
     });
 
     it('should create a drizzle instance with opened database', async () => {
       const mockDb = { connection: 'mocked' };
-      mockOpenDatabase.mockReturnValueOnce(mockDb as any);
+      mockOpenDatabaseSync.mockReturnValueOnce(mockDb as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
       await runMigrations();
@@ -58,7 +58,7 @@ describe('db/migrate.ts - runMigrations', () => {
     it('should call migrate with drizzle instance and migrations', async () => {
       const mockDb = { connection: 'mocked' };
       const mockDrizzleInstance = { drizzle: 'instance' };
-      mockOpenDatabase.mockReturnValueOnce(mockDb as any);
+      mockOpenDatabaseSync.mockReturnValueOnce(mockDb as any);
       mockDrizzle.mockReturnValueOnce(mockDrizzleInstance as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
@@ -68,8 +68,10 @@ describe('db/migrate.ts - runMigrations', () => {
     });
 
     it('should log success message when migrations complete', async () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
       await runMigrations();
 
@@ -77,17 +79,21 @@ describe('db/migrate.ts - runMigrations', () => {
     });
 
     it('should complete without throwing error on success', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
       await expect(runMigrations()).resolves.not.toThrow();
     });
 
     it('should handle successful migrations with multiple operations', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
       const result = await runMigrations();
 
-      expect(mockOpenDatabase).toHaveBeenCalledTimes(1);
+      expect(mockOpenDatabaseSync).toHaveBeenCalledTimes(1);
       expect(mockDrizzle).toHaveBeenCalledTimes(1);
       expect(mockMigrate).toHaveBeenCalledTimes(1);
       expect(result).toBeUndefined();
@@ -97,7 +103,7 @@ describe('db/migrate.ts - runMigrations', () => {
   describe('Error Handling', () => {
     it('should log error when database opening fails', async () => {
       const testError = new Error('Database connection failed');
-      mockOpenDatabase.mockImplementationOnce(() => {
+      mockOpenDatabaseSync.mockImplementationOnce(() => {
         throw testError;
       });
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -108,6 +114,7 @@ describe('db/migrate.ts - runMigrations', () => {
     });
 
     it('should log error when drizzle instance creation fails', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
       mockDrizzle.mockImplementationOnce(() => {
         throw new Error('Drizzle initialization failed');
       });
@@ -123,6 +130,8 @@ describe('db/migrate.ts - runMigrations', () => {
 
     it('should log error when migrate function fails', async () => {
       const migrationError = new Error('Migration execution failed');
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockRejectedValueOnce(migrationError);
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -133,6 +142,8 @@ describe('db/migrate.ts - runMigrations', () => {
 
     it('should rethrow error after logging it', async () => {
       const testError = new Error('Test error');
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockRejectedValueOnce(testError);
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -141,6 +152,8 @@ describe('db/migrate.ts - runMigrations', () => {
 
     it('should handle SQL syntax errors in migrations', async () => {
       const sqlError = new Error('SQL syntax error: unexpected token');
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockRejectedValueOnce(sqlError);
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -154,6 +167,8 @@ describe('db/migrate.ts - runMigrations', () => {
 
     it('should handle migration timeout errors', async () => {
       const timeoutError = new Error('Migration timeout');
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockRejectedValueOnce(timeoutError);
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -161,6 +176,8 @@ describe('db/migrate.ts - runMigrations', () => {
     });
 
     it('should not log success when migration fails', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockRejectedValueOnce(new Error('Migration failed'));
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
       jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -177,25 +194,29 @@ describe('db/migrate.ts - runMigrations', () => {
 
   describe('Database Initialization', () => {
     it('should create database file on first run', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
       await runMigrations();
 
-      expect(mockOpenDatabase).toHaveBeenCalledWith('tabagismo.db');
+      expect(mockOpenDatabaseSync).toHaveBeenCalledWith('tabagismo.db');
     });
 
     it('should use existing database if it already exists', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
       await runMigrations();
 
-      // openDatabaseSync creates or opens existing database with same name
-      expect(mockOpenDatabase).toHaveBeenCalledWith('tabagismo.db');
+      expect(mockOpenDatabaseSync).toHaveBeenCalledWith('tabagismo.db');
     });
 
     it('should initialize drizzle with opened database connection', async () => {
       const mockDb = { init: jest.fn() };
-      mockOpenDatabase.mockReturnValueOnce(mockDb as any);
+      mockOpenDatabaseSync.mockReturnValueOnce(mockDb as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
       await runMigrations();
@@ -205,6 +226,8 @@ describe('db/migrate.ts - runMigrations', () => {
     });
 
     it('should pass migrations object to migrate function', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
       await runMigrations();
@@ -221,7 +244,8 @@ describe('db/migrate.ts - runMigrations', () => {
 
   describe('Edge Cases', () => {
     it('should handle null/undefined database gracefully', async () => {
-      mockOpenDatabase.mockReturnValueOnce(null as any);
+      mockOpenDatabaseSync.mockReturnValueOnce(null as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
       await runMigrations();
@@ -230,17 +254,21 @@ describe('db/migrate.ts - runMigrations', () => {
     });
 
     it('should handle migrations called multiple times sequentially', async () => {
+      mockOpenDatabaseSync.mockReturnValue({} as any);
+      mockDrizzle.mockReturnValue({} as any);
       mockMigrate.mockResolvedValue(undefined);
 
       await runMigrations();
       await runMigrations();
       await runMigrations();
 
-      expect(mockOpenDatabase).toHaveBeenCalledTimes(3);
+      expect(mockOpenDatabaseSync).toHaveBeenCalledTimes(3);
       expect(mockMigrate).toHaveBeenCalledTimes(3);
     });
 
     it('should clean up on partial migration failure', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockRejectedValueOnce(new Error('Partial migration failed'));
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -250,12 +278,13 @@ describe('db/migrate.ts - runMigrations', () => {
         // Expected error
       }
 
-      // Verify database was still opened and drizzle was created
-      expect(mockOpenDatabase).toHaveBeenCalled();
+      expect(mockOpenDatabaseSync).toHaveBeenCalled();
       expect(mockDrizzle).toHaveBeenCalled();
     });
 
     it('should handle empty migrations object', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
       await runMigrations();
@@ -266,32 +295,37 @@ describe('db/migrate.ts - runMigrations', () => {
 
   describe('Integration', () => {
     it('should complete full migration lifecycle successfully', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
       await runMigrations();
 
-      expect(mockOpenDatabase).toHaveBeenCalledWith('tabagismo.db');
+      expect(mockOpenDatabaseSync).toHaveBeenCalledWith('tabagismo.db');
       expect(mockDrizzle).toHaveBeenCalled();
       expect(mockMigrate).toHaveBeenCalled();
       expect(consoleLogSpy).toHaveBeenCalledWith('[DB] Migrations completed successfully');
     });
 
     it('should handle concurrent migration calls', async () => {
+      mockOpenDatabaseSync.mockReturnValue({} as any);
+      mockDrizzle.mockReturnValue({} as any);
       mockMigrate.mockResolvedValue(undefined);
 
       await Promise.all([runMigrations(), runMigrations(), runMigrations()]);
 
-      expect(mockOpenDatabase).toHaveBeenCalledTimes(3);
+      expect(mockOpenDatabaseSync).toHaveBeenCalledTimes(3);
     });
 
     it('should properly log both database and drizzle initialization', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
 
       await runMigrations();
 
-      // Verify the sequence of operations
-      expect(mockOpenDatabase.mock.invocationCallOrder[0]).toBeLessThan(
+      expect(mockOpenDatabaseSync.mock.invocationCallOrder[0]).toBeLessThan(
         mockDrizzle.mock.invocationCallOrder[0]
       );
       expect(mockDrizzle.mock.invocationCallOrder[0]).toBeLessThan(
@@ -303,6 +337,8 @@ describe('db/migrate.ts - runMigrations', () => {
   describe('Error Types and Messages', () => {
     it('should handle TypeError when operations are invalid', async () => {
       const typeError = new TypeError('Cannot read property of undefined');
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockRejectedValueOnce(typeError);
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -311,6 +347,8 @@ describe('db/migrate.ts - runMigrations', () => {
 
     it('should handle ReferenceError when migrations are not found', async () => {
       const refError = new ReferenceError('migrations is not defined');
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockRejectedValueOnce(refError);
       jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -319,6 +357,8 @@ describe('db/migrate.ts - runMigrations', () => {
 
     it('should preserve original error message in logs', async () => {
       const customError = new Error('Custom migration error message');
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockRejectedValueOnce(customError);
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -334,6 +374,8 @@ describe('db/migrate.ts - runMigrations', () => {
 
   describe('Console Output', () => {
     it('should log with [DB] prefix for success', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockResolvedValueOnce(undefined);
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
@@ -344,6 +386,8 @@ describe('db/migrate.ts - runMigrations', () => {
     });
 
     it('should log with [DB] prefix for errors', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockRejectedValueOnce(new Error('Test error'));
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -358,6 +402,8 @@ describe('db/migrate.ts - runMigrations', () => {
     });
 
     it('should use console.error for error logging, not console.log', async () => {
+      mockOpenDatabaseSync.mockReturnValueOnce({} as any);
+      mockDrizzle.mockReturnValueOnce({} as any);
       mockMigrate.mockRejectedValueOnce(new Error('Test error'));
       const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
