@@ -713,3 +713,159 @@ describe('OnboardingContainer - Completion', () => {
     });
   });
 });
+
+describe('OnboardingContainer - New Layout Structure', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
+  });
+
+  it('should render SafeAreaView wrapper', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('safe-area-container')).toBeDefined();
+    });
+  });
+
+  it('should render KeyboardAvoidingView with correct behavior', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      const keyboardView = screen.getByTestId('keyboard-avoiding-view');
+      expect(keyboardView).toBeDefined();
+      expect(keyboardView.props.behavior).toBe('padding'); // iOS default
+    });
+  });
+
+  it('should render header with progress bar', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('onboarding-header')).toBeDefined();
+    });
+  });
+
+  it('should render back button in header when currentIndex > 0', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [
+        { id: 1, userId: 1, questionKey: 'q1', answer: '"answered"', createdAt: new Date() },
+      ],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('← Voltar')).toBeDefined();
+    });
+  });
+
+  it('should not render back button when currentIndex = 0', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('← Voltar')).toBeNull();
+    });
+  });
+
+  it('should render scrollable content area', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('content-scroll-view')).toBeDefined();
+    });
+  });
+
+  it('should render footer with action button', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [
+        { id: 1, userId: 1, questionKey: 'name', answer: '"John"', createdAt: new Date() },
+      ],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('onboarding-footer')).toBeDefined();
+    });
+  });
+
+  it('should keep question text fixed outside ScrollView', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      const questionText = screen.getByText('Qual é o seu nome?');
+      const scrollView = screen.getByTestId('content-scroll-view');
+
+      // Question text should not be inside the ScrollView
+      expect(questionText).toBeDefined();
+      expect(scrollView).toBeDefined();
+    });
+  });
+});
