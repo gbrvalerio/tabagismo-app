@@ -209,7 +209,7 @@ export default function UsersScreen() {
 ['users', userId]                     // Single user
 ['users', 'search']                   // Search results
 ['settings', 'theme']                 // Specific setting
-['settings', 'onboarding_completed']  // Onboarding status
+['settings', 'onboardingCompleted']   // Onboarding status
 ['onboarding', 'questions']           // All onboarding questions
 ['onboarding', 'answers']             // All onboarding answers
 ```
@@ -399,8 +399,9 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
   /seed
     /seed-questions.ts        # Seeds initial onboarding questions
   /migrations
-    /0000_name.ts     # Migration as TS module
-    /migrations.ts    # Migration registry
+    /0000_name.ts                   # Migration as TS module
+    /0001_add_onboarding_tables.ts  # Onboarding tables migration
+    /migrations.ts                  # Migration registry
     /meta/            # Drizzle metadata
   /client.ts          # Drizzle instance
   /migrate.ts         # Migration runner
@@ -428,10 +429,10 @@ enum QuestionCategory { PROFILE, ADDICTION, HABITS, MOTIVATION, GOALS }
 |------|------|-----------|-------------|
 | `useOnboardingQuestions()` | Query | `['onboarding', 'questions']` | All questions ordered by `order` |
 | `useOnboardingAnswers()` | Query | `['onboarding', 'answers']` | All saved answers |
-| `useSaveAnswer()` | Mutation | Invalidates answers | Upserts answer by `questionKey` |
+| `useSaveAnswer()` | Mutation | Invalidates answers | Upserts answer by `questionKey` (insert or update via existence check) |
 | `useDeleteDependentAnswers()` | Mutation | Invalidates answers | Deletes answers for questions that depend on a parent |
-| `useOnboardingStatus()` | Query | `['settings', 'onboarding_completed']` | Returns `boolean` — whether onboarding is done |
-| `useCompleteOnboarding()` | Mutation | Invalidates status | Sets `onboarding_completed` to `true` |
+| `useOnboardingStatus()` | Query | `['settings', 'onboardingCompleted']` | Returns `boolean` — whether onboarding is done |
+| `useCompleteOnboarding()` | Mutation | Invalidates status | Sets `onboardingCompleted` to `true` |
 
 ### Conditional Questions
 

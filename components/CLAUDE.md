@@ -97,7 +97,7 @@ Wraps the app's `Stack` in `_layout.tsx`. Checks `useOnboardingStatus()` and red
 
 **File:** `onboarding/OnboardingContainer.tsx`
 
-Main orchestrator. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/onboarding-flow`. Handles answer saving, navigation (Voltar/Proxima/Concluir), and completion.
+Main orchestrator. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/onboarding-flow`. Handles answer saving, navigation (Voltar/Próxima/Concluir), and completion.
 
 **Hooks used:** `useOnboardingQuestions`, `useOnboardingAnswers`, `useSaveAnswer`, `useDeleteDependentAnswers`, `useCompleteOnboarding`
 
@@ -176,7 +176,7 @@ const color = useThemeColor({ light: '#000', dark: '#fff' }, 'text');
 
 ## Conventions
 
-- **File naming:** `kebab-case.tsx`
+- **File naming:** `PascalCase.tsx` for components, `kebab-case.tsx` for screens
 - **Test files:** `component-name.test.tsx` (co-located)
 - **Exports:** Named exports (not default)
 - **Theming:** Use `useThemeColor` hook, never hardcode colors

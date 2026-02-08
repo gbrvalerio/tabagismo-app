@@ -351,7 +351,7 @@ The onboarding screen is a full-screen modal (`gestureEnabled: false`) that appe
 
 **Guard:** `OnboardingGuard` component wraps the `Stack` and checks `useOnboardingStatus()`. If onboarding is not completed, it redirects via `router.replace('/onboarding')`.
 
-**Completion:** When the user answers the last question and taps "Concluir", `useCompleteOnboarding()` is called which sets the `onboarding_completed` setting to `true`, then navigates to `/(tabs)` via `router.replace`.
+**Completion:** When the user answers the last question and taps "Concluir", `useCompleteOnboarding()` is called which sets the `onboardingCompleted` setting to `true`, then navigates to `/(tabs)` via `router.replace`.
 
 ---
 
