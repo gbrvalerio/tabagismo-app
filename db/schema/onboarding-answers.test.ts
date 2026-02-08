@@ -26,7 +26,13 @@ describe('onboardingAnswers schema', () => {
     expect(onboardingAnswers.questionKey.name).toBe('question_key');
     expect(onboardingAnswers.userId.name).toBe('user_id');
     expect(onboardingAnswers.answer.name).toBe('answer');
+    expect(onboardingAnswers.coinAwarded.name).toBe('coin_awarded');
     expect(onboardingAnswers.answeredAt.name).toBe('answered_at');
     expect(onboardingAnswers.updatedAt.name).toBe('updated_at');
+  });
+
+  it('should have coinAwarded field with default false', () => {
+    const schema = onboardingAnswers;
+    expect(schema.coinAwarded).toBeDefined();
   });
 });

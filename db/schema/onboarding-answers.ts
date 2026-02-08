@@ -8,6 +8,7 @@ export const onboardingAnswers = sqliteTable('onboarding_answers', {
   questionKey: text('question_key').notNull().unique(),
   userId: integer('user_id'),
   answer: text('answer').notNull(),
+  coinAwarded: integer('coin_awarded', { mode: 'boolean' }).notNull().default(false),
   answeredAt: integer('answered_at', { mode: 'timestamp' })
     .notNull()
     .$defaultFn(getDefaultAnsweredAt),
