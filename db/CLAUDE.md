@@ -397,11 +397,13 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
   /schema
     /settings.ts              # Settings table schema
     /questions.ts             # Questions table + QuestionType/QuestionCategory enums
-    /onboarding-answers.ts    # Onboarding answers table
+    /onboarding-answers.ts    # Onboarding answers table (includes coinAwarded field)
+    /users.ts                 # Users table (id, coins, createdAt)
     /index.ts                 # Export all schemas
   /repositories
     /settings.repository.ts   # Settings hooks (useOnboardingStatus, useCompleteOnboarding)
     /onboarding.repository.ts # Onboarding hooks (useOnboardingQuestions, useOnboardingAnswers, useSaveAnswer, useDeleteDependentAnswers)
+    /users.repository.ts      # User hooks (useUserCoins, useIncrementCoins)
     /index.ts                 # Export all repositories
   /seed
     /seed-questions.ts        # Seeds initial onboarding questions
@@ -421,7 +423,8 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 
 - **settings:** Key-value store (`key`, `value`, `updatedAt`)
 - **questions:** Onboarding questions (`id`, `key`, `order`, `type`, `category`, `questionText`, `required`, `dependsOnQuestionKey`, `dependsOnValue`, `metadata`, `createdAt`)
-- **onboarding_answers:** User answers (`id`, `questionKey`, `userId`, `answer`, `answeredAt`, `updatedAt`)
+- **onboarding_answers:** User answers (`id`, `questionKey`, `userId`, `answer`, `coinAwarded`, `answeredAt`, `updatedAt`)
+- **users:** User profiles (`id`, `coins`, `createdAt`)
 
 ### Question Types & Categories
 
@@ -436,10 +439,12 @@ enum QuestionCategory { PROFILE, ADDICTION, HABITS, MOTIVATION, GOALS }
 |------|------|-----------|-------------|
 | `useOnboardingQuestions()` | Query | `['onboarding', 'questions']` | All questions ordered by `order` |
 | `useOnboardingAnswers()` | Query | `['onboarding', 'answers']` | All saved answers |
-| `useSaveAnswer()` | Mutation | Invalidates answers | Upserts answer by `questionKey` (insert or update via existence check) |
+| `useSaveAnswer()` | Mutation | Invalidates answers | Upserts answer by `questionKey`. Accepts `isFirstTime` to track `coinAwarded` flag |
 | `useDeleteDependentAnswers()` | Mutation | Invalidates answers | Deletes answers for questions that depend on a parent |
 | `useOnboardingStatus()` | Query | `['settings', 'onboardingCompleted']` | Returns `boolean` — whether onboarding is done |
 | `useCompleteOnboarding()` | Mutation | Invalidates status | Sets `onboardingCompleted` to `true` |
+| `useUserCoins()` | Query | `['users', 'coins']` | Current coin balance (returns 0 if no user) |
+| `useIncrementCoins()` | Mutation | Invalidates coins | Increments user coins by amount, creates user if none exists |
 
 ### Conditional Questions
 

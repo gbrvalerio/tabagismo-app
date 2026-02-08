@@ -97,19 +97,26 @@ Wraps the app's `Stack` in `_layout.tsx`. Checks `useOnboardingStatus()` and red
 
 **File:** `onboarding/OnboardingContainer.tsx`
 
-Main orchestrator wrapped in SafeAreaView and KeyboardAvoidingView for proper mobile layout. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/onboarding-flow`. Handles answer saving, navigation (Voltar/Próxima/Concluir), and completion.
+Main orchestrator wrapped in SafeAreaView and KeyboardAvoidingView for proper mobile layout. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/onboarding-flow`. Handles answer saving, navigation (Voltar/Próxima/Concluir), completion, and coin awards.
 
 **Layout Structure:**
-- Header: Back button (when currentIndex > 0) + Progress bar
+- Header: Back button (when currentIndex > 0) + CoinCounter (top-right) + CoinTrail (progress dots)
 - Content: Fixed question text + ScrollView for inputs/options
 - Footer: Next/Finish button (when answered)
+- Overlay: CoinBurstAnimation (triggers on first-time answers)
+
+**Gamification:**
+- Awards 1 coin per first-time answer via `useIncrementCoins`
+- Shows CoinBurstAnimation arc trajectory on coin award
+- Triggers haptic feedback (success notification) on coin award
+- Tracks `isFirstTime` flag to prevent duplicate coin awards on answer updates
 
 **Safe Area & Keyboard:**
 - Uses `SafeAreaView` with `edges={['top', 'bottom']}` for notch/home indicator support
 - Uses `KeyboardAvoidingView` with platform-specific behavior (iOS: padding, Android: height)
 - ScrollView enables scrolling for long option lists
 
-**Hooks used:** `useOnboardingQuestions`, `useOnboardingAnswers`, `useSaveAnswer`, `useDeleteDependentAnswers`, `useCompleteOnboarding`
+**Hooks used:** `useOnboardingQuestions`, `useOnboardingAnswers`, `useSaveAnswer`, `useDeleteDependentAnswers`, `useCompleteOnboarding`, `useUserCoins`, `useIncrementCoins`
 
 ### QuestionCard
 
@@ -135,11 +142,57 @@ Routes to the correct input component based on `question.type`:
 
 Extracts `choices` from `question.metadata` for choice-based types.
 
-### ProgressBar
+### ProgressBar (Replaced by CoinTrail)
 
 **File:** `onboarding/ProgressBar.tsx`
 
-Animated progress bar. Takes `progress` (0-100). Uses `withSpring` for smooth width transitions.
+Animated progress bar. Takes `progress` (0-100). Uses `withSpring` for smooth width transitions. No longer used in OnboardingContainer (replaced by CoinTrail).
+
+### CoinIcon
+
+**File:** `onboarding/CoinIcon.tsx`
+
+Base coin visualization with outlined/filled variants and optional pulse animation. Uses `react-native-reanimated` for highlight pulse effect.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `size` | `number` | — | Coin diameter in pixels |
+| `variant` | `'outlined' \| 'filled'` | — | Visual style (gray border vs gold fill) |
+| `highlighted` | `boolean` | `false` | Enables repeating pulse animation |
+
+### CoinCounter
+
+**File:** `onboarding/CoinCounter.tsx`
+
+Displays current coin count with animated bounce on increment. Reads from `useUserCoins()` hook. Shows gold coin icon + count text.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `testID` | `string` | — | Test identifier |
+
+### CoinTrail
+
+**File:** `onboarding/CoinTrail.tsx`
+
+Progress indicator showing coins as dots. Outlined = not answered, filled = earned. Highlights current question coin with pulse animation.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `currentStep` | `number` | — | Current question (1-indexed) |
+| `totalSteps` | `number` | — | Total questions count |
+| `answeredQuestions` | `string[]` | — | Array of answered question keys |
+| `testID` | `string` | — | Test identifier |
+
+### CoinBurstAnimation
+
+**File:** `onboarding/CoinBurstAnimation.tsx`
+
+Animated coin that flies from center to top-right in an arc trajectory with 2 full rotations and fade-out. Triggers on first-time answers.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `isVisible` | `boolean` | — | Controls render and animation start |
+| `onComplete` | `() => void` | — | Called after 800ms animation completes |
 
 ### Input Components
 
