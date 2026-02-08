@@ -1,6 +1,7 @@
 import * as repositoriesExports from './index';
 import * as settingsRepositoryExports from './settings.repository';
 import * as onboardingRepositoryExports from './onboarding.repository';
+import * as usersRepositoryExports from './users.repository';
 
 describe('db/repositories/index.ts', () => {
   describe('exports', () => {
@@ -23,6 +24,11 @@ describe('db/repositories/index.ts', () => {
       expect(repositoriesExports.useDeleteDependentAnswers).toBeDefined();
     });
 
+    it('should export users repository hooks', () => {
+      expect(repositoriesExports.useUserCoins).toBeDefined();
+      expect(repositoriesExports.useIncrementCoins).toBeDefined();
+    });
+
     it('should have all exported functions from settings.repository', () => {
       const settingsExports = Object.keys(settingsRepositoryExports);
       const indexExports = Object.keys(repositoriesExports);
@@ -41,10 +47,20 @@ describe('db/repositories/index.ts', () => {
       });
     });
 
+    it('should have all exported functions from users.repository', () => {
+      const usersExports = Object.keys(usersRepositoryExports);
+      const indexExports = Object.keys(repositoriesExports);
+
+      usersExports.forEach(exportName => {
+        expect(indexExports).toContain(exportName);
+      });
+    });
+
     it('should not export anything unexpected', () => {
       const expectedExports = [
         ...Object.keys(settingsRepositoryExports),
         ...Object.keys(onboardingRepositoryExports),
+        ...Object.keys(usersRepositoryExports),
       ];
       const actualExports = Object.keys(repositoriesExports);
 
