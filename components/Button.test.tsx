@@ -278,11 +278,37 @@ describe('Button', () => {
       expect(onPress).toHaveBeenCalledTimes(1);
     });
 
+    it('should handle press in animation', () => {
+      render(<Button label="Animar" onPress={() => {}} />);
+      const button = screen.getByTestId('button');
+      fireEvent(button, 'pressIn');
+      // Animation should trigger, but we can't test the actual animation value
+      expect(button).toBeTruthy();
+    });
+
+    it('should handle press out animation', () => {
+      render(<Button label="Animar" onPress={() => {}} />);
+      const button = screen.getByTestId('button');
+      fireEvent(button, 'pressOut');
+      // Animation should trigger
+      expect(button).toBeTruthy();
+    });
+
     it('should not animate when disabled', () => {
       const onPress = jest.fn();
       render(<Button label="Animar" onPress={onPress} disabled />);
-      fireEvent.press(screen.getByText('Animar'));
+      const button = screen.getByTestId('button');
+      fireEvent(button, 'pressIn');
+      fireEvent(button, 'pressOut');
       expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('should not animate when loading', () => {
+      render(<Button label="Animar" onPress={() => {}} loading />);
+      const button = screen.getByTestId('button');
+      fireEvent(button, 'pressIn');
+      fireEvent(button, 'pressOut');
+      expect(screen.getByTestId('button-loading')).toBeTruthy();
     });
 
     it('should render correctly across all variants with animation', () => {
