@@ -13,6 +13,10 @@ jest.mock('./migrations/migrations', () => ({
   },
 }));
 
+jest.mock('drizzle-orm/expo-sqlite/migrator', () => ({
+  migrate: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { runMigrations } from './migrate';
 
 describe('db/migrate.ts - runMigrations', () => {
@@ -546,6 +550,24 @@ describe('db/migrate.ts - runMigrations', () => {
   });
 
   describe('Success Path - when drizzle and database work', () => {
+    it('should log success message on successful migration', async () => {
+      const mockDb = {
+        execSync: jest.fn(),
+        runSync: jest.fn(),
+        getFirstSync: jest.fn(),
+        getAllSync: jest.fn(),
+      };
+      mockOpenDatabaseSync.mockReturnValueOnce(mockDb);
+      mockDrizzle.mockReturnValueOnce({});
+      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+      // The migrate function is mocked in jest.setup.js to resolve successfully by default
+      // This test verifies that when migrate succeeds, the success message is logged
+      await runMigrations();
+
+      expect(consoleLogSpy).toHaveBeenCalledWith('[DB] Migrations completed successfully');
+    });
+
     it('should call database operations in correct order', async () => {
       const mockDb = {
         execSync: jest.fn(),
