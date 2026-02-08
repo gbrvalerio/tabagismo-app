@@ -50,4 +50,35 @@ describe('OnboardingNumberInput', () => {
     const input = screen.getByPlaceholderText('Idade');
     expect(input.props.value).toBe('');
   });
+
+  it('should auto-focus on mount', () => {
+    jest.useFakeTimers();
+    const onChange = jest.fn();
+
+    render(<OnboardingNumberInput value={null} onChange={onChange} placeholder="Idade" />);
+
+    // Verify timer is scheduled (there should be 1 timer pending)
+    expect(jest.getTimerCount()).toBe(1);
+
+    // Fast-forward past the 300ms delay
+    jest.advanceTimersByTime(300);
+
+    // Timer should have executed
+    expect(jest.getTimerCount()).toBe(0);
+
+    jest.useRealTimers();
+  });
+
+  it('should cleanup timer on unmount', () => {
+    jest.useFakeTimers();
+    const onChange = jest.fn();
+    const { unmount } = render(<OnboardingNumberInput value={null} onChange={onChange} placeholder="Idade" />);
+
+    unmount();
+
+    // Verify no timers are pending
+    expect(jest.getTimerCount()).toBe(0);
+
+    jest.useRealTimers();
+  });
 });

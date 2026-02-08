@@ -1,5 +1,6 @@
 import { TextInput, StyleSheet, View } from 'react-native';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useRef, useEffect } from 'react';
 
 interface OnboardingNumberInputProps {
   value: number | null;
@@ -10,6 +11,16 @@ interface OnboardingNumberInputProps {
 export function OnboardingNumberInput({ value, onChange, placeholder }: OnboardingNumberInputProps) {
   const color = useThemeColor({}, 'text');
   const borderColor = useThemeColor({}, 'icon');
+  const inputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    // Small delay to ensure smooth transition from previous question
+    const timer = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleChange = (text: string) => {
     const num = parseInt(text, 10);
@@ -21,6 +32,7 @@ export function OnboardingNumberInput({ value, onChange, placeholder }: Onboardi
   return (
     <View style={styles.container}>
       <TextInput
+        ref={inputRef}
         value={value?.toString() ?? ''}
         onChangeText={handleChange}
         placeholder={placeholder}
