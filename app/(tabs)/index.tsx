@@ -1,9 +1,29 @@
-import { View, Text, Button, StyleSheet } from 'react-native';
-import { useOnboardingStatus, useCompleteOnboarding } from '@/db';
+import { View, Text, Button, Alert, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useOnboardingStatus, useCompleteOnboarding, useResetOnboarding } from '@/db';
 
 export default function HomeScreen() {
   const { data: onboardingCompleted, isLoading } = useOnboardingStatus();
   const completeMutation = useCompleteOnboarding();
+  const resetMutation = useResetOnboarding();
+  const router = useRouter();
+
+  const handleResetOnboarding = () => {
+    Alert.alert(
+      'Refazer Onboarding',
+      'Deseja refazer o onboarding? Suas respostas anteriores serão mantidas.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Refazer',
+          onPress: async () => {
+            await resetMutation.mutateAsync();
+            router.replace('/onboarding');
+          },
+        },
+      ],
+    );
+  };
 
   if (isLoading) {
     return (
@@ -30,6 +50,19 @@ export default function HomeScreen() {
           onPress={() => completeMutation.mutate()}
           disabled={completeMutation.isPending}
         />
+      )}
+
+      {onboardingCompleted && (
+        <TouchableOpacity
+          style={styles.resetButton}
+          onPress={handleResetOnboarding}
+          disabled={resetMutation.isPending}
+          testID="reset-onboarding-button"
+        >
+          <Text style={styles.resetButtonText}>
+            {resetMutation.isPending ? 'Resetando...' : 'Refazer Onboarding'}
+          </Text>
+        </TouchableOpacity>
       )}
 
       {completeMutation.isPending && (
@@ -64,6 +97,19 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 20,
     fontWeight: '600',
+  },
+  resetButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderWidth: 1,
+    borderColor: '#666',
+    borderRadius: 8,
+  },
+  resetButtonText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
   saving: {
     marginTop: 10,
