@@ -1,10 +1,10 @@
 import { TextInput, StyleSheet, View } from 'react-native';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 interface OnboardingNumberInputProps {
   value: number | null;
-  onChange: (value: number) => void;
+  onChange: (value: number | null) => void;
   placeholder: string;
 }
 
@@ -12,6 +12,7 @@ export function OnboardingNumberInput({ value, onChange, placeholder }: Onboardi
   const color = useThemeColor({}, 'text');
   const borderColor = useThemeColor({}, 'icon');
   const inputRef = useRef<TextInput>(null);
+  const [localText, setLocalText] = useState(value?.toString() ?? '');
 
   useEffect(() => {
     // Small delay to ensure smooth transition from previous question
@@ -22,10 +23,21 @@ export function OnboardingNumberInput({ value, onChange, placeholder }: Onboardi
     return () => clearTimeout(timer);
   }, []);
 
+  // Sync local text with external value changes
+  useEffect(() => {
+    setLocalText(value?.toString() ?? '');
+  }, [value]);
+
   const handleChange = (text: string) => {
-    const num = parseInt(text, 10);
-    if (!isNaN(num)) {
-      onChange(num);
+    setLocalText(text);
+
+    if (text === '') {
+      onChange(null);
+    } else {
+      const num = parseInt(text, 10);
+      if (!isNaN(num)) {
+        onChange(num);
+      }
     }
   };
 
@@ -33,7 +45,7 @@ export function OnboardingNumberInput({ value, onChange, placeholder }: Onboardi
     <View style={styles.container}>
       <TextInput
         ref={inputRef}
-        value={value?.toString() ?? ''}
+        value={localText}
         onChangeText={handleChange}
         placeholder={placeholder}
         placeholderTextColor={borderColor}

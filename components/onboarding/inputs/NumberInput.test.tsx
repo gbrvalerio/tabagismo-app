@@ -81,4 +81,29 @@ describe('OnboardingNumberInput', () => {
 
     jest.useRealTimers();
   });
+
+  it('should call onChange with null when field is cleared', () => {
+    const onChange = jest.fn();
+    render(<OnboardingNumberInput value={25} onChange={onChange} placeholder="Idade" />);
+
+    const input = screen.getByDisplayValue('25');
+    fireEvent.changeText(input, '');
+
+    expect(onChange).toHaveBeenCalledWith(null);
+  });
+
+  it('should allow deleting digits one by one', () => {
+    const onChange = jest.fn();
+    render(<OnboardingNumberInput value={25} onChange={onChange} placeholder="Idade" />);
+
+    const input = screen.getByDisplayValue('25');
+
+    // Delete last digit
+    fireEvent.changeText(input, '2');
+    expect(onChange).toHaveBeenCalledWith(2);
+
+    // Clear completely
+    fireEvent.changeText(input, '');
+    expect(onChange).toHaveBeenCalledWith(null);
+  });
 });
