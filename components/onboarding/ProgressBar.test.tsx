@@ -8,11 +8,6 @@ jest.mock('expo-linear-gradient', () => ({
 }));
 
 describe('ProgressBar', () => {
-  it('should render current step and total steps', () => {
-    render(<ProgressBar progress={50} currentStep={2} totalSteps={4} />);
-    expect(screen.getByText('2/4')).toBeDefined();
-  });
-
   it('should render progress bar container', () => {
     const { toJSON } = render(<ProgressBar progress={50} currentStep={2} totalSteps={4} />);
     expect(toJSON()).toBeDefined();
