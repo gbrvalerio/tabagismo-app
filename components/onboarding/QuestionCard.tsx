@@ -53,9 +53,8 @@ export function QuestionCard({ children }: QuestionCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     width: '100%',
-    marginTop: spacing.lg,
+    marginTop: spacing.xs,
   },
   shadowWrapper: {
     borderRadius: borderRadius.xl,

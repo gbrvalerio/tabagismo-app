@@ -21,7 +21,7 @@ describe('QuestionText', () => {
     const flatStyle = Array.isArray(styles)
       ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
       : styles;
-    expect(flatStyle.fontSize).toBe(32); // Updated to match typography.fontSize.xxl
+    expect(flatStyle.fontSize).toBe(20); // typography.fontSize.lg
   });
 
   it('should apply bold weight', () => {
@@ -31,7 +31,7 @@ describe('QuestionText', () => {
     const flatStyle = Array.isArray(styles)
       ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
       : styles;
-    expect(flatStyle.fontWeight).toBe('900'); // Updated to match typography.fontWeight.black
+    expect(flatStyle.fontWeight).toBe('700'); // typography.fontWeight.bold
   });
 
   it('should apply theme color', () => {

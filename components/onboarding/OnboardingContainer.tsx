@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.xs,
   },
   backButton: {
     alignSelf: 'flex-start',
@@ -243,10 +243,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   questionHeader: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   scrollView: {
-    flex: 1,
+    flexGrow: 0,
+    flexShrink: 1,
   },
   scrollContent: {
     paddingBottom: spacing.xl,

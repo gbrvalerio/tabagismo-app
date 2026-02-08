@@ -27,7 +27,7 @@ describe('QuestionCard', () => {
     expect(toJSON()).toBeDefined();
   });
 
-  it('should have flex: 1 to fill available space', () => {
+  it('should grow with content instead of filling all space', () => {
     const { getByTestId } = render(
       <QuestionCard>
         <Text>Content</Text>
@@ -40,6 +40,8 @@ describe('QuestionCard', () => {
       ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
       : styles;
 
-    expect(flatStyle.flex).toBe(1);
+    // Card should not have flex: 1, allowing it to grow with content
+    expect(flatStyle.flex).toBeUndefined();
+    expect(flatStyle.width).toBe('100%');
   });
 });

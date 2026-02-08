@@ -11,11 +11,11 @@ export function QuestionText({ text }: QuestionTextProps) {
 
 const styles = StyleSheet.create({
   text: {
-    fontSize: typography.fontSize.xxl,
-    fontWeight: typography.fontWeight.black,
-    marginBottom: spacing.xl,
-    marginTop: spacing.sm,
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    marginBottom: spacing.sm,
+    marginTop: 0,
     color: colors.neutral.black,
-    lineHeight: typography.fontSize.xxl * typography.lineHeight.tight,
+    lineHeight: typography.fontSize.lg * typography.lineHeight.normal,
   },
 });
