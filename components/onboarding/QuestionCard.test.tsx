@@ -27,7 +27,7 @@ describe('QuestionCard', () => {
     expect(toJSON()).toBeDefined();
   });
 
-  it('should fill available space to prevent overflow', () => {
+  it('should size to content width', () => {
     const { getByTestId } = render(
       <QuestionCard questionKey="test-key">
         <Text>Content</Text>
@@ -40,8 +40,8 @@ describe('QuestionCard', () => {
       ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
       : styles;
 
-    // Card should have flex: 1 to respect parent container bounds and prevent overflow
-    expect(flatStyle.flex).toBe(1);
+    // Card should size to content (no flex: 1) but maintain full width
+    expect(flatStyle.flex).toBeUndefined();
     expect(flatStyle.width).toBe('100%');
   });
 

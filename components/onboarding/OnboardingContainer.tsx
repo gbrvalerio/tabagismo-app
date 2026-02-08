@@ -359,15 +359,16 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: spacing.md,
+    justifyContent: "flex-start",
   },
   cardWrapper: {
-    flex: 1,
+    // Card sizes to content, not stretched
   },
   questionHeader: {
     marginBottom: spacing.sm,
   },
   scrollView: {
-    flex: 1,
+    maxHeight: 400, // Limit height so card doesn't grow too large
   },
   scrollContent: {
     paddingBottom: spacing.xl,

@@ -74,17 +74,14 @@ export function QuestionCard({ children, questionKey }: QuestionCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     width: "100%",
     marginTop: spacing.xs,
   },
   shadowWrapper: {
-    flex: 1,
     borderRadius: borderRadius.xl,
     ...shadows.md,
   },
   card: {
-    flex: 1,
     padding: spacing.xl,
     borderRadius: borderRadius.xl,
     backgroundColor: colors.neutral.white,
