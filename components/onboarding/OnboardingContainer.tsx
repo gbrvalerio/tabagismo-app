@@ -367,14 +367,15 @@ const styles = StyleSheet.create({
     color: colors.neutral.gray[600],
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0, // Starts from 0, grows within available space only
     paddingHorizontal: spacing.md,
     justifyContent: "flex-start",
-    overflow: "hidden", // Prevents content from overflowing beyond bounds
+    minHeight: 0,
   },
   cardWrapper: {
     // Card sizes to content, Layout animation handles smooth transitions
-    flexShrink: 1, // Allows card to shrink when footer appears
     flex: 1, // Takes available space from content area
     minHeight: 0, // Enables proper flexbox shrinking
   },
