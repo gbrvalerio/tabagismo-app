@@ -40,9 +40,13 @@ npm run db:generate
 
 Drizzle generates `.sql` files that Metro bundler cannot import.
 
+**⚠️ CRITICAL: Preserve `--> statement-breakpoint` markers!**
+
+Expo-sqlite can only execute one SQL statement at a time. Drizzle uses `--> statement-breakpoint` to split multi-statement migrations. **If you remove these breakpoints, only the first statement will execute!**
+
 **Steps:**
 1. Find new file: `/db/migrations/0001_name.sql`
-2. Copy SQL content
+2. Copy SQL content **EXACTLY** (including statement breakpoints)
 3. Create `/db/migrations/0001_name.ts`:
    ```typescript
    export default `CREATE TABLE \`users\` (
@@ -51,8 +55,11 @@ Drizzle generates `.sql` files that Metro bundler cannot import.
      \`email\` text NOT NULL,
      \`created_at\` integer NOT NULL
    );
+   --> statement-breakpoint
+   CREATE UNIQUE INDEX \`users_email_unique\` ON \`users\` (\`email\`);
    `;
    ```
+   **Note:** Keep the `--> statement-breakpoint` markers between statements!
 4. Update `/db/migrations/migrations.ts`:
    ```typescript
    import m0001 from './0001_name'; // Remove .sql extension
@@ -458,3 +465,11 @@ On first launch, `_layout.tsx` checks if questions table is empty and runs `seed
 ### Jest fails with "Unexpected identifier TABLE" from migrations.js
 **Cause:** `drizzle-kit generate` auto-creates a `migrations.js` file that imports `.sql` files, which Jest can't parse.
 **Fix:** The `db:generate` script auto-removes `migrations.js` after generation. If it reappears, delete it manually (`rm db/migrations/migrations.js`) and clear Jest cache (`npx jest --clearCache`). The file is in `.gitignore`. We use `migrations.ts` instead.
+
+### Migration creates some tables but not others (e.g., "no such table: onboarding_answers")
+**Cause:** Missing `--> statement-breakpoint` markers in the `.ts` migration file. Expo-sqlite can only execute one SQL statement at a time, and Drizzle uses these markers to split multi-statement migrations. If the markers are missing, only the first CREATE TABLE executes.
+**Fix:**
+1. Check the original `.sql` file for `--> statement-breakpoint` markers
+2. Ensure ALL breakpoints are preserved when copying to `.ts` file
+3. Drop all tables and re-run migrations, or create a new migration to add missing tables
+**Example:** See section 3 "Convert Migration (CRITICAL)" for correct format with breakpoints.

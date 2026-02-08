@@ -11,7 +11,8 @@ export default `CREATE TABLE \`questions\` (
 	\`metadata\` text,
 	\`created_at\` integer NOT NULL
 );
-CREATE UNIQUE INDEX \`questions_key_unique\` ON \`questions\` (\`key\`);
+--> statement-breakpoint
+CREATE UNIQUE INDEX \`questions_key_unique\` ON \`questions\` (\`key\`);--> statement-breakpoint
 CREATE TABLE \`onboarding_answers\` (
 	\`id\` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	\`question_key\` text NOT NULL,
@@ -20,5 +21,6 @@ CREATE TABLE \`onboarding_answers\` (
 	\`answered_at\` integer NOT NULL,
 	\`updated_at\` integer NOT NULL
 );
+--> statement-breakpoint
 CREATE UNIQUE INDEX \`onboarding_answers_question_key_unique\` ON \`onboarding_answers\` (\`question_key\`);
 `;
