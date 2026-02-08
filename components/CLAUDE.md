@@ -97,7 +97,17 @@ Wraps the app's `Stack` in `_layout.tsx`. Checks `useOnboardingStatus()` and red
 
 **File:** `onboarding/OnboardingContainer.tsx`
 
-Main orchestrator. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/onboarding-flow`. Handles answer saving, navigation (Voltar/Próxima/Concluir), and completion.
+Main orchestrator wrapped in SafeAreaView and KeyboardAvoidingView for proper mobile layout. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/onboarding-flow`. Handles answer saving, navigation (Voltar/Próxima/Concluir), and completion.
+
+**Layout Structure:**
+- Header: Back button (when currentIndex > 0) + Progress bar
+- Content: Fixed question text + ScrollView for inputs/options
+- Footer: Next/Finish button (when answered)
+
+**Safe Area & Keyboard:**
+- Uses `SafeAreaView` with `edges={['top', 'bottom']}` for notch/home indicator support
+- Uses `KeyboardAvoidingView` with platform-specific behavior (iOS: padding, Android: height)
+- ScrollView enables scrolling for long option lists
 
 **Hooks used:** `useOnboardingQuestions`, `useOnboardingAnswers`, `useSaveAnswer`, `useDeleteDependentAnswers`, `useCompleteOnboarding`
 
@@ -137,8 +147,8 @@ Located in `onboarding/inputs/`:
 
 | Component | File | Description |
 |-----------|------|-------------|
-| `OnboardingTextInput` | `inputs/TextInput.tsx` | Text input with bottom border, uses `icon` theme color |
-| `OnboardingNumberInput` | `inputs/NumberInput.tsx` | Numeric input with `keyboardType="numeric"`, `parseInt` validation |
+| `OnboardingTextInput` | `inputs/TextInput.tsx` | Text input with auto-focus (300ms delay), bottom border, uses `icon` theme color |
+| `OnboardingNumberInput` | `inputs/NumberInput.tsx` | Numeric input with auto-focus (300ms delay), `keyboardType="numeric"`, `parseInt` validation |
 | `SingleChoiceCards` | `inputs/SingleChoiceCards.tsx` | Touchable cards with haptic feedback, single selection |
 | `MultipleChoiceCards` | `inputs/MultipleChoiceCards.tsx` | Touchable cards with haptic feedback, toggle selection |
 
