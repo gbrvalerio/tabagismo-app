@@ -64,7 +64,7 @@ export function TextField({
     return { borderColor };
   });
 
-  const handleFocus = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+  const handleFocus = (e: any) => {
     setIsFocused(true);
     focusAnimation.value = withTiming(1, {
       duration: timing.fast,
@@ -73,7 +73,7 @@ export function TextField({
     onFocus?.(e);
   };
 
-  const handleBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+  const handleBlur = (e: any) => {
     setIsFocused(false);
     focusAnimation.value = withTiming(0, {
       duration: timing.fast,

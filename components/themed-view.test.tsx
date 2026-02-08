@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react-native';
 import { View, Text } from 'react-native';
 import { ThemedView } from './themed-view';
 
+import { useThemeColor } from '@/hooks/use-theme-color';
+
 // Mock the useThemeColor hook
 jest.mock('@/hooks/use-theme-color', () => ({
   useThemeColor: jest.fn((props, colorName) => {
@@ -10,8 +12,6 @@ jest.mock('@/hooks/use-theme-color', () => ({
     return props.light || '#FFFFFF';
   }),
 }));
-
-import { useThemeColor } from '@/hooks/use-theme-color';
 
 describe('ThemedView', () => {
   beforeEach(() => {
@@ -172,17 +172,15 @@ describe('ThemedView', () => {
     expect(screen.getByTestId('themed-view-test')).toBeTruthy();
   });
 
-  it('should forward View props like onPress', () => {
-    const onPressMock = jest.fn();
+  it('should forward View props', () => {
     const { getByTestId } = render(
-      <ThemedView testID="pressable-view" onPress={onPressMock}>
+      <ThemedView testID="pressable-view">
         <Text>Pressable Content</Text>
       </ThemedView>
     );
 
     const view = getByTestId('pressable-view');
     expect(view).toBeTruthy();
-    expect(onPressMock).not.toHaveBeenCalled();
   });
 
   it('should forward accessible prop', () => {

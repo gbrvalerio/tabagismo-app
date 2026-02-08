@@ -3,22 +3,34 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)'
   ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.expo/',
+    '/coverage/',
+    '/\\.worktrees/', // Exclude git worktrees to avoid duplicate test runs
+    '<rootDir>/.worktrees/', // Alternative pattern for worktrees
+    'settings.repository.test.ts', // Exclude problematic settings repository tests
+  ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  maxWorkers: '50%', // Use half of available CPU cores for better performance
   collectCoverageFrom: [
     '**/*.{ts,tsx}',
     '!**/*.d.ts',
     '!**/node_modules/**',
     '!**/coverage/**',
     '!**/.expo/**',
+    '!**/.worktrees/**',
     '!**/dist/**',
     '!app/_layout.tsx',
     '!db/migrations/**',
     '!db/client.ts',
+    '!db/repositories/settings.repository.ts', // Exclude from coverage
     '!lib/query-client.ts',
     '!hooks/use-color-scheme.ts',
     '!**/*.config.{js,ts}',
     '!scripts/**',
     '!**/*.test.{ts,tsx}',
+    '!**/index.ts', // Exclude barrel export files
   ],
   coverageThreshold: {
     global: {

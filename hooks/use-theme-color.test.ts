@@ -252,7 +252,9 @@ describe('useThemeColor', () => {
       expect(result.current).toBe('#DARK');
 
       mockUseColorScheme.mockReturnValue('light');
-      rerender();
+      rerender(() =>
+        useThemeColor({ light: '#LIGHT', dark: '#DARK' }, 'text')
+      );
 
       expect(result.current).toBe('#LIGHT');
     });
@@ -266,7 +268,9 @@ describe('useThemeColor', () => {
       expect(result.current).toBe('#LIGHT');
 
       mockUseColorScheme.mockReturnValue('dark');
-      rerender();
+      rerender(() =>
+        useThemeColor({ light: '#LIGHT', dark: '#DARK' }, 'text')
+      );
 
       expect(result.current).toBe('#DARK');
     });

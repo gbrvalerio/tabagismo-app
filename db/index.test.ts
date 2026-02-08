@@ -15,6 +15,18 @@ jest.mock('expo-sqlite', () => {
   };
 });
 
+// Mock drizzle-orm to return a db instance with query methods
+jest.mock('drizzle-orm/expo-sqlite', () => {
+  return {
+    drizzle: jest.fn(() => ({
+      select: jest.fn(),
+      insert: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    })),
+  };
+});
+
 describe('db/index.ts', () => {
   describe('exports', () => {
     let indexModule: Record<string, any>;

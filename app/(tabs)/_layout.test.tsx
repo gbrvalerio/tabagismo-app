@@ -181,4 +181,101 @@ describe('TabLayout (_layout.tsx)', () => {
     expect(component.type).toBe(TabLayout);
     expect(component.props).toBeDefined();
   });
+
+  it('should render home tab with correct icon and title', () => {
+    const { Tabs } = require('expo-router');
+
+    render(<TabLayout />);
+
+    const tabsCall = Tabs.mock.calls[0][0];
+    const homeScreen = tabsCall.children.find((child: any) => child?.props?.name === 'index');
+
+    expect(homeScreen).toBeDefined();
+    expect(homeScreen?.props?.name).toBe('index');
+    expect(homeScreen?.props?.options?.title).toBe('Home');
+  });
+
+  it('should render explore tab with correct icon and title', () => {
+    const { Tabs } = require('expo-router');
+
+    render(<TabLayout />);
+
+    const tabsCall = Tabs.mock.calls[0][0];
+    const exploreScreen = tabsCall.children.find((child: any) => child?.props?.name === 'explore');
+
+    expect(exploreScreen).toBeDefined();
+    expect(exploreScreen?.props?.name).toBe('explore');
+    expect(exploreScreen?.props?.options?.title).toBe('Explore');
+  });
+
+  it('should render home tab icon with house.fill symbol', () => {
+    const { Tabs } = require('expo-router');
+    const { IconSymbol } = require('@/components/ui/icon-symbol');
+
+    render(<TabLayout />);
+
+    const tabsCall = Tabs.mock.calls[0][0];
+    const homeScreen = tabsCall.children.find((child: any) => child?.props?.name === 'index');
+    const tabBarIcon = homeScreen?.props?.options?.tabBarIcon;
+
+    expect(tabBarIcon).toBeDefined();
+    expect(typeof tabBarIcon).toBe('function');
+
+    // Execute the icon render function with a test color
+    const iconElement = tabBarIcon({ color: '#0a7ea4' });
+    expect(iconElement).toBeDefined();
+    expect(iconElement?.props?.name).toBe('house.fill');
+    expect(iconElement?.props?.size).toBe(28);
+    expect(iconElement?.props?.color).toBe('#0a7ea4');
+  });
+
+  it('should render explore tab icon with paperplane.fill symbol', () => {
+    const { Tabs } = require('expo-router');
+
+    render(<TabLayout />);
+
+    const tabsCall = Tabs.mock.calls[0][0];
+    const exploreScreen = tabsCall.children.find((child: any) => child?.props?.name === 'explore');
+    const tabBarIcon = exploreScreen?.props?.options?.tabBarIcon;
+
+    expect(tabBarIcon).toBeDefined();
+    expect(typeof tabBarIcon).toBe('function');
+
+    // Execute the icon render function with a test color
+    const iconElement = tabBarIcon({ color: '#0a7ea4' });
+    expect(iconElement).toBeDefined();
+    expect(iconElement?.props?.name).toBe('paperplane.fill');
+    expect(iconElement?.props?.size).toBe(28);
+    expect(iconElement?.props?.color).toBe('#0a7ea4');
+  });
+
+  it('should pass correct color prop to home tab icon', () => {
+    const { Tabs } = require('expo-router');
+
+    render(<TabLayout />);
+
+    const tabsCall = Tabs.mock.calls[0][0];
+    const homeScreen = tabsCall.children.find((child: any) => child?.props?.name === 'index');
+    const tabBarIcon = homeScreen?.props?.options?.tabBarIcon;
+
+    const testColor = '#ff0000';
+    const iconElement = tabBarIcon({ color: testColor });
+
+    expect(iconElement?.props?.color).toBe(testColor);
+  });
+
+  it('should pass correct color prop to explore tab icon', () => {
+    const { Tabs } = require('expo-router');
+
+    render(<TabLayout />);
+
+    const tabsCall = Tabs.mock.calls[0][0];
+    const exploreScreen = tabsCall.children.find((child: any) => child?.props?.name === 'explore');
+    const tabBarIcon = exploreScreen?.props?.options?.tabBarIcon;
+
+    const testColor = '#00ff00';
+    const iconElement = tabBarIcon({ color: testColor });
+
+    expect(iconElement?.props?.color).toBe(testColor);
+  });
 });
