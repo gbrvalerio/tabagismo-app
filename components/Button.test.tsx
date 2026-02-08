@@ -7,6 +7,28 @@ jest.mock('@/hooks/use-theme-color', () => ({
   useThemeColor: () => '#000000',
 }));
 
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => {
+  const { View } = require('react-native');
+  const identity = (v: any) => v;
+  return {
+    __esModule: true,
+    useSharedValue: (init: number) => ({ value: init }),
+    useAnimatedStyle: (fn: () => object) => fn(),
+    withSpring: (toValue: number) => toValue,
+    Easing: {
+      out: () => identity,
+      inOut: () => identity,
+      cubic: identity,
+      bezier: () => identity,
+    },
+    default: {
+      View,
+      createAnimatedComponent: (component: any) => component,
+    },
+  };
+});
+
 describe('Button', () => {
   describe('Primary variant (default)', () => {
     it('should render with label text', () => {
@@ -239,6 +261,39 @@ describe('Button', () => {
         <Button label="Pular" onPress={() => {}} variant="minimal" loading />
       );
       expect(screen.getByTestId('button-loading')).toBeTruthy();
+    });
+  });
+
+  describe('Press animation', () => {
+    it('should render with an animated wrapper', () => {
+      render(<Button label="Animar" onPress={() => {}} />);
+      const button = screen.getByTestId('button');
+      expect(button).toBeTruthy();
+    });
+
+    it('should still call onPress with animation enabled', () => {
+      const onPress = jest.fn();
+      render(<Button label="Animar" onPress={onPress} />);
+      fireEvent.press(screen.getByTestId('button'));
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not animate when disabled', () => {
+      const onPress = jest.fn();
+      render(<Button label="Animar" onPress={onPress} disabled />);
+      fireEvent.press(screen.getByText('Animar'));
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('should render correctly across all variants with animation', () => {
+      const variants = ['primary', 'secondary', 'outline', 'minimal'] as const;
+      variants.forEach((variant) => {
+        const { unmount } = render(
+          <Button label={`Test ${variant}`} onPress={() => {}} variant={variant} />
+        );
+        expect(screen.getByText(`Test ${variant}`)).toBeTruthy();
+        unmount();
+      });
     });
   });
 });

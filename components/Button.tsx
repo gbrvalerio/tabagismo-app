@@ -7,7 +7,13 @@ import {
   type ViewStyle,
   type StyleProp,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { colors, spacing, borderRadius, typography } from '@/lib/theme/tokens';
+import { animations } from '@/lib/theme/animations';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'minimal';
 
@@ -21,6 +27,8 @@ export type ButtonProps = {
   testID?: string;
 };
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export function Button({
   label,
   onPress,
@@ -31,18 +39,38 @@ export function Button({
   testID = 'button',
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+  const scale = useSharedValue(1);
 
   const variantStyles = getVariantStyles(variant);
 
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    if (!isDisabled) {
+      scale.value = withSpring(0.95, animations.gentleSpring);
+    }
+  };
+
+  const handlePressOut = () => {
+    if (!isDisabled) {
+      scale.value = withSpring(1, animations.gentleSpring);
+    }
+  };
+
   return (
-    <Pressable
+    <AnimatedPressable
       testID={testID}
       onPress={isDisabled ? undefined : onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       disabled={isDisabled}
       style={[
         styles.base,
         variantStyles.container,
         isDisabled && styles.disabled,
+        animatedStyle,
         style,
       ]}
     >
@@ -57,7 +85,7 @@ export function Button({
           {label}
         </Text>
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 }
 
