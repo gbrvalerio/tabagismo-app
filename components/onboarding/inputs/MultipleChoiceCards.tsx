@@ -3,9 +3,11 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { colors, spacing, borderRadius, typography } from '@/lib/theme/tokens';
+import { useEffect } from 'react';
 
 interface MultipleChoiceCardsProps {
   choices: string[];
@@ -16,6 +18,27 @@ interface MultipleChoiceCardsProps {
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 export function MultipleChoiceCards({ choices, value, onChange }: MultipleChoiceCardsProps) {
+  const counterOpacity = useSharedValue(0);
+  const counterScale = useSharedValue(0.8);
+
+  useEffect(() => {
+    if (value.length > 0) {
+      counterOpacity.value = withTiming(1, { duration: 200 });
+      counterScale.value = withSpring(1, {
+        damping: 12,
+        stiffness: 200,
+      });
+    } else {
+      counterOpacity.value = withTiming(0, { duration: 150 });
+      counterScale.value = withTiming(0.8, { duration: 150 });
+    }
+  }, [value.length]);
+
+  const counterAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: counterOpacity.value,
+    transform: [{ scale: counterScale.value }],
+  }));
+
   const handlePress = (choice: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
@@ -33,11 +56,9 @@ export function MultipleChoiceCards({ choices, value, onChange }: MultipleChoice
         <View style={styles.badge}>
           <Text style={styles.badgeText}>Escolha uma ou mais opções</Text>
         </View>
-        {value.length > 0 && (
-          <View style={styles.counterBadge}>
-            <Text style={styles.counterText}>{value.length}</Text>
-          </View>
-        )}
+        <Animated.View style={[styles.counterBadge, counterAnimatedStyle]}>
+          <Text style={styles.counterText}>{value.length}</Text>
+        </Animated.View>
       </View>
       {choices.map((choice) => {
         const isSelected = value.includes(choice);

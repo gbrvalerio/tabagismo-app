@@ -41,29 +41,23 @@ describe('CoinSvg', () => {
 
   it('should render outlined variant with reduced opacity', () => {
     const { getByTestId } = render(<CoinSvg variant="outlined" />);
-    const container = getByTestId('coin-svg-container');
-    const flatStyle = Array.isArray(container.props.style)
-      ? Object.assign({}, ...container.props.style.flat())
-      : container.props.style;
-    expect(flatStyle.opacity).toBe(0.35);
+    const svg = getByTestId('coin-svg');
+    const svgStyle = svg.props.style;
+    expect(svgStyle.opacity).toBe(0.35);
   });
 
   it('should render filled variant with full opacity', () => {
     const { getByTestId } = render(<CoinSvg variant="filled" />);
-    const container = getByTestId('coin-svg-container');
-    const flatStyle = Array.isArray(container.props.style)
-      ? Object.assign({}, ...container.props.style.flat())
-      : container.props.style;
-    expect(flatStyle.opacity).toBeUndefined();
+    const svg = getByTestId('coin-svg');
+    const svgStyle = svg.props.style;
+    expect(svgStyle).toBeUndefined();
   });
 
   it('should default to filled variant with full opacity', () => {
     const { getByTestId } = render(<CoinSvg />);
-    const container = getByTestId('coin-svg-container');
-    const flatStyle = Array.isArray(container.props.style)
-      ? Object.assign({}, ...container.props.style.flat())
-      : container.props.style;
-    expect(flatStyle.opacity).toBeUndefined();
+    const svg = getByTestId('coin-svg');
+    const svgStyle = svg.props.style;
+    expect(svgStyle).toBeUndefined();
   });
 
   it('should apply glow shadow when showGlow is true', () => {

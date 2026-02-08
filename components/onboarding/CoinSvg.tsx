@@ -1,25 +1,24 @@
-import { View, StyleSheet } from 'react-native';
-import CoinIcon from '@/assets/images/coin.svg';
+import CoinIcon from "@/assets/images/coin.svg";
+import { StyleSheet, View } from "react-native";
 
 interface CoinSvgProps {
   size?: number;
-  variant?: 'outlined' | 'filled';
+  variant?: "outlined" | "filled";
   showGlow?: boolean;
   testID?: string;
 }
 
 export function CoinSvg({
   size = 24,
-  variant = 'filled',
+  variant = "filled",
   showGlow = false,
-  testID = 'coin-svg',
+  testID = "coin-svg",
 }: CoinSvgProps) {
-  const isOutlined = variant === 'outlined';
+  const isOutlined = variant === "outlined";
 
   const containerStyle = [
     { width: size, height: size },
     showGlow && styles.glow,
-    isOutlined && styles.outlined,
   ];
 
   return (
@@ -28,6 +27,7 @@ export function CoinSvg({
         testID={testID}
         width={size}
         height={size}
+        style={isOutlined ? styles.coinOutlined : undefined}
       />
     </View>
   );
@@ -35,13 +35,13 @@ export function CoinSvg({
 
 const styles = StyleSheet.create({
   glow: {
-    shadowColor: '#F7A531',
+    shadowColor: "#F7A531",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.4,
     shadowRadius: 4,
     elevation: 4,
   },
-  outlined: {
+  coinOutlined: {
     opacity: 0.35,
   },
 });

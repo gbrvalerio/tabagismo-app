@@ -341,7 +341,7 @@ export function OnboardingContainer() {
             <View style={styles.footer} testID="onboarding-footer">
               {isAnswered && !isLastQuestion && (
                 <Animated.View
-                  entering={FadeInDown.springify().damping(18).stiffness(140)}
+                  entering={FadeInDown.springify().damping(12).stiffness(200)}
                   key={`next-${currentQuestion?.key}`}
                 >
                   <Animated.View style={buttonAnimatedStyle}>
@@ -357,7 +357,7 @@ export function OnboardingContainer() {
               )}
               {isAnswered && isLastQuestion && (
                 <Animated.View
-                  entering={FadeInDown.springify().damping(18).stiffness(140)}
+                  entering={FadeInDown.springify().damping(12).stiffness(200)}
                   key={`finish-${currentQuestion?.key}`}
                 >
                   <Animated.View style={buttonAnimatedStyle}>
