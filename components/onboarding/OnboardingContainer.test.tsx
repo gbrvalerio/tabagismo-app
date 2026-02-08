@@ -169,7 +169,6 @@ describe('OnboardingContainer', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('Sua Jornada')).toBeDefined();
       expect(screen.getByText('1/1')).toBeDefined();
     });
   });
@@ -229,7 +228,6 @@ describe('OnboardingContainer - Answer Handling', () => {
 
     // On first question (index 0), should show 1/2
     await waitFor(() => {
-      expect(screen.getByText('Sua Jornada')).toBeDefined();
       expect(screen.getByText('1/2')).toBeDefined();
     });
 

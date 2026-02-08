@@ -13,11 +13,6 @@ describe('ProgressBar', () => {
     expect(screen.getByText('2/4')).toBeDefined();
   });
 
-  it('should render header text', () => {
-    render(<ProgressBar progress={50} currentStep={1} totalSteps={3} />);
-    expect(screen.getByText('Sua Jornada')).toBeDefined();
-  });
-
   it('should render progress bar container', () => {
     const { toJSON } = render(<ProgressBar progress={50} currentStep={2} totalSteps={4} />);
     expect(toJSON()).toBeDefined();

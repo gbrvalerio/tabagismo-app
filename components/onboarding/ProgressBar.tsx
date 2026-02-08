@@ -38,31 +38,31 @@ export function ProgressBar({ progress, currentStep, totalSteps }: ProgressBarPr
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Sua Jornada</Text>
+      {/* Progress bar and step counter in a row */}
+      <View style={styles.barRow}>
+        <View style={styles.trackContainer}>
+          <View style={styles.track}>
+            <Animated.View style={[styles.fill, animatedStyle]} />
+          </View>
+        </View>
         <Animated.View style={pulseStyle}>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{currentStep}/{totalSteps}</Text>
           </View>
         </Animated.View>
       </View>
-      <View style={styles.trackContainer}>
-        <View style={styles.track}>
-          <Animated.View style={[styles.fill, animatedStyle]} />
-        </View>
-        {/* Progress dots */}
-        <View style={styles.dotsContainer}>
-          {Array.from({ length: totalSteps }).map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                index < currentStep && styles.dotCompleted,
-                index === currentStep - 1 && styles.dotActive,
-              ]}
-            />
-          ))}
-        </View>
+      {/* Progress dots */}
+      <View style={styles.dotsContainer}>
+        {Array.from({ length: totalSteps }).map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              index < currentStep && styles.dotCompleted,
+              index === currentStep - 1 && styles.dotActive,
+            ]}
+          />
+        ))}
       </View>
     </View>
   );
@@ -71,35 +71,17 @@ export function ProgressBar({ progress, currentStep, totalSteps }: ProgressBarPr
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
   },
-  header: {
+  barRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  headerText: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.black,
-    color: colors.neutral.black,
-  },
-  badge: {
-    backgroundColor: colors.neutral.white,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
-    borderWidth: 2,
-    borderColor: colors.primary.base,
-  },
-  badgeText: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.black,
-    color: colors.primary.base,
+    gap: spacing.md,
+    marginBottom: spacing.sm,
   },
   trackContainer: {
-    position: 'relative',
+    flex: 1,
   },
   track: {
     height: 12,
@@ -112,10 +94,22 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     backgroundColor: colors.primary.base,
   },
+  badge: {
+    backgroundColor: colors.neutral.white,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    borderWidth: 2,
+    borderColor: colors.primary.base,
+  },
+  badgeText: {
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.primary.base,
+  },
   dotsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: spacing.sm,
     paddingHorizontal: 2,
   },
   dot: {
