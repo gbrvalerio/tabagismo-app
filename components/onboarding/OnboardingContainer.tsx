@@ -5,10 +5,7 @@ import {
   useOnboardingQuestions,
   useSaveAnswer,
 } from "@/db/repositories";
-import {
-  calculateProgress,
-  computeApplicableQuestions,
-} from "@/lib/onboarding-flow";
+import { computeApplicableQuestions } from "@/lib/onboarding-flow";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -32,7 +29,8 @@ import Animated, {
   FadeInDown,
   Layout,
 } from "react-native-reanimated";
-import { ProgressBar } from "./ProgressBar";
+import { CoinCounter } from "./CoinCounter";
+import { CoinTrail } from "./CoinTrail";
 import { QuestionCard } from "./QuestionCard";
 import { QuestionInput } from "./QuestionInput";
 import { QuestionText } from "./QuestionText";
@@ -108,10 +106,6 @@ export function OnboardingContainer() {
     currentAnswer !== null &&
     currentAnswer !== "";
   const isLastQuestion = currentIndex === applicableQuestions.length - 1;
-  const progress = calculateProgress(
-    currentIndex + 1,
-    applicableQuestions.length,
-  );
 
   // Animated style for buttons (must be declared before early return)
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
@@ -249,20 +243,29 @@ export function OnboardingContainer() {
       >
         {/* Header - Fixed at top */}
         <View style={styles.header} testID="onboarding-header">
-          {currentIndex > 0 && (
-            <TouchableOpacity
-              onPress={handleBack}
-              style={styles.backButton}
-              activeOpacity={0.7}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Text style={styles.backButtonText}>← Voltar</Text>
-            </TouchableOpacity>
-          )}
-          <ProgressBar
-            progress={progress}
+          <View style={styles.headerRow}>
+            {currentIndex > 0 && (
+              <TouchableOpacity
+                onPress={handleBack}
+                style={styles.backButton}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.backButtonText}>← Voltar</Text>
+              </TouchableOpacity>
+            )}
+            <View style={styles.spacer} />
+            <CoinCounter testID="coin-counter" />
+          </View>
+          <CoinTrail
+            testID="coin-trail"
             currentStep={currentIndex + 1}
             totalSteps={applicableQuestions.length}
+            answeredQuestions={
+              existingAnswers
+                ?.filter((a) => a.coinAwarded)
+                .map((a) => a.questionKey) ?? []
+            }
           />
         </View>
 
@@ -357,6 +360,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  spacer: {
+    flex: 1,
   },
   backButton: {
     alignSelf: "flex-start",

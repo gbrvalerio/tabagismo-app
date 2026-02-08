@@ -96,12 +96,17 @@ const mockUseSaveAnswer = jest.fn();
 const mockUseDeleteDependentAnswers = jest.fn();
 const mockUseCompleteOnboarding = jest.fn();
 
+const mockUseUserCoins = jest.fn();
+const mockUseIncrementCoins = jest.fn();
+
 jest.mock('@/db/repositories', () => ({
   useOnboardingQuestions: () => mockUseOnboardingQuestions(),
   useOnboardingAnswers: () => mockUseOnboardingAnswers(),
   useSaveAnswer: () => mockUseSaveAnswer(),
   useDeleteDependentAnswers: () => mockUseDeleteDependentAnswers(),
   useCompleteOnboarding: () => mockUseCompleteOnboarding(),
+  useUserCoins: () => mockUseUserCoins(),
+  useIncrementCoins: () => mockUseIncrementCoins(),
 }));
 
 const mockRouterReplace = jest.fn();
@@ -111,12 +116,20 @@ jest.mock('expo-router', () => ({
   }),
 }));
 
+// Global coin mock defaults for all test suites
+beforeEach(() => {
+  mockUseUserCoins.mockReturnValue({ data: 0, isLoading: false, isSuccess: true });
+  mockUseIncrementCoins.mockReturnValue({ mutateAsync: jest.fn().mockResolvedValue(undefined) });
+});
+
 describe('OnboardingContainer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn() });
     mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
     mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseUserCoins.mockReturnValue({ data: 0, isLoading: false, isSuccess: true });
+    mockUseIncrementCoins.mockReturnValue({ mutateAsync: jest.fn().mockResolvedValue(undefined) });
   });
 
   it('should render loading state initially', () => {
@@ -1131,5 +1144,55 @@ describe('OnboardingContainer - Idle Animations', () => {
 
     // Still no button (nothing to animate)
     expect(screen.queryByText('Próxima →')).toBeNull();
+  });
+});
+
+describe('OnboardingContainer gamification', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn().mockResolvedValue(undefined) });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseUserCoins.mockReturnValue({ data: 0, isLoading: false, isSuccess: true });
+    mockUseIncrementCoins.mockReturnValue({ mutateAsync: jest.fn().mockResolvedValue(undefined) });
+  });
+
+  it('should render CoinCounter in header', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('coin-counter')).toBeDefined();
+    });
+  });
+
+  it('should render CoinTrail instead of ProgressBar', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('coin-trail')).toBeDefined();
+      expect(screen.queryByTestId('progress-bar')).toBeNull();
+    });
   });
 });
