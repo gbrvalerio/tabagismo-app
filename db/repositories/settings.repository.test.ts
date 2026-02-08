@@ -2,18 +2,42 @@ import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { createTestQueryClient } from '@/lib/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
+
+// Mock the database module BEFORE importing the repository
+jest.mock('../client');
+
+// Now import after mocking
+import { db } from '../client';
 import { useOnboardingStatus, useCompleteOnboarding } from './settings.repository';
+
+const mockDb = db as jest.Mocked<typeof db>;
 
 const createWrapper = () => {
   const queryClient = createTestQueryClient();
   return function Wrapper({ children }: { children: React.ReactNode }) {
-    return React.createElement(QueryClientProvider, { client: queryClient }, children);
+    return React.createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      children
+    );
   };
 };
 
 describe('settings.repository', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('useOnboardingStatus', () => {
     it('should return true when onboarding is completed', async () => {
+      const mockChain = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        get: jest.fn().resolvedValue({ key: 'onboardingCompleted', value: 'true' }),
+      };
+
+      mockDb.select.mockReturnValue(mockChain as any);
+
       const { result } = renderHook(() => useOnboardingStatus(), {
         wrapper: createWrapper(),
       });
@@ -22,10 +46,18 @@ describe('settings.repository', () => {
         expect(!result.current.isLoading).toBe(true);
       });
 
-      expect(typeof result.current.data === 'boolean' || result.current.data === undefined).toBe(true);
+      expect(result.current.data).toBe(true);
     });
 
-    it('should handle undefined results correctly', async () => {
+    it('should return false when onboarding value is "false"', async () => {
+      const mockChain = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        get: jest.fn().resolvedValue({ key: 'onboardingCompleted', value: 'false' }),
+      };
+
+      mockDb.select.mockReturnValue(mockChain as any);
+
       const { result } = renderHook(() => useOnboardingStatus(), {
         wrapper: createWrapper(),
       });
@@ -34,27 +66,18 @@ describe('settings.repository', () => {
         expect(!result.current.isLoading).toBe(true);
       });
 
-      // When result is undefined, should return false (covers line 17: return result?.value === 'true')
-      if (result.current.data === undefined) {
-        expect(result.current.data).toBeUndefined();
-      }
+      expect(result.current.data).toBe(false);
     });
 
-    it('should execute query with correct parameters', async () => {
-      const { result } = renderHook(() => useOnboardingStatus(), {
-        wrapper: createWrapper(),
-      });
+    it('should return false when setting does not exist in database', async () => {
+      const mockChain = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        get: jest.fn().resolvedValue(undefined),
+      };
 
-      // Test that query executes and resolves
-      await waitFor(() => {
-        expect(result.current.isLoading || !result.current.isLoading).toBe(true);
-      });
+      mockDb.select.mockReturnValue(mockChain as any);
 
-      // Should finish loading
-      expect(!result.current.isLoading).toBe(true);
-    });
-
-    it('should properly compare value with "true" string', async () => {
       const { result } = renderHook(() => useOnboardingStatus(), {
         wrapper: createWrapper(),
       });
@@ -63,15 +86,56 @@ describe('settings.repository', () => {
         expect(!result.current.isLoading).toBe(true);
       });
 
-      // Result should be boolean: true only if value === 'true', false otherwise
-      expect(result.current.data === true || result.current.data === false || result.current.data === undefined).toBe(
-        true
-      );
+      expect(result.current.data).toBe(false);
+    });
+
+    it('should handle database query errors', async () => {
+      const mockChain = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        get: jest.fn().rejectedValue(new Error('Database connection failed')),
+      };
+
+      mockDb.select.mockReturnValue(mockChain as any);
+
+      const { result } = renderHook(() => useOnboardingStatus(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(!result.current.isLoading).toBe(true);
+      });
+
+      expect(result.current.isError).toBe(true);
+      expect(result.current.error?.message).toBe('Database connection failed');
+    });
+
+    it('should execute correct database query chain', async () => {
+      const mockChain = {
+        from: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        get: jest.fn().resolvedValue({ value: 'true' }),
+      };
+
+      mockDb.select.mockReturnValue(mockChain as any);
+
+      const { result } = renderHook(() => useOnboardingStatus(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(!result.current.isLoading).toBe(true);
+      });
+
+      expect(mockDb.select).toHaveBeenCalled();
+      expect(mockChain.from).toHaveBeenCalled();
+      expect(mockChain.where).toHaveBeenCalled();
+      expect(mockChain.get).toHaveBeenCalled();
     });
   });
 
   describe('useCompleteOnboarding', () => {
-    it('should provide a working mutate function', () => {
+    it('should provide mutate function', () => {
       const { result } = renderHook(() => useCompleteOnboarding(), {
         wrapper: createWrapper(),
       });
@@ -80,108 +144,122 @@ describe('settings.repository', () => {
       expect(typeof result.current.mutate).toBe('function');
     });
 
-    it('should provide mutateAsync', () => {
+    it('should provide mutateAsync function', () => {
       const { result } = renderHook(() => useCompleteOnboarding(), {
         wrapper: createWrapper(),
       });
 
       expect(result.current.mutateAsync).toBeDefined();
+      expect(typeof result.current.mutateAsync).toBe('function');
     });
 
-    it('should mark onboarding as completed when mutated', async () => {
+    it('should successfully execute insert mutation', async () => {
+      const mockChain = {
+        values: jest.fn().mockReturnThis(),
+        onConflictDoUpdate: jest.fn().mockResolvedValue(undefined),
+      };
+
+      mockDb.insert.mockReturnValue(mockChain as any);
+
       const { result } = renderHook(() => useCompleteOnboarding(), {
         wrapper: createWrapper(),
       });
 
       await act(async () => {
-        result.current.mutate(undefined, {
-          onSettled: () => {},
-        });
+        await result.current.mutateAsync();
       });
 
-      // Wait for mutation to settle
-      await waitFor(() => {
-        expect(result.current.isSuccess || result.current.isError).toBe(true);
+      expect(result.current.isSuccess).toBe(true);
+      expect(mockDb.insert).toHaveBeenCalled();
+      expect(mockChain.values).toHaveBeenCalledWith({
+        key: 'onboardingCompleted',
+        value: 'true',
       });
-
-      // Covers lines 28-40: insert with onConflictDoUpdate and onSuccess callback
-      expect(result.current.isSuccess || result.current.isError).toBe(true);
+      expect(mockChain.onConflictDoUpdate).toHaveBeenCalled();
     });
 
-    it('should have reset capability', () => {
+    it('should handle insert mutation errors', async () => {
+      const mockChain = {
+        values: jest.fn().mockReturnThis(),
+        onConflictDoUpdate: jest
+          .fn()
+          .rejectedValue(new Error('Insert operation failed')),
+      };
+
+      mockDb.insert.mockReturnValue(mockChain as any);
+
       const { result } = renderHook(() => useCompleteOnboarding(), {
         wrapper: createWrapper(),
       });
 
-      expect(result.current.reset).toBeDefined();
-      expect(typeof result.current.reset).toBe('function');
+      await act(async () => {
+        try {
+          await result.current.mutateAsync();
+        } catch (error) {
+          // Error expected
+        }
+      });
+
+      expect(result.current.isError).toBe(true);
+      expect(result.current.error?.message).toBe('Insert operation failed');
     });
 
-    it('should track mutation states through lifecycle', async () => {
+    it('should call onConflictDoUpdate with correct set values', async () => {
+      const mockChain = {
+        values: jest.fn().mockReturnThis(),
+        onConflictDoUpdate: jest.fn().mockResolvedValue(undefined),
+      };
+
+      mockDb.insert.mockReturnValue(mockChain as any);
+
       const { result } = renderHook(() => useCompleteOnboarding(), {
         wrapper: createWrapper(),
       });
 
-      // Initial state
+      await act(async () => {
+        await result.current.mutateAsync();
+      });
+
+      const onConflictCall = mockChain.onConflictDoUpdate.mock.calls[0][0];
+      expect(onConflictCall.set).toEqual(
+        expect.objectContaining({
+          value: 'true',
+        })
+      );
+      expect(onConflictCall.set.updatedAt).toBeInstanceOf(Date);
+    });
+
+    it('should have correct initial mutation states', () => {
+      const { result } = renderHook(() => useCompleteOnboarding(), {
+        wrapper: createWrapper(),
+      });
+
       expect(result.current.isPending).toBe(false);
-      expect(result.current.isSuccess).toBe(false);
       expect(result.current.isError).toBe(false);
-
-      await act(async () => {
-        result.current.mutate(undefined);
-      });
-
-      // After calling mutate
-      await waitFor(() => {
-        expect(result.current.isSuccess || result.current.isError || result.current.isPending).toBe(true);
-      });
+      expect(result.current.isSuccess).toBe(false);
     });
 
-    it('should call mutation function with insert operation', async () => {
+    it('should execute mutation with correct database call sequence', async () => {
+      const mockChain = {
+        values: jest.fn().mockReturnThis(),
+        onConflictDoUpdate: jest.fn().mockResolvedValue(undefined),
+      };
+
+      mockDb.insert.mockReturnValue(mockChain as any);
+
       const { result } = renderHook(() => useCompleteOnboarding(), {
         wrapper: createWrapper(),
       });
 
-      // This test verifies that the mutation executes (covers lines 28-37)
       await act(async () => {
-        result.current.mutate(undefined);
+        await result.current.mutateAsync();
       });
 
-      await waitFor(() => {
-        expect(!result.current.isPending).toBe(true);
-      });
-
-      // Mutation should complete
-      expect(result.current.isSuccess || result.current.isError).toBe(true);
-    });
-
-    it('should invalidate queries on successful mutation', async () => {
-      const { result: queryResult } = renderHook(() => useOnboardingStatus(), {
-        wrapper: createWrapper(),
-      });
-
-      const { result: mutationResult } = renderHook(() => useCompleteOnboarding(), {
-        wrapper: createWrapper(),
-      });
-
-      // Wait for initial query
-      await waitFor(() => {
-        expect(!queryResult.current.isLoading).toBe(true);
-      });
-
-      const initialData = queryResult.current.data;
-
-      // Execute mutation (covers lines 39-42: onSuccess callback)
-      await act(async () => {
-        mutationResult.current.mutate(undefined);
-      });
-
-      await waitFor(() => {
-        expect(!mutationResult.current.isPending).toBe(true);
-      });
-
-      // Mutation completed
-      expect(mutationResult.current.isSuccess || mutationResult.current.isError).toBe(true);
+      expect(mockDb.insert).toHaveBeenCalled();
+      expect(mockChain.values).toHaveBeenCalledBefore(
+        mockChain.onConflictDoUpdate as jest.Mock
+      );
+      expect(mockChain.onConflictDoUpdate).toHaveBeenCalled();
     });
   });
 });
