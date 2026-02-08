@@ -294,72 +294,74 @@ export function OnboardingContainer() {
           />
         </View>
 
-        {/* Content - Scrollable middle section */}
-        <View style={styles.content}>
-          {currentQuestion && (
-            <Animated.View style={styles.cardWrapper} layout={Layout.springify().damping(20).stiffness(120)}>
-                {/* Fixed question text */}
-                <View style={styles.questionHeader}>
-                  <QuestionText text={currentQuestion.questionText} />
-                </View>
+        {/* Content + Footer - Footer overlays content */}
+        <View style={styles.contentArea}>
+          <View style={styles.content}>
+            {currentQuestion && (
+              <Animated.View style={styles.cardWrapper} layout={Layout.springify().damping(20).stiffness(120)}>
+                  {/* Fixed question text */}
+                  <View style={styles.questionHeader}>
+                    <QuestionText text={currentQuestion.questionText} />
+                  </View>
 
-                {/* Scrollable input area */}
-                <ScrollView
-                  style={styles.scrollView}
-                  contentContainerStyle={styles.scrollContent}
-                  showsVerticalScrollIndicator={false}
-                  testID="content-scroll-view"
-                >
-                  <QuestionInput
-                    question={currentQuestion}
-                    value={
-                      (answersCache[currentQuestion.key] as
-                        | string
-                        | number
-                        | string[]
-                        | undefined) ?? null
-                    }
-                    onChange={(value) => handleAnswer(currentQuestion.key, value)}
-                  />
-                </ScrollView>
-            </Animated.View>
-          )}
-        </View>
+                  {/* Scrollable input area */}
+                  <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    testID="content-scroll-view"
+                  >
+                    <QuestionInput
+                      question={currentQuestion}
+                      value={
+                        (answersCache[currentQuestion.key] as
+                          | string
+                          | number
+                          | string[]
+                          | undefined) ?? null
+                      }
+                      onChange={(value) => handleAnswer(currentQuestion.key, value)}
+                    />
+                  </ScrollView>
+              </Animated.View>
+            )}
+          </View>
 
-        {/* Footer - Fixed at bottom */}
-        <View style={styles.footer} testID="onboarding-footer">
-          {isAnswered && !isLastQuestion && (
-            <Animated.View
-              entering={FadeInDown.springify().damping(18).stiffness(140)}
-              key={`next-${currentQuestion?.key}`}
-            >
-              <Animated.View style={buttonAnimatedStyle}>
-                <TouchableOpacity
-                  onPress={handleNext}
-                  activeOpacity={0.7}
-                  style={styles.nextButton}
-                >
-                  <Text style={styles.buttonText}>Próxima →</Text>
-                </TouchableOpacity>
+          {/* Footer - Overlays bottom of content */}
+          <View style={styles.footer} testID="onboarding-footer">
+            {isAnswered && !isLastQuestion && (
+              <Animated.View
+                entering={FadeInDown.springify().damping(18).stiffness(140)}
+                key={`next-${currentQuestion?.key}`}
+              >
+                <Animated.View style={buttonAnimatedStyle}>
+                  <TouchableOpacity
+                    onPress={handleNext}
+                    activeOpacity={0.7}
+                    style={styles.nextButton}
+                  >
+                    <Text style={styles.buttonText}>Próxima →</Text>
+                  </TouchableOpacity>
+                </Animated.View>
               </Animated.View>
-            </Animated.View>
-          )}
-          {isAnswered && isLastQuestion && (
-            <Animated.View
-              entering={FadeInDown.springify().damping(18).stiffness(140)}
-              key={`finish-${currentQuestion?.key}`}
-            >
-              <Animated.View style={buttonAnimatedStyle}>
-                <TouchableOpacity
-                  onPress={handleFinish}
-                  activeOpacity={0.7}
-                  style={styles.finishButton}
-                >
-                  <Text style={styles.finishButtonText}>✓ Concluir</Text>
-                </TouchableOpacity>
+            )}
+            {isAnswered && isLastQuestion && (
+              <Animated.View
+                entering={FadeInDown.springify().damping(18).stiffness(140)}
+                key={`finish-${currentQuestion?.key}`}
+              >
+                <Animated.View style={buttonAnimatedStyle}>
+                  <TouchableOpacity
+                    onPress={handleFinish}
+                    activeOpacity={0.7}
+                    style={styles.finishButton}
+                  >
+                    <Text style={styles.finishButtonText}>✓ Concluir</Text>
+                  </TouchableOpacity>
+                </Animated.View>
               </Animated.View>
-            </Animated.View>
-          )}
+            )}
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -409,10 +411,11 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.md,
     color: '#666666',
   },
+  contentArea: {
+    flex: 1,
+  },
   content: {
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0, // Starts from 0, grows within available space only
+    flex: 1,
     paddingHorizontal: spacing.md,
     justifyContent: "flex-start",
     minHeight: 0,
@@ -430,9 +433,13 @@ const styles = StyleSheet.create({
     flex: 1, // Takes available space in card
   },
   scrollContent: {
-    paddingBottom: spacing.xl,
+    paddingBottom: 88, // 56px button height + 32px breathing room
   },
   footer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
   },
