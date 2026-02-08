@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
-import { useOnboardingQuestions, useOnboardingAnswers, useSaveAnswer, useDeleteDependentAnswers } from '@/db/repositories';
+import { useOnboardingQuestions, useOnboardingAnswers, useSaveAnswer, useDeleteDependentAnswers, useCompleteOnboarding } from '@/db/repositories';
+import { useRouter } from 'expo-router';
 import { computeApplicableQuestions, calculateProgress } from '@/lib/onboarding-flow';
 import { ProgressBar } from './ProgressBar';
 import { QuestionCard } from './QuestionCard';
@@ -18,6 +19,8 @@ export function OnboardingContainer() {
   const { data: existingAnswers, isLoading: answersLoading } = useOnboardingAnswers();
   const saveAnswerMutation = useSaveAnswer();
   const deleteDependentAnswersMutation = useDeleteDependentAnswers();
+  const completeOnboardingMutation = useCompleteOnboarding();
+  const router = useRouter();
 
   const isLoading = questionsLoading || answersLoading;
 
@@ -75,6 +78,12 @@ export function OnboardingContainer() {
 
   const currentAnswer = currentQuestion ? answersCache[currentQuestion.key] : null;
   const isAnswered = currentAnswer !== undefined && currentAnswer !== null && currentAnswer !== '';
+  const isLastQuestion = currentIndex === applicableQuestions.length - 1;
+
+  const handleFinish = async () => {
+    await completeOnboardingMutation.mutateAsync();
+    router.replace('/(tabs)');
+  };
 
   const handleNext = () => {
     if (currentIndex < applicableQuestions.length - 1) {
@@ -107,9 +116,14 @@ export function OnboardingContainer() {
             <Text style={styles.buttonText}>Voltar</Text>
           </TouchableOpacity>
         )}
-        {isAnswered && currentIndex < applicableQuestions.length - 1 && (
+        {isAnswered && !isLastQuestion && (
           <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
             <Text style={styles.buttonText}>Próxima</Text>
+          </TouchableOpacity>
+        )}
+        {isAnswered && isLastQuestion && (
+          <TouchableOpacity onPress={handleFinish} style={styles.finishButton}>
+            <Text style={styles.buttonText}>Concluir</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -143,6 +157,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     backgroundColor: colors.primary.base,
+    borderRadius: borderRadius.md,
+    marginLeft: 'auto',
+  },
+  finishButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.secondary.base,
     borderRadius: borderRadius.md,
     marginLeft: 'auto',
   },

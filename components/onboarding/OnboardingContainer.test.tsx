@@ -65,12 +65,21 @@ const mockUseOnboardingQuestions = jest.fn();
 const mockUseOnboardingAnswers = jest.fn();
 const mockUseSaveAnswer = jest.fn();
 const mockUseDeleteDependentAnswers = jest.fn();
+const mockUseCompleteOnboarding = jest.fn();
 
 jest.mock('@/db/repositories', () => ({
   useOnboardingQuestions: () => mockUseOnboardingQuestions(),
   useOnboardingAnswers: () => mockUseOnboardingAnswers(),
   useSaveAnswer: () => mockUseSaveAnswer(),
   useDeleteDependentAnswers: () => mockUseDeleteDependentAnswers(),
+  useCompleteOnboarding: () => mockUseCompleteOnboarding(),
+}));
+
+const mockRouterReplace = jest.fn();
+jest.mock('expo-router', () => ({
+  useRouter: () => ({
+    replace: mockRouterReplace,
+  }),
 }));
 
 describe('OnboardingContainer', () => {
@@ -78,6 +87,7 @@ describe('OnboardingContainer', () => {
     jest.clearAllMocks();
     mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn() });
     mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
   });
 
   it('should render loading state initially', () => {
@@ -309,6 +319,77 @@ describe('OnboardingContainer - Navigation', () => {
 
     await waitFor(() => {
       expect(screen.getByText('First?')).toBeDefined();
+    });
+  });
+});
+
+describe('OnboardingContainer - Completion', () => {
+  const mockCompleteMutateAsync = jest.fn().mockResolvedValue(undefined);
+  const mockSaveMutateAsync = jest.fn().mockResolvedValue(undefined);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockSaveMutateAsync });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: mockCompleteMutateAsync });
+  });
+
+  it('should show finish button on last question when answered', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: [mockQuestions[0]],
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Qual é o seu nome?')).toBeDefined();
+    });
+
+    const input = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input, 'João');
+
+    await waitFor(() => {
+      expect(screen.getByText('Concluir')).toBeDefined();
+    });
+  });
+
+  it('should complete onboarding when finish is pressed', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: [mockQuestions[0]],
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Qual é o seu nome?')).toBeDefined();
+    });
+
+    const input = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input, 'João');
+
+    await waitFor(() => {
+      expect(screen.getByText('Concluir')).toBeDefined();
+    });
+
+    fireEvent.press(screen.getByText('Concluir'));
+
+    await waitFor(() => {
+      expect(mockCompleteMutateAsync).toHaveBeenCalled();
+      expect(mockRouterReplace).toHaveBeenCalledWith('/(tabs)');
     });
   });
 });
