@@ -327,8 +327,8 @@ export function OnboardingContainer() {
             )}
           </View>
 
-          {/* Footer - Overlays bottom of content */}
-          <View style={styles.footer} testID="onboarding-footer" pointerEvents="box-none">
+          {/* Footer - Normal flow so it never covers content */}
+          <View style={styles.footer} testID="onboarding-footer">
             {isAnswered && !isLastQuestion && (
               <Animated.View
                 entering={FadeInDown.springify().damping(18).stiffness(140)}
@@ -433,16 +433,11 @@ const styles = StyleSheet.create({
     flex: 1, // Takes available space in card
   },
   scrollContent: {
-    paddingBottom: 88, // 56px button height + 32px breathing room
+    paddingBottom: spacing.lg,
   },
   footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
-    backgroundColor: 'transparent',
   },
   nextButton: {
     width: "100%",
