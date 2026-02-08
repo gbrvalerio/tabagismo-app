@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { Text, View } from 'react-native';
+
+// Unmock HapticTab so we test the real component
+jest.unmock('@/components/haptic-tab');
 import { HapticTab } from './haptic-tab';
 
 jest.mock('expo-haptics', () => ({
