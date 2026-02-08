@@ -7,7 +7,8 @@ module.exports = {
     '/node_modules/',
     '/.expo/',
     '/coverage/',
-    '/.worktrees/', // Exclude git worktrees to avoid duplicate test runs
+    '/\\.worktrees/', // Exclude git worktrees to avoid duplicate test runs
+    '<rootDir>/.worktrees/', // Alternative pattern for worktrees
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   maxWorkers: '50%', // Use half of available CPU cores for better performance
@@ -17,6 +18,7 @@ module.exports = {
     '!**/node_modules/**',
     '!**/coverage/**',
     '!**/.expo/**',
+    '!**/.worktrees/**',
     '!**/dist/**',
     '!app/_layout.tsx',
     '!db/migrations/**',
