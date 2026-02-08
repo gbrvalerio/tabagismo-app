@@ -106,10 +106,8 @@ export function OnboardingContainer() {
   }
 
   const currentQuestion = applicableQuestions[currentIndex];
-  const answeredCount = Object.keys(answersCache).filter(key =>
-    applicableQuestions.some(q => q.key === key)
-  ).length;
-  const progress = calculateProgress(answeredCount, applicableQuestions.length);
+  // Calculate progress based on current position in the question sequence
+  const progress = calculateProgress(currentIndex + 1, applicableQuestions.length);
 
   const currentAnswer = currentQuestion ? answersCache[currentQuestion.key] : null;
   const isAnswered = currentAnswer !== undefined && currentAnswer !== null && currentAnswer !== '';
@@ -153,7 +151,7 @@ export function OnboardingContainer() {
           )}
           <ProgressBar
             progress={progress}
-            currentStep={answeredCount + 1}
+            currentStep={currentIndex + 1}
             totalSteps={applicableQuestions.length}
           />
         </View>

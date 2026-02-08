@@ -213,7 +213,7 @@ describe('OnboardingContainer - Answer Handling', () => {
     });
   });
 
-  it('should update progress after answering', async () => {
+  it('should update progress based on current question position', async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
@@ -227,6 +227,7 @@ describe('OnboardingContainer - Answer Handling', () => {
 
     render(<OnboardingContainer />);
 
+    // On first question (index 0), should show 1/2
     await waitFor(() => {
       expect(screen.getByText('Sua Jornada')).toBeDefined();
       expect(screen.getByText('1/2')).toBeDefined();
@@ -235,7 +236,16 @@ describe('OnboardingContainer - Answer Handling', () => {
     const input = screen.getByPlaceholderText('Digite sua resposta');
     fireEvent.changeText(input, 'Answer');
 
+    // After answering, still on first question, should still show 1/2
     await waitFor(() => {
+      expect(screen.getByText('Próxima →')).toBeDefined();
+    });
+    expect(screen.getByText('1/2')).toBeDefined();
+
+    // Press next to go to second question (index 1), should show 2/2
+    fireEvent.press(screen.getByText('Próxima →'));
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeDefined();
       expect(screen.getByText('2/2')).toBeDefined();
     });
   });
@@ -549,10 +559,10 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
     // - pod_duration should be removed from cache (dependent on Vape)
     // - years_smoking and motivation should ALSO be removed (come after the changed dependency)
     // - Only name and addiction_type should remain answered = 2 answered
-    // - Current step should be 3 (on cigarettes_per_day which is unanswered)
-    // - Should show 3/5
+    // - Current position is question 2 (index 1, addiction_type)
+    // - Should show 2/5 (current position, not answered count)
     await waitFor(() => {
-      expect(screen.getByText('3/5')).toBeDefined();
+      expect(screen.getByText('2/5')).toBeDefined();
     });
   });
 });
