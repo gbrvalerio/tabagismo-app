@@ -8,6 +8,7 @@ import {
 } from "@/db/repositories";
 import { computeApplicableQuestions } from "@/lib/onboarding-flow";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -20,37 +21,36 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
+  Easing,
+  FadeInDown,
+  Layout,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
   withSpring,
   withTiming,
-  Easing,
-  FadeInDown,
-  Layout,
 } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { CoinCounter } from "./CoinCounter";
 import { CoinTrail } from "./CoinTrail";
 import { QuestionInput } from "./QuestionInput";
 import { QuestionText } from "./QuestionText";
 
+import { animations } from "@/lib/theme/animations";
 import {
-  borderRadius,
   colors,
-  shadows,
   spacing,
   typography,
   typographyPresets,
 } from "@/lib/theme/tokens";
-import { animations } from "@/lib/theme/animations";
 
 export function OnboardingContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answersCache, setAnswersCache] = useState<Record<string, unknown>>({});
-  const [animatingCoinIndex, setAnimatingCoinIndex] = useState<number | null>(null);
+  const [animatingCoinIndex, setAnimatingCoinIndex] = useState<number | null>(
+    null,
+  );
 
   const { data: allQuestions, isLoading: questionsLoading } =
     useOnboardingQuestions();
@@ -166,7 +166,9 @@ export function OnboardingContainer() {
 
   const handleAnswer = async (questionKey: string, value: unknown) => {
     // Check if answer already exists
-    const existingAnswer = existingAnswers?.find((a) => a.questionKey === questionKey);
+    const existingAnswer = existingAnswers?.find(
+      (a) => a.questionKey === questionKey,
+    );
     const isFirstTime = !existingAnswer;
 
     // Update cache immediately (optimistic)
@@ -249,56 +251,61 @@ export function OnboardingContainer() {
 
   return (
     <LinearGradient
-      colors={['#FFFFFF', '#F8F9FB']}
+      colors={["#FFFFFF", "#F8F9FB"]}
       style={styles.gradient}
       testID="onboarding-gradient"
     >
-    <SafeAreaView
-      style={styles.safeArea}
-      edges={["top", "bottom"]}
-      testID="safe-area-container"
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardView}
-        testID="keyboard-avoiding-view"
+      <SafeAreaView
+        style={styles.safeArea}
+        edges={["top", "bottom"]}
+        testID="safe-area-container"
       >
-        {/* Header - Fixed at top */}
-        <View style={styles.header} testID="onboarding-header">
-          <View style={styles.headerRow}>
-            <View style={currentIndex === 0 ? styles.backButtonHidden : undefined}>
-              <TouchableOpacity
-                onPress={handleBack}
-                style={styles.backButton}
-                activeOpacity={0.7}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                testID="back-button"
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.keyboardView}
+          testID="keyboard-avoiding-view"
+        >
+          {/* Header - Fixed at top */}
+          <View style={styles.header} testID="onboarding-header">
+            <View style={styles.headerRow}>
+              <View
+                style={currentIndex === 0 ? styles.backButtonHidden : undefined}
               >
-                <Text style={styles.backButtonText}>← Voltar</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleBack}
+                  style={styles.backButton}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  testID="back-button"
+                >
+                  <Text style={styles.backButtonText}>← Voltar</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.spacer} />
+              <CoinCounter testID="coin-counter" />
             </View>
-            <View style={styles.spacer} />
-            <CoinCounter testID="coin-counter" />
+            <CoinTrail
+              testID="coin-trail"
+              currentStep={currentIndex + 1}
+              totalSteps={applicableQuestions.length}
+              answeredQuestions={
+                existingAnswers
+                  ?.filter((a) => a.coinAwarded)
+                  .map((a) => a.questionKey) ?? []
+              }
+              animatingCoinIndex={animatingCoinIndex}
+              onCoinAnimationComplete={() => setAnimatingCoinIndex(null)}
+            />
           </View>
-          <CoinTrail
-            testID="coin-trail"
-            currentStep={currentIndex + 1}
-            totalSteps={applicableQuestions.length}
-            answeredQuestions={
-              existingAnswers
-                ?.filter((a) => a.coinAwarded)
-                .map((a) => a.questionKey) ?? []
-            }
-            animatingCoinIndex={animatingCoinIndex}
-            onCoinAnimationComplete={() => setAnimatingCoinIndex(null)}
-          />
-        </View>
 
-        {/* Content + Footer - Footer overlays content */}
-        <View style={styles.contentArea}>
-          <View style={styles.content}>
-            {currentQuestion && (
-              <Animated.View style={styles.cardWrapper} layout={Layout.springify().damping(20).stiffness(120)}>
+          {/* Content + Footer - Footer overlays content */}
+          <View style={styles.contentArea}>
+            <View style={styles.content}>
+              {currentQuestion && (
+                <Animated.View
+                  style={styles.cardWrapper}
+                  layout={Layout.springify().damping(20).stiffness(120)}
+                >
                   {/* Fixed question text */}
                   <View style={styles.questionHeader}>
                     <QuestionText text={currentQuestion.questionText} />
@@ -321,51 +328,53 @@ export function OnboardingContainer() {
                           | string[]
                           | undefined) ?? null
                       }
-                      onChange={(value) => handleAnswer(currentQuestion.key, value)}
+                      onChange={(value) =>
+                        handleAnswer(currentQuestion.key, value)
+                      }
                     />
                   </ScrollView>
-              </Animated.View>
-            )}
-          </View>
+                </Animated.View>
+              )}
+            </View>
 
-          {/* Footer - Normal flow so it never covers content */}
-          <View style={styles.footer} testID="onboarding-footer">
-            {isAnswered && !isLastQuestion && (
-              <Animated.View
-                entering={FadeInDown.springify().damping(18).stiffness(140)}
-                key={`next-${currentQuestion?.key}`}
-              >
-                <Animated.View style={buttonAnimatedStyle}>
-                  <TouchableOpacity
-                    onPress={handleNext}
-                    activeOpacity={0.7}
-                    style={styles.nextButton}
-                  >
-                    <Text style={styles.buttonText}>Próxima →</Text>
-                  </TouchableOpacity>
+            {/* Footer - Normal flow so it never covers content */}
+            <View style={styles.footer} testID="onboarding-footer">
+              {isAnswered && !isLastQuestion && (
+                <Animated.View
+                  entering={FadeInDown.springify().damping(18).stiffness(140)}
+                  key={`next-${currentQuestion?.key}`}
+                >
+                  <Animated.View style={buttonAnimatedStyle}>
+                    <TouchableOpacity
+                      onPress={handleNext}
+                      activeOpacity={0.7}
+                      style={styles.nextButton}
+                    >
+                      <Text style={styles.buttonText}>Próxima →</Text>
+                    </TouchableOpacity>
+                  </Animated.View>
                 </Animated.View>
-              </Animated.View>
-            )}
-            {isAnswered && isLastQuestion && (
-              <Animated.View
-                entering={FadeInDown.springify().damping(18).stiffness(140)}
-                key={`finish-${currentQuestion?.key}`}
-              >
-                <Animated.View style={buttonAnimatedStyle}>
-                  <TouchableOpacity
-                    onPress={handleFinish}
-                    activeOpacity={0.7}
-                    style={styles.finishButton}
-                  >
-                    <Text style={styles.finishButtonText}>✓ Concluir</Text>
-                  </TouchableOpacity>
+              )}
+              {isAnswered && isLastQuestion && (
+                <Animated.View
+                  entering={FadeInDown.springify().damping(18).stiffness(140)}
+                  key={`finish-${currentQuestion?.key}`}
+                >
+                  <Animated.View style={buttonAnimatedStyle}>
+                    <TouchableOpacity
+                      onPress={handleFinish}
+                      activeOpacity={0.7}
+                      style={styles.finishButton}
+                    >
+                      <Text style={styles.finishButtonText}>✓ Concluir</Text>
+                    </TouchableOpacity>
+                  </Animated.View>
                 </Animated.View>
-              </Animated.View>
-            )}
+              )}
+            </View>
           </View>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </LinearGradient>
   );
 }
@@ -391,9 +400,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xs,
   },
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: spacing.sm,
   },
   spacer: {
@@ -405,12 +414,12 @@ const styles = StyleSheet.create({
   },
   backButtonHidden: {
     opacity: 0,
-    pointerEvents: 'none' as const,
+    pointerEvents: "none" as const,
   },
   backButtonText: {
     fontFamily: typographyPresets.subhead.fontFamily,
     fontSize: typography.fontSize.md,
-    color: '#666666',
+    color: "#666666",
   },
   contentArea: {
     flex: 1,
@@ -434,11 +443,15 @@ const styles = StyleSheet.create({
     flex: 1, // Takes available space in card
   },
   scrollContent: {
-    paddingBottom: spacing.lg,
+    paddingBottom: 88,
   },
   footer: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   nextButton: {
     width: "100%",
@@ -458,9 +471,9 @@ const styles = StyleSheet.create({
     height: 56,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: '#10B981',
+    backgroundColor: "#10B981",
     borderRadius: 28,
-    shadowColor: '#10B981',
+    shadowColor: "#10B981",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -468,10 +481,10 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     ...typographyPresets.button,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   finishButtonText: {
     ...typographyPresets.button,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
 });
