@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   withSpring,
+  withSequence,
 } from 'react-native-reanimated';
-import { spacing } from '@/lib/theme/tokens';
+import { colors, spacing, borderRadius, shadows } from '@/lib/theme/tokens';
 import { animations } from '@/lib/theme/animations';
 
 interface QuestionCardProps {
@@ -14,34 +15,63 @@ interface QuestionCardProps {
 }
 
 export function QuestionCard({ children }: QuestionCardProps) {
-  const translateX = useSharedValue(80);
-  const scale = useSharedValue(0.95);
+  const translateY = useSharedValue(60);
+  const scale = useSharedValue(0.9);
   const opacity = useSharedValue(0);
+  const rotate = useSharedValue(-2);
 
   useEffect(() => {
-    translateX.value = withSpring(0, animations.gentleSpring);
+    translateY.value = withSpring(0, animations.gentleSpring);
     scale.value = withSpring(1, animations.gentleSpring);
     opacity.value = withTiming(1, { duration: 400 });
+    rotate.value = withSequence(
+      withSpring(2, { ...animations.gentleSpring, damping: 8 }),
+      withSpring(0, animations.gentleSpring)
+    );
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: translateX.value },
+      { translateY: translateY.value },
       { scale: scale.value },
+      { rotate: `${rotate.value}deg` },
     ],
     opacity: opacity.value,
   }));
 
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
-      {children}
+      <View style={styles.shadowWrapper}>
+        <View style={styles.card}>
+          <View style={styles.accentBar} />
+          {children}
+        </View>
+      </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: spacing.lg,
     width: '100%',
+    marginTop: spacing.lg,
+  },
+  shadowWrapper: {
+    borderRadius: borderRadius.xl,
+    ...shadows.md,
+  },
+  card: {
+    padding: spacing.xl,
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.neutral.white,
+    overflow: 'hidden',
+  },
+  accentBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: colors.primary.base,
   },
 });

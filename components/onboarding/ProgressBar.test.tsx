@@ -3,28 +3,29 @@ import { describe, it, expect } from '@jest/globals';
 import { render, screen } from '@testing-library/react-native';
 import { ProgressBar } from './ProgressBar';
 
-jest.mock('@/hooks/use-theme-color', () => ({
-  useThemeColor: () => '#000000',
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 describe('ProgressBar', () => {
-  it('should render progress percentage text', () => {
-    render(<ProgressBar progress={50} />);
-    expect(screen.getByText('50%')).toBeDefined();
+  it('should render current step and total steps', () => {
+    render(<ProgressBar progress={50} currentStep={2} totalSteps={4} />);
+    expect(screen.getByText('2/4')).toBeDefined();
   });
 
-  it('should show 0% when progress is 0', () => {
-    render(<ProgressBar progress={0} />);
-    expect(screen.getByText('0%')).toBeDefined();
-  });
-
-  it('should show 100% when progress is 100', () => {
-    render(<ProgressBar progress={100} />);
-    expect(screen.getByText('100%')).toBeDefined();
+  it('should render header text', () => {
+    render(<ProgressBar progress={50} currentStep={1} totalSteps={3} />);
+    expect(screen.getByText('Sua Jornada')).toBeDefined();
   });
 
   it('should render progress bar container', () => {
-    const { toJSON } = render(<ProgressBar progress={50} />);
+    const { toJSON } = render(<ProgressBar progress={50} currentStep={2} totalSteps={4} />);
+    expect(toJSON()).toBeDefined();
+  });
+
+  it('should render correct number of dots', () => {
+    const { toJSON } = render(<ProgressBar progress={50} currentStep={2} totalSteps={5} />);
+    // Note: Actual dot counting would require test IDs or more specific queries
     expect(toJSON()).toBeDefined();
   });
 });

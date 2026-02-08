@@ -8,7 +8,7 @@ import { QuestionCard } from './QuestionCard';
 import { QuestionText } from './QuestionText';
 import { QuestionInput } from './QuestionInput';
 
-import { colors, spacing, borderRadius, typography } from '@/lib/theme/tokens';
+import { colors, spacing, borderRadius, typography, shadows } from '@/lib/theme/tokens';
 
 export function OnboardingContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -119,40 +119,54 @@ export function OnboardingContainer() {
   };
 
   return (
-    <View style={styles.container}>
-      <ProgressBar progress={progress} />
-      {currentQuestion && (
-        <QuestionCard>
-          <QuestionText text={currentQuestion.questionText} />
-          <QuestionInput
-            question={currentQuestion}
-            value={(answersCache[currentQuestion.key] as string | number | string[] | undefined) ?? null}
-            onChange={(value) => handleAnswer(currentQuestion.key, value)}
-          />
-        </QuestionCard>
-      )}
-      <View style={styles.navigationContainer}>
-        {currentIndex > 0 && (
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Text style={styles.buttonText}>Voltar</Text>
-          </TouchableOpacity>
+    <View style={styles.background}>
+      <View style={styles.container}>
+        <ProgressBar progress={progress} currentStep={answeredCount + 1} totalSteps={applicableQuestions.length} />
+        {currentQuestion && (
+          <QuestionCard>
+            <QuestionText text={currentQuestion.questionText} />
+            <QuestionInput
+              question={currentQuestion}
+              value={(answersCache[currentQuestion.key] as string | number | string[] | undefined) ?? null}
+              onChange={(value) => handleAnswer(currentQuestion.key, value)}
+            />
+          </QuestionCard>
         )}
-        {isAnswered && !isLastQuestion && (
-          <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
-            <Text style={styles.buttonText}>Próxima</Text>
-          </TouchableOpacity>
-        )}
-        {isAnswered && isLastQuestion && (
-          <TouchableOpacity onPress={handleFinish} style={styles.finishButton}>
-            <Text style={styles.buttonText}>Concluir</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.navigationContainer}>
+          {currentIndex > 0 && (
+            <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
+              <Text style={styles.backButtonText}>← Voltar</Text>
+            </TouchableOpacity>
+          )}
+          {isAnswered && !isLastQuestion && (
+            <TouchableOpacity
+              onPress={handleNext}
+              activeOpacity={0.7}
+              style={[styles.nextButton, currentIndex === 0 && { marginLeft: 'auto' }]}
+            >
+              <Text style={styles.buttonText}>Próxima →</Text>
+            </TouchableOpacity>
+          )}
+          {isAnswered && isLastQuestion && (
+            <TouchableOpacity
+              onPress={handleFinish}
+              activeOpacity={0.7}
+              style={[styles.finishButton, currentIndex === 0 && { marginLeft: 'auto' }]}
+            >
+              <Text style={styles.finishButtonText}>✓ Concluir</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    backgroundColor: colors.background.primary,
+  },
   container: {
     flex: 1,
     padding: spacing.md,
@@ -165,32 +179,45 @@ const styles = StyleSheet.create({
   navigationContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: spacing.lg,
-    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xl,
+    paddingHorizontal: spacing.md,
+    gap: spacing.md,
   },
   backButton: {
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.neutral.gray[300],
-    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.xl,
+    backgroundColor: colors.neutral.white,
+    borderRadius: borderRadius.full,
+    borderWidth: 2,
+    borderColor: colors.neutral.gray[300],
+  },
+  backButtonText: {
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.neutral.gray[600],
   },
   nextButton: {
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
     backgroundColor: colors.primary.base,
-    borderRadius: borderRadius.md,
-    marginLeft: 'auto',
+    borderRadius: borderRadius.full,
+    ...shadows.md,
   },
   finishButton: {
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.secondary.base,
-    borderRadius: borderRadius.md,
-    marginLeft: 'auto',
+    paddingHorizontal: spacing.xl,
+    backgroundColor: colors.semantic.success,
+    borderRadius: borderRadius.full,
+    ...shadows.md,
   },
   buttonText: {
     fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.medium,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.neutral.white,
+  },
+  finishButtonText: {
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.bold,
     color: colors.neutral.white,
   },
 });

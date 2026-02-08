@@ -21,7 +21,7 @@ describe('QuestionText', () => {
     const flatStyle = Array.isArray(styles)
       ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
       : styles;
-    expect(flatStyle.fontSize).toBe(24);
+    expect(flatStyle.fontSize).toBe(32); // Updated to match typography.fontSize.xxl
   });
 
   it('should apply bold weight', () => {
@@ -31,7 +31,7 @@ describe('QuestionText', () => {
     const flatStyle = Array.isArray(styles)
       ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
       : styles;
-    expect(flatStyle.fontWeight).toBe('700');
+    expect(flatStyle.fontWeight).toBe('900'); // Updated to match typography.fontWeight.black
   });
 
   it('should apply theme color', () => {
@@ -41,6 +41,6 @@ describe('QuestionText', () => {
     const flatStyle = Array.isArray(styles)
       ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
       : styles;
-    expect(flatStyle.color).toBe('#000000');
+    expect(flatStyle.color).toBe('#1A1A2E'); // Updated to match colors.neutral.black
   });
 });

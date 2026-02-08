@@ -4,6 +4,10 @@ import { render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { QuestionCard } from './QuestionCard';
 
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 describe('QuestionCard', () => {
   it('should render children', () => {
     render(

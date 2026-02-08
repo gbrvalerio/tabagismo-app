@@ -3,8 +3,8 @@ import { describe, it, expect } from '@jest/globals';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { SingleChoiceCards } from './SingleChoiceCards';
 
-jest.mock('@/hooks/use-theme-color', () => ({
-  useThemeColor: () => '#000000',
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('expo-haptics', () => ({
@@ -24,6 +24,7 @@ describe('SingleChoiceCards', () => {
     expect(screen.getByText('Masculino')).toBeDefined();
     expect(screen.getByText('Feminino')).toBeDefined();
     expect(screen.getByText('Outro')).toBeDefined();
+    expect(screen.getByText('Escolha uma opção')).toBeDefined();
   });
 
   it('should call onChange when card is pressed', () => {

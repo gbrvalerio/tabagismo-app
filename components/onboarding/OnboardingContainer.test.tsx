@@ -3,8 +3,8 @@ import { describe, it, expect, beforeEach } from '@jest/globals';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react-native';
 import { OnboardingContainer } from './OnboardingContainer';
 
-jest.mock('@/hooks/use-theme-color', () => ({
-  useThemeColor: () => '#000000',
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 jest.mock('expo-haptics', () => ({
@@ -169,7 +169,8 @@ describe('OnboardingContainer', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('0%')).toBeDefined();
+      expect(screen.getByText('Sua Jornada')).toBeDefined();
+      expect(screen.getByText('1/1')).toBeDefined();
     });
   });
 });
@@ -227,14 +228,15 @@ describe('OnboardingContainer - Answer Handling', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('0%')).toBeDefined();
+      expect(screen.getByText('Sua Jornada')).toBeDefined();
+      expect(screen.getByText('1/2')).toBeDefined();
     });
 
     const input = screen.getByPlaceholderText('Digite sua resposta');
     fireEvent.changeText(input, 'Answer');
 
     await waitFor(() => {
-      expect(screen.getByText('50%')).toBeDefined();
+      expect(screen.getByText('2/2')).toBeDefined();
     });
   });
 });
@@ -270,7 +272,7 @@ describe('OnboardingContainer - Navigation', () => {
     fireEvent.changeText(input, 'Answer');
 
     await waitFor(() => {
-      expect(screen.getByText('Próxima')).toBeDefined();
+      expect(screen.getByText('Próxima →')).toBeDefined();
     });
   });
 
@@ -296,10 +298,10 @@ describe('OnboardingContainer - Navigation', () => {
     fireEvent.changeText(input, 'Answer');
 
     await waitFor(() => {
-      expect(screen.getByText('Próxima')).toBeDefined();
+      expect(screen.getByText('Próxima →')).toBeDefined();
     });
 
-    fireEvent.press(screen.getByText('Próxima'));
+    fireEvent.press(screen.getByText('Próxima →'));
 
     await waitFor(() => {
       expect(screen.getByText('Second?')).toBeDefined();
@@ -322,7 +324,7 @@ describe('OnboardingContainer - Navigation', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Second?')).toBeDefined();
-      expect(screen.getByText('Voltar')).toBeDefined();
+      expect(screen.getByText('← Voltar')).toBeDefined();
     });
   });
 
@@ -344,7 +346,7 @@ describe('OnboardingContainer - Navigation', () => {
       expect(screen.getByText('Second?')).toBeDefined();
     });
 
-    fireEvent.press(screen.getByText('Voltar'));
+    fireEvent.press(screen.getByText('← Voltar'));
 
     await waitFor(() => {
       expect(screen.getByText('First?')).toBeDefined();
@@ -456,7 +458,7 @@ describe('OnboardingContainer - Infinite Loop Prevention', () => {
     fireEvent.changeText(input, 'Answer 2');
 
     await waitFor(() => {
-      expect(screen.getByText('Concluir')).toBeDefined();
+      expect(screen.getByText('✓ Concluir')).toBeDefined();
     });
 
     // Simulate query refetch returning new array reference (as happens after invalidation)
@@ -475,7 +477,7 @@ describe('OnboardingContainer - Infinite Loop Prevention', () => {
     // Should still show the last question, not reset to first unanswered
     await waitFor(() => {
       expect(screen.getByText('Second?')).toBeDefined();
-      expect(screen.getByText('Concluir')).toBeDefined();
+      expect(screen.getByText('✓ Concluir')).toBeDefined();
     });
   });
 });
@@ -542,7 +544,7 @@ describe('OnboardingContainer - Completion', () => {
     fireEvent.changeText(input, 'João');
 
     await waitFor(() => {
-      expect(screen.getByText('Concluir')).toBeDefined();
+      expect(screen.getByText('✓ Concluir')).toBeDefined();
     });
   });
 
@@ -568,10 +570,10 @@ describe('OnboardingContainer - Completion', () => {
     fireEvent.changeText(input, 'João');
 
     await waitFor(() => {
-      expect(screen.getByText('Concluir')).toBeDefined();
+      expect(screen.getByText('✓ Concluir')).toBeDefined();
     });
 
-    fireEvent.press(screen.getByText('Concluir'));
+    fireEvent.press(screen.getByText('✓ Concluir'));
 
     await waitFor(() => {
       expect(mockCompleteMutateAsync).toHaveBeenCalled();
