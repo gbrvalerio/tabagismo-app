@@ -1,0 +1,17 @@
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+
+export const onboardingAnswers = sqliteTable('onboarding_answers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  questionKey: text('question_key').notNull(),
+  userId: integer('user_id'),
+  answer: text('answer').notNull(),
+  answeredAt: integer('answered_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export type OnboardingAnswer = typeof onboardingAnswers.$inferSelect;
+export type NewOnboardingAnswer = typeof onboardingAnswers.$inferInsert;
