@@ -21,6 +21,7 @@ jest.mock('react-native-reanimated', () => {
     useSharedValue: (init: number) => ({ value: init }),
     useAnimatedStyle: (fn: () => object) => fn(),
     withSpring: (toValue: number) => toValue,
+    withTiming: (toValue: number) => toValue,
     Easing: {
       out: () => identity,
       inOut: () => identity,
@@ -42,6 +43,7 @@ jest.mock('@/db/repositories', () => ({
   useOnboardingAnswers: () => ({ data: undefined, isLoading: true }),
   useSaveAnswer: () => ({ mutateAsync: jest.fn() }),
   useDeleteDependentAnswers: () => ({ mutateAsync: jest.fn() }),
+  useCompleteOnboarding: () => ({ mutateAsync: jest.fn() }),
 }));
 
 describe('OnboardingScreen', () => {
