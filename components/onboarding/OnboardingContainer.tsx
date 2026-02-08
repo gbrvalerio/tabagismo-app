@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
 import { useOnboardingQuestions, useOnboardingAnswers, useSaveAnswer, useDeleteDependentAnswers } from '@/db/repositories';
 import { computeApplicableQuestions, calculateProgress } from '@/lib/onboarding-flow';
 import { ProgressBar } from './ProgressBar';
@@ -7,7 +7,7 @@ import { QuestionCard } from './QuestionCard';
 import { QuestionText } from './QuestionText';
 import { QuestionInput } from './QuestionInput';
 import type { Question } from '@/db/schema';
-import { spacing } from '@/lib/theme/tokens';
+import { colors, spacing, borderRadius, typography } from '@/lib/theme/tokens';
 
 export function OnboardingContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -73,6 +73,21 @@ export function OnboardingContainer() {
   ).length;
   const progress = calculateProgress(answeredCount, applicableQuestions.length);
 
+  const currentAnswer = currentQuestion ? answersCache[currentQuestion.key] : null;
+  const isAnswered = currentAnswer !== undefined && currentAnswer !== null && currentAnswer !== '';
+
+  const handleNext = () => {
+    if (currentIndex < applicableQuestions.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ProgressBar progress={progress} />
@@ -86,6 +101,18 @@ export function OnboardingContainer() {
           />
         </QuestionCard>
       )}
+      <View style={styles.navigationContainer}>
+        {currentIndex > 0 && (
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+            <Text style={styles.buttonText}>Voltar</Text>
+          </TouchableOpacity>
+        )}
+        {isAnswered && currentIndex < applicableQuestions.length - 1 && (
+          <TouchableOpacity onPress={handleNext} style={styles.nextButton}>
+            <Text style={styles.buttonText}>Próxima</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
@@ -99,5 +126,29 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  navigationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.lg,
+  },
+  backButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.neutral.gray[300],
+    borderRadius: borderRadius.md,
+  },
+  nextButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.primary.base,
+    borderRadius: borderRadius.md,
+    marginLeft: 'auto',
+  },
+  buttonText: {
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.neutral.white,
   },
 });

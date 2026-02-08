@@ -199,3 +199,116 @@ describe('OnboardingContainer - Answer Handling', () => {
     });
   });
 });
+
+describe('OnboardingContainer - Navigation', () => {
+  const mockMutateAsync = jest.fn().mockResolvedValue(undefined);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockMutateAsync });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+  });
+
+  it('should show next button when question is answered', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First?')).toBeDefined();
+    });
+
+    const input = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input, 'Answer');
+
+    await waitFor(() => {
+      expect(screen.getByText('Próxima')).toBeDefined();
+    });
+  });
+
+  it('should advance to next question when next is pressed', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First?')).toBeDefined();
+    });
+
+    const input = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input, 'Answer');
+
+    await waitFor(() => {
+      expect(screen.getByText('Próxima')).toBeDefined();
+    });
+
+    fireEvent.press(screen.getByText('Próxima'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeDefined();
+    });
+  });
+
+  it('should show back button after first question', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [{ questionKey: 'q1', answer: JSON.stringify('Answer') }],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeDefined();
+      expect(screen.getByText('Voltar')).toBeDefined();
+    });
+  });
+
+  it('should go back when back button is pressed', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [{ questionKey: 'q1', answer: JSON.stringify('Answer') }],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeDefined();
+    });
+
+    fireEvent.press(screen.getByText('Voltar'));
+
+    await waitFor(() => {
+      expect(screen.getByText('First?')).toBeDefined();
+    });
+  });
+});
