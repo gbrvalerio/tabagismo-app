@@ -39,6 +39,13 @@ export function AnimatedCoin({
   const animatedSize = useSharedValue(size);
   const hasAnimated = useRef(false);
 
+  // Sync animatedSize with size prop when not animating
+  useEffect(() => {
+    if (!animate) {
+      animatedSize.value = size;
+    }
+  }, [size, animate, animatedSize]);
+
   useEffect(() => {
     if (animate && !hasAnimated.current) {
       hasAnimated.current = true;
