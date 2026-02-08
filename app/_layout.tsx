@@ -13,6 +13,7 @@ import { runMigrations } from '@/db';
 import { seedOnboardingQuestions } from '@/db/seed/seed-questions';
 import { db } from '@/db/client';
 import { questions } from '@/db/schema';
+import { OnboardingGuard } from '@/components/onboarding/OnboardingGuard';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -97,18 +98,20 @@ export default function RootLayout() {
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-            <Stack.Screen
-              name="onboarding"
-              options={{
-                presentation: 'modal',
-                headerShown: false,
-                gestureEnabled: false,
-              }}
-            />
-          </Stack>
+          <OnboardingGuard>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+              <Stack.Screen
+                name="onboarding"
+                options={{
+                  presentation: 'modal',
+                  headerShown: false,
+                  gestureEnabled: false,
+                }}
+              />
+            </Stack>
+          </OnboardingGuard>
           <StatusBar style="auto" />
         </ThemeProvider>
       </QueryClientProvider>
