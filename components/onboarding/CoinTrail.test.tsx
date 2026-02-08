@@ -2,6 +2,8 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 
+import { CoinTrail } from './CoinTrail';
+
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
   const Reanimated = require('react-native-reanimated/mock');
@@ -35,8 +37,6 @@ jest.mock('expo-linear-gradient', () => {
     LinearGradient: (props: any) => <View {...props} testID={props.testID || 'linear-gradient'} />,
   };
 });
-
-import { CoinTrail } from './CoinTrail';
 
 describe('CoinTrail', () => {
   it('should render correct number of coins', () => {
@@ -193,8 +193,12 @@ describe('CoinTrail', () => {
 
     const tree = toJSON();
     const progressLineContainer = (tree as any).children[0];
-    expect(progressLineContainer.props.style.left).toBe(28); // spacing.md (16) + half of 24px (12)
-    expect(progressLineContainer.props.style.right).toBe(28);
+    const style = progressLineContainer.props.style;
+    const flatStyle = Array.isArray(style)
+      ? Object.assign({}, ...style.flat(Infinity).filter(Boolean))
+      : style;
+    expect(flatStyle.left).toBe(28); // spacing.md (16) + half of 24px (12)
+    expect(flatStyle.right).toBe(28);
   });
 
   it('should render coins above progress line with z-index', () => {
@@ -210,8 +214,11 @@ describe('CoinTrail', () => {
     const tree = toJSON();
     const progressLineContainer = (tree as any).children[0];
     const coinsRow = (tree as any).children[1];
-    expect(progressLineContainer.props.style.zIndex).toBe(0);
-    expect(progressLineContainer.props.style.elevation).toBe(0);
+    const plcStyle = Array.isArray(progressLineContainer.props.style)
+      ? Object.assign({}, ...progressLineContainer.props.style.flat(Infinity).filter(Boolean))
+      : progressLineContainer.props.style;
+    expect(plcStyle.zIndex).toBe(0);
+    expect(plcStyle.elevation).toBe(0);
     expect(coinsRow.props.style.zIndex).toBe(1);
     expect(coinsRow.props.style.elevation).toBe(1);
   });

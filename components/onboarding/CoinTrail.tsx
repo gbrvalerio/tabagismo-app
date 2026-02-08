@@ -1,6 +1,7 @@
 import { spacing } from "@/lib/theme/tokens";
 import { LinearGradient } from "expo-linear-gradient";
-import { StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { LayoutChangeEvent, StyleSheet, View } from "react-native";
 import { AnimatedCoin } from "./AnimatedCoin";
 
 const COIN_SIZE_CURRENT = 24;
@@ -24,12 +25,18 @@ export function CoinTrail({
   onCoinAnimationComplete,
   testID,
 }: CoinTrailProps) {
+  const [progressLineTop, setProgressLineTop] = useState(0);
   const progress =
     totalSteps > 0 ? (answeredQuestions.length / totalSteps) * 100 : 0;
 
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const { height } = event.nativeEvent.layout;
+    setProgressLineTop(height / 2 - 1);
+  };
+
   return (
-    <View testID={testID} style={styles.container}>
-      <View style={styles.progressLineContainer}>
+    <View testID={testID} style={styles.container} onLayout={handleLayout}>
+      <View style={[styles.progressLineContainer, { top: progressLineTop }]}>
         <View
           testID={testID ? `${testID}-progress-bg` : "coin-trail-progress-bg"}
           style={styles.progressBackground}
@@ -79,9 +86,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: spacing.md + COIN_RADIUS_MAX, // Inset by half the largest coin size
     right: spacing.md + COIN_RADIUS_MAX,
-    top: "50%",
     height: 2,
-    marginTop: -1,
     zIndex: 0,
     elevation: 0,
   },
