@@ -21,6 +21,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -42,6 +43,7 @@ import {
   shadows,
   spacing,
   typography,
+  typographyPresets,
 } from "@/lib/theme/tokens";
 import { animations } from "@/lib/theme/animations";
 
@@ -244,6 +246,11 @@ export function OnboardingContainer() {
   }
 
   return (
+    <LinearGradient
+      colors={['#FFFFFF', '#F8F9FB']}
+      style={styles.gradient}
+      testID="onboarding-gradient"
+    >
     <SafeAreaView
       style={styles.safeArea}
       edges={["top", "bottom"]}
@@ -351,13 +358,16 @@ export function OnboardingContainer() {
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background.primary,
   },
   keyboardView: {
     flex: 1,
@@ -387,9 +397,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   backButtonText: {
+    fontFamily: typographyPresets.subhead.fontFamily,
     fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.neutral.gray[600],
+    color: '#666666',
   },
   content: {
     flexGrow: 1,
@@ -420,30 +430,36 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     width: "100%",
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    backgroundColor: colors.primary.base,
-    borderRadius: borderRadius.full,
+    height: 56,
+    justifyContent: "center",
     alignItems: "center",
-    ...shadows.md,
+    backgroundColor: colors.primary.base,
+    borderRadius: 28,
+    shadowColor: colors.primary.base,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
   finishButton: {
     width: "100%",
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    backgroundColor: colors.semantic.success,
-    borderRadius: borderRadius.full,
+    height: 56,
+    justifyContent: "center",
     alignItems: "center",
-    ...shadows.md,
+    backgroundColor: '#10B981',
+    borderRadius: 28,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
   buttonText: {
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.white,
+    ...typographyPresets.button,
+    color: '#FFFFFF',
   },
   finishButtonText: {
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.white,
+    ...typographyPresets.button,
+    color: '#FFFFFF',
   },
 });
