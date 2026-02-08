@@ -3,6 +3,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { AnimatedCoin } from './AnimatedCoin';
 import { spacing } from '@/lib/theme/tokens';
 
+const COIN_SIZE_EARNED = 24;
+const COIN_SIZE_UNEARNED = 20;
+const COIN_RADIUS_MAX = COIN_SIZE_EARNED / 2;
+
 interface CoinTrailProps {
   currentStep: number;
   totalSteps: number;
@@ -46,7 +50,7 @@ export function CoinTrail({
           return (
             <AnimatedCoin
               key={index}
-              size={16}
+              size={isAnswered ? COIN_SIZE_EARNED : COIN_SIZE_UNEARNED}
               variant={isAnswered ? 'filled' : 'outlined'}
               highlighted={isCurrent}
               showGlow={isAnswered}
@@ -68,8 +72,8 @@ const styles = StyleSheet.create({
   },
   progressLineContainer: {
     position: 'absolute',
-    left: spacing.md + 8, // Inset by coin radius (16px / 2)
-    right: spacing.md + 8,
+    left: spacing.md + COIN_RADIUS_MAX, // Inset by half the largest coin size
+    right: spacing.md + COIN_RADIUS_MAX,
     top: '50%',
     height: 2,
     marginTop: -1,

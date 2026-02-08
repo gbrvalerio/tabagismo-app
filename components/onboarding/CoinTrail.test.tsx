@@ -181,8 +181,8 @@ describe('CoinTrail', () => {
     expect(flatStyle.paddingVertical).toBe(16);
   });
 
-  it('should inset progress line by coin radius', () => {
-    const { getByTestId, toJSON } = render(
+  it('should inset progress line by half the largest coin size', () => {
+    const { toJSON } = render(
       <CoinTrail
         testID="coin-trail"
         currentStep={1}
@@ -191,13 +191,10 @@ describe('CoinTrail', () => {
       />
     );
 
-    // Find the progress line container by checking the parent of progress-bg
     const tree = toJSON();
-    // The progress line container is the second child of the main container
-    // (first child is progressLineContainer, second is coinsRow)
     const progressLineContainer = (tree as any).children[0];
-    expect(progressLineContainer.props.style.left).toBe(24); // spacing.md (16) + coin radius (8)
-    expect(progressLineContainer.props.style.right).toBe(24);
+    expect(progressLineContainer.props.style.left).toBe(28); // spacing.md (16) + half of 24px (12)
+    expect(progressLineContainer.props.style.right).toBe(28);
   });
 
   it('should render coins with showGlow for answered coins', () => {

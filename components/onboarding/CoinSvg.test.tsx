@@ -43,31 +43,25 @@ describe('CoinSvg', () => {
     expect(svg.props.height).toBe(24);
   });
 
-  it('should render outlined variant with reduced opacity', () => {
-    const { getByTestId } = render(<CoinSvg variant="outlined" />);
-    const container = getByTestId('coin-svg-container');
-    const flatStyle = Array.isArray(container.props.style)
-      ? Object.assign({}, ...container.props.style.flat())
-      : container.props.style;
-    expect(flatStyle.opacity).toBe(0.35);
+  it('should render outlined variant with grey colors', () => {
+    const { getAllByTestId } = render(<CoinSvg variant="outlined" />);
+    const ellipses = getAllByTestId('svg-ellipse');
+    expect(ellipses[0].props.fill).toBe('#CCCCCC');
+    expect(ellipses[1].props.fill).toBe('#BBBBBB');
   });
 
-  it('should render filled variant with full opacity', () => {
-    const { getByTestId } = render(<CoinSvg variant="filled" />);
-    const container = getByTestId('coin-svg-container');
-    const flatStyle = Array.isArray(container.props.style)
-      ? Object.assign({}, ...container.props.style.flat())
-      : container.props.style;
-    expect(flatStyle.opacity).toBe(1);
+  it('should render filled variant with gold colors', () => {
+    const { getAllByTestId } = render(<CoinSvg variant="filled" />);
+    const ellipses = getAllByTestId('svg-ellipse');
+    expect(ellipses[0].props.fill).toBe('#F7A531');
+    expect(ellipses[1].props.fill).toBe('#F39119');
   });
 
-  it('should default to filled variant', () => {
-    const { getByTestId } = render(<CoinSvg />);
-    const container = getByTestId('coin-svg-container');
-    const flatStyle = Array.isArray(container.props.style)
-      ? Object.assign({}, ...container.props.style.flat())
-      : container.props.style;
-    expect(flatStyle.opacity).toBe(1);
+  it('should default to filled variant with gold colors', () => {
+    const { getAllByTestId } = render(<CoinSvg />);
+    const ellipses = getAllByTestId('svg-ellipse');
+    expect(ellipses[0].props.fill).toBe('#F7A531');
+    expect(ellipses[1].props.fill).toBe('#F39119');
   });
 
   it('should apply glow shadow when showGlow is true', () => {
