@@ -575,7 +575,7 @@ describe('OnboardingContainer - Completion', () => {
 
     await waitFor(() => {
       expect(mockCompleteMutateAsync).toHaveBeenCalled();
-      expect(mockRouterReplace).toHaveBeenCalledWith('/(tabs)');
+      expect(mockRouterReplace).toHaveBeenCalledWith('/(tabs)/');
     });
   });
 });

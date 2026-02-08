@@ -7,13 +7,12 @@ import { ProgressBar } from './ProgressBar';
 import { QuestionCard } from './QuestionCard';
 import { QuestionText } from './QuestionText';
 import { QuestionInput } from './QuestionInput';
-import type { Question } from '@/db/schema';
+
 import { colors, spacing, borderRadius, typography } from '@/lib/theme/tokens';
 
 export function OnboardingContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answersCache, setAnswersCache] = useState<Record<string, unknown>>({});
-  const [applicableQuestions, setApplicableQuestions] = useState<Question[]>([]);
 
   const { data: allQuestions, isLoading: questionsLoading } = useOnboardingQuestions();
   const { data: existingAnswers, isLoading: answersLoading } = useOnboardingAnswers();
@@ -42,14 +41,16 @@ export function OnboardingContainer() {
 
     setAnswersCache(cache);
 
-    // Compute applicable questions
-    const applicable = computeApplicableQuestions(allQuestions, cache);
-    setApplicableQuestions(applicable);
-
     // Find first unanswered question
+    const applicable = computeApplicableQuestions(allQuestions, cache);
     const firstUnanswered = applicable.findIndex(q => !cache[q.key]);
     setCurrentIndex(firstUnanswered === -1 ? 0 : firstUnanswered);
   }, [allQuestions, existingAnswers]);
+
+  // Derive applicable questions from current state — not stored in a separate useState
+  const applicableQuestions = allQuestions
+    ? computeApplicableQuestions(allQuestions, answersCache)
+    : [];
 
   const handleAnswer = async (questionKey: string, value: unknown) => {
     // Update cache immediately (optimistic)
@@ -79,10 +80,6 @@ export function OnboardingContainer() {
         }
         setAnswersCache({ ...newCache });
       }
-
-      // Recalculate applicable questions
-      const newApplicable = computeApplicableQuestions(allQuestions, newCache);
-      setApplicableQuestions(newApplicable);
     }
   };
 
