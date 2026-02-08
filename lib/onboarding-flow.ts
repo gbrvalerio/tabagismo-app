@@ -9,7 +9,7 @@ export function computeApplicableQuestions<T extends QuestionLike>(
   allQuestions: T[],
   answers: Record<string, unknown>
 ): T[] {
-  return allQuestions
+  return [...allQuestions]
     .sort((a, b) => a.order - b.order)
     .filter(question => {
       // No dependency = always show

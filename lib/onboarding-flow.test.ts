@@ -97,6 +97,13 @@ describe('computeApplicableQuestions', () => {
     expect(result.find(q => q.key === 'cigarettes_per_day')).toBeUndefined();
   });
 
+  it('should not mutate the input array', () => {
+    const original = [...mockQuestions].reverse(); // deliberately out of order
+    const snapshot = [...original];
+    computeApplicableQuestions(original, {});
+    expect(original).toEqual(snapshot);
+  });
+
   it('should maintain order by order field', () => {
     const answers = { addiction_type: 'Cigarro/Tabaco' };
     const result = computeApplicableQuestions(mockQuestions, answers);
