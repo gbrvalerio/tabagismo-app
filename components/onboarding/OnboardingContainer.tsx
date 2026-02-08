@@ -25,7 +25,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withSequence,
   withSpring,
   withTiming,
@@ -43,7 +42,7 @@ import {
   spacing,
   typography,
 } from "@/lib/theme/tokens";
-import { animations, timing } from "@/lib/theme/animations";
+import { animations } from "@/lib/theme/animations";
 
 export function OnboardingContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
