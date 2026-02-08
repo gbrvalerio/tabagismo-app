@@ -28,6 +28,7 @@ module.exports = {
     '!**/*.config.{js,ts}',
     '!scripts/**',
     '!**/*.test.{ts,tsx}',
+    '!**/index.ts', // Exclude barrel export files
   ],
   coverageThreshold: {
     global: {
