@@ -1,5 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboardingQuestions, useOnboardingAnswers, useSaveAnswer, useDeleteDependentAnswers, useCompleteOnboarding } from '@/db/repositories';
 import { useRouter } from 'expo-router';
 import { computeApplicableQuestions, calculateProgress } from '@/lib/onboarding-flow';
@@ -123,30 +133,64 @@ export function OnboardingContainer() {
   };
 
   return (
-    <View style={styles.background}>
-      <View style={styles.container}>
-        <ProgressBar progress={progress} currentStep={answeredCount + 1} totalSteps={applicableQuestions.length} />
-        {currentQuestion && (
-          <QuestionCard>
-            <QuestionText text={currentQuestion.questionText} />
-            <QuestionInput
-              question={currentQuestion}
-              value={(answersCache[currentQuestion.key] as string | number | string[] | undefined) ?? null}
-              onChange={(value) => handleAnswer(currentQuestion.key, value)}
-            />
-          </QuestionCard>
-        )}
-        <View style={styles.navigationContainer}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']} testID="safe-area-container">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+        testID="keyboard-avoiding-view"
+      >
+        {/* Header - Fixed at top */}
+        <View style={styles.header} testID="onboarding-header">
           {currentIndex > 0 && (
-            <TouchableOpacity onPress={handleBack} style={styles.backButton} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={handleBack}
+              style={styles.backButton}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
               <Text style={styles.backButtonText}>← Voltar</Text>
             </TouchableOpacity>
           )}
+          <ProgressBar
+            progress={progress}
+            currentStep={answeredCount + 1}
+            totalSteps={applicableQuestions.length}
+          />
+        </View>
+
+        {/* Content - Scrollable middle section */}
+        <View style={styles.content}>
+          {currentQuestion && (
+            <QuestionCard>
+              {/* Fixed question text */}
+              <View style={styles.questionHeader}>
+                <QuestionText text={currentQuestion.questionText} />
+              </View>
+
+              {/* Scrollable input area */}
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                testID="content-scroll-view"
+              >
+                <QuestionInput
+                  question={currentQuestion}
+                  value={(answersCache[currentQuestion.key] as string | number | string[] | undefined) ?? null}
+                  onChange={(value) => handleAnswer(currentQuestion.key, value)}
+                />
+              </ScrollView>
+            </QuestionCard>
+          )}
+        </View>
+
+        {/* Footer - Fixed at bottom */}
+        <View style={styles.footer} testID="onboarding-footer">
           {isAnswered && !isLastQuestion && (
             <TouchableOpacity
               onPress={handleNext}
               activeOpacity={0.7}
-              style={[styles.nextButton, currentIndex === 0 && { marginLeft: 'auto' }]}
+              style={styles.nextButton}
             >
               <Text style={styles.buttonText}>Próxima →</Text>
             </TouchableOpacity>
@@ -155,63 +199,78 @@ export function OnboardingContainer() {
             <TouchableOpacity
               onPress={handleFinish}
               activeOpacity={0.7}
-              style={[styles.finishButton, currentIndex === 0 && { marginLeft: 'auto' }]}
+              style={styles.finishButton}
             >
               <Text style={styles.finishButtonText}>✓ Concluir</Text>
             </TouchableOpacity>
           )}
         </View>
-      </View>
-    </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
+  safeArea: {
     flex: 1,
     backgroundColor: colors.background.primary,
   },
-  container: {
+  keyboardView: {
     flex: 1,
-    padding: spacing.md,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  navigationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.xl,
+  header: {
     paddingHorizontal: spacing.md,
-    gap: spacing.md,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
   },
   backButton: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    backgroundColor: colors.neutral.white,
-    borderRadius: borderRadius.full,
-    borderWidth: 2,
-    borderColor: colors.neutral.gray[300],
+    alignSelf: 'flex-start',
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
   },
   backButtonText: {
     fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.bold,
+    fontWeight: typography.fontWeight.medium,
     color: colors.neutral.gray[600],
   },
+  content: {
+    flex: 1,
+    paddingHorizontal: spacing.md,
+  },
+  questionHeader: {
+    marginBottom: spacing.md,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: spacing.xl,
+  },
+  footer: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
   nextButton: {
+    width: '100%',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     backgroundColor: colors.primary.base,
     borderRadius: borderRadius.full,
+    alignItems: 'center',
     ...shadows.md,
   },
   finishButton: {
+    width: '100%',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     backgroundColor: colors.semantic.success,
     borderRadius: borderRadius.full,
+    alignItems: 'center',
     ...shadows.md,
   },
   buttonText: {

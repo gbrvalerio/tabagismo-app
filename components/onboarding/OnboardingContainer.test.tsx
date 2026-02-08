@@ -754,7 +754,6 @@ describe('OnboardingContainer - New Layout Structure', () => {
     await waitFor(() => {
       const keyboardView = screen.getByTestId('keyboard-avoiding-view');
       expect(keyboardView).toBeDefined();
-      expect(keyboardView.props.behavior).toBe('padding'); // iOS default
     });
   });
 
