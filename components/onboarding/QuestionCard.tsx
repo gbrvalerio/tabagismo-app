@@ -1,41 +1,58 @@
-import { animations } from "@/lib/theme/animations";
+import { animations, timing } from "@/lib/theme/animations";
 import { borderRadius, colors, shadows, spacing } from "@/lib/theme/tokens";
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSequence,
+  withDelay,
   withSpring,
   withTiming,
 } from "react-native-reanimated";
 
 interface QuestionCardProps {
   children: React.ReactNode;
+  questionKey: string; // Used to trigger transitions on question change
 }
 
-export function QuestionCard({ children }: QuestionCardProps) {
-  const translateY = useSharedValue(60);
-  const scale = useSharedValue(0.9);
+export function QuestionCard({ children, questionKey }: QuestionCardProps) {
+  const translateX = useSharedValue(50);
   const opacity = useSharedValue(0);
-  const rotate = useSharedValue(-2);
+  const scale = useSharedValue(0.96);
 
   useEffect(() => {
-    translateY.value = withSpring(0, animations.gentleSpring);
-    scale.value = withSpring(1, animations.gentleSpring);
-    opacity.value = withTiming(1, { duration: 400 });
-    rotate.value = withSequence(
-      withSpring(2, { ...animations.gentleSpring, damping: 8 }),
-      withSpring(0, animations.gentleSpring),
+    // Reset to initial state
+    translateX.value = 50;
+    opacity.value = 0;
+    scale.value = 0.96;
+
+    // Staggered entrance: fade in, slide in, then subtle scale
+    opacity.value = withTiming(1, {
+      duration: timing.fast,
+      easing: Easing.out(Easing.cubic),
+    });
+
+    translateX.value = withSpring(0, {
+      ...animations.gentleSpring,
+      damping: 18,
+      stiffness: 120,
+    });
+
+    scale.value = withDelay(
+      50,
+      withSpring(1, {
+        damping: 15,
+        stiffness: 140,
+      }),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [questionKey]); // Re-trigger animation when question changes
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateY: translateY.value },
+      { translateX: translateX.value },
       { scale: scale.value },
-      { rotate: `${rotate.value}deg` },
     ],
     opacity: opacity.value,
   }));

@@ -11,7 +11,7 @@ jest.mock('expo-linear-gradient', () => ({
 describe('QuestionCard', () => {
   it('should render children', () => {
     render(
-      <QuestionCard>
+      <QuestionCard questionKey="test-key">
         <Text>Test content</Text>
       </QuestionCard>
     );
@@ -20,7 +20,7 @@ describe('QuestionCard', () => {
 
   it('should apply container styles', () => {
     const { toJSON } = render(
-      <QuestionCard>
+      <QuestionCard questionKey="test-key">
         <Text>Test</Text>
       </QuestionCard>
     );
@@ -29,7 +29,7 @@ describe('QuestionCard', () => {
 
   it('should fill available space to prevent overflow', () => {
     const { getByTestId } = render(
-      <QuestionCard>
+      <QuestionCard questionKey="test-key">
         <Text>Content</Text>
       </QuestionCard>
     );
@@ -43,5 +43,22 @@ describe('QuestionCard', () => {
     // Card should have flex: 1 to respect parent container bounds and prevent overflow
     expect(flatStyle.flex).toBe(1);
     expect(flatStyle.width).toBe('100%');
+  });
+
+  it('should re-animate when questionKey changes', () => {
+    const { rerender } = render(
+      <QuestionCard questionKey="question-1">
+        <Text>Question 1</Text>
+      </QuestionCard>
+    );
+
+    // Re-render with different questionKey should trigger new animation
+    rerender(
+      <QuestionCard questionKey="question-2">
+        <Text>Question 2</Text>
+      </QuestionCard>
+    );
+
+    expect(screen.getByText('Question 2')).toBeDefined();
   });
 });

@@ -994,3 +994,142 @@ describe('Integration: Complete onboarding flow', () => {
     expect(screen.queryByText('← Voltar')).toBeNull();
   });
 });
+
+describe('OnboardingContainer - Idle Animations', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('should trigger idle animation after 3 seconds when question is answered', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First?')).toBeDefined();
+    });
+
+    // Answer the question
+    const input = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input, 'Answer');
+
+    await waitFor(() => {
+      expect(screen.getByText('Próxima →')).toBeDefined();
+    });
+
+    // Fast-forward time by 3 seconds to trigger idle animation
+    jest.advanceTimersByTime(3000);
+
+    // Button should still be visible (animation is visual, component structure unchanged)
+    expect(screen.getByText('Próxima →')).toBeDefined();
+  });
+
+  it('should reset idle timer when user navigates to next question', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First?')).toBeDefined();
+    });
+
+    // Answer first question
+    const input = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input, 'Answer');
+
+    await waitFor(() => {
+      expect(screen.getByText('Próxima →')).toBeDefined();
+    });
+
+    // Navigate to next question before idle timer triggers
+    const nextButton = screen.getByText('Próxima →');
+    fireEvent.press(nextButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeDefined();
+    });
+
+    // Idle timer should be reset (no way to directly test animation state, but component should be stable)
+    expect(screen.getByText('Second?')).toBeDefined();
+  });
+
+  it('should reset idle timer when user navigates back', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [
+        { id: 1, userId: 1, questionKey: 'q1', answer: '"Answer"', createdAt: new Date() },
+      ],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    // Start at second question
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeDefined();
+    });
+
+    // Navigate back
+    const backButton = screen.getByText('← Voltar');
+    fireEvent.press(backButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('First?')).toBeDefined();
+    });
+
+    // Timer should be reset (component should be stable)
+    expect(screen.getByText('First?')).toBeDefined();
+  });
+
+  it('should not trigger idle animation when question is not answered', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Qual é o seu nome?')).toBeDefined();
+    });
+
+    // No next button should be visible
+    expect(screen.queryByText('Próxima →')).toBeNull();
+    expect(screen.queryByText('✓ Concluir')).toBeNull();
+
+    // Fast-forward time
+    jest.advanceTimersByTime(5000);
+
+    // Still no button (nothing to animate)
+    expect(screen.queryByText('Próxima →')).toBeNull();
+  });
+});

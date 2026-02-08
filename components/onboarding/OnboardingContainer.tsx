@@ -22,6 +22,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import { ProgressBar } from "./ProgressBar";
 import { QuestionCard } from "./QuestionCard";
 import { QuestionInput } from "./QuestionInput";
@@ -34,6 +43,7 @@ import {
   spacing,
   typography,
 } from "@/lib/theme/tokens";
+import { animations, timing } from "@/lib/theme/animations";
 
 export function OnboardingContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -50,6 +60,11 @@ export function OnboardingContainer() {
 
   const isLoading = questionsLoading || answersLoading;
   const initialLoadDone = useRef(false);
+
+  // Animation values for button shake
+  const buttonShake = useSharedValue(0);
+  const buttonScale = useSharedValue(1);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!allQuestions || !existingAnswers) return;
@@ -81,6 +96,73 @@ export function OnboardingContainer() {
   const applicableQuestions = allQuestions
     ? computeApplicableQuestions(allQuestions, answersCache)
     : [];
+
+  // Compute derived values before any early returns
+  const currentQuestion = applicableQuestions[currentIndex];
+  const currentAnswer = currentQuestion
+    ? answersCache[currentQuestion.key]
+    : null;
+  const isAnswered =
+    currentAnswer !== undefined &&
+    currentAnswer !== null &&
+    currentAnswer !== "";
+  const isLastQuestion = currentIndex === applicableQuestions.length - 1;
+  const progress = calculateProgress(
+    currentIndex + 1,
+    applicableQuestions.length,
+  );
+
+  // Animated style for buttons (must be declared before early return)
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: buttonShake.value },
+      { scale: buttonScale.value },
+    ],
+  }));
+
+  // Start idle timer when question is answered (must be before early return)
+  useEffect(() => {
+    // Don't run if still loading
+    if (isLoading) return;
+
+    // Clear any existing timer
+    if (idleTimerRef.current) {
+      clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = null;
+    }
+
+    // Reset animations
+    buttonShake.value = 0;
+    buttonScale.value = 1;
+
+    // Only start timer if question is answered
+    if (isAnswered) {
+      idleTimerRef.current = setTimeout(() => {
+        // Shake animation: gentle horizontal wiggle
+        buttonShake.value = withSequence(
+          withTiming(6, { duration: 100, easing: Easing.inOut(Easing.ease) }),
+          withTiming(-6, { duration: 100 }),
+          withTiming(4, { duration: 100 }),
+          withTiming(-4, { duration: 100 }),
+          withTiming(0, { duration: 100 }),
+        );
+
+        // Pulse animation: subtle scale
+        buttonScale.value = withSequence(
+          withSpring(1.05, { damping: 8, stiffness: 200 }),
+          withSpring(1, animations.gentleSpring),
+        );
+      }, 3000); // After 3 seconds of idle
+    }
+
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAnswered, currentIndex, isLoading]);
 
   const handleAnswer = async (questionKey: string, value: unknown) => {
     // Update cache immediately (optimistic)
@@ -123,30 +205,6 @@ export function OnboardingContainer() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer} testID="loading">
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
-  const currentQuestion = applicableQuestions[currentIndex];
-  // Calculate progress based on current position in the question sequence
-  const progress = calculateProgress(
-    currentIndex + 1,
-    applicableQuestions.length,
-  );
-
-  const currentAnswer = currentQuestion
-    ? answersCache[currentQuestion.key]
-    : null;
-  const isAnswered =
-    currentAnswer !== undefined &&
-    currentAnswer !== null &&
-    currentAnswer !== "";
-  const isLastQuestion = currentIndex === applicableQuestions.length - 1;
-
   const handleFinish = async () => {
     await completeOnboardingMutation.mutateAsync();
     router.replace("/(tabs)/" as any);
@@ -161,8 +219,21 @@ export function OnboardingContainer() {
   const handleBack = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
+      // Reset idle timer when navigating
+      if (idleTimerRef.current) {
+        clearTimeout(idleTimerRef.current);
+        idleTimerRef.current = null;
+      }
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer} testID="loading">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -198,7 +269,7 @@ export function OnboardingContainer() {
         <View style={styles.content}>
           {currentQuestion && (
             <View style={styles.cardWrapper}>
-              <QuestionCard>
+              <QuestionCard questionKey={currentQuestion.key}>
                 {/* Fixed question text */}
                 <View style={styles.questionHeader}>
                   <QuestionText text={currentQuestion.questionText} />
@@ -231,22 +302,26 @@ export function OnboardingContainer() {
         {/* Footer - Fixed at bottom */}
         <View style={styles.footer} testID="onboarding-footer">
           {isAnswered && !isLastQuestion && (
-            <TouchableOpacity
-              onPress={handleNext}
-              activeOpacity={0.7}
-              style={styles.nextButton}
-            >
-              <Text style={styles.buttonText}>Próxima →</Text>
-            </TouchableOpacity>
+            <Animated.View style={buttonAnimatedStyle}>
+              <TouchableOpacity
+                onPress={handleNext}
+                activeOpacity={0.7}
+                style={styles.nextButton}
+              >
+                <Text style={styles.buttonText}>Próxima →</Text>
+              </TouchableOpacity>
+            </Animated.View>
           )}
           {isAnswered && isLastQuestion && (
-            <TouchableOpacity
-              onPress={handleFinish}
-              activeOpacity={0.7}
-              style={styles.finishButton}
-            >
-              <Text style={styles.finishButtonText}>✓ Concluir</Text>
-            </TouchableOpacity>
+            <Animated.View style={buttonAnimatedStyle}>
+              <TouchableOpacity
+                onPress={handleFinish}
+                activeOpacity={0.7}
+                style={styles.finishButton}
+              >
+                <Text style={styles.finishButtonText}>✓ Concluir</Text>
+              </TouchableOpacity>
+            </Animated.View>
           )}
         </View>
       </KeyboardAvoidingView>
