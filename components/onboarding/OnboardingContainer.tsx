@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { View, Text, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
 import { useOnboardingQuestions, useOnboardingAnswers, useSaveAnswer, useDeleteDependentAnswers, useCompleteOnboarding } from '@/db/repositories';
 import { useRouter } from 'expo-router';
@@ -23,13 +23,20 @@ export function OnboardingContainer() {
   const router = useRouter();
 
   const isLoading = questionsLoading || answersLoading;
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
     if (!allQuestions || !existingAnswers) return;
+    if (initialLoadDone.current) return;
+    initialLoadDone.current = true;
 
     // Load existing answers into cache
     const cache = existingAnswers.reduce((acc, answer) => {
-      acc[answer.questionKey] = JSON.parse(answer.answer);
+      try {
+        acc[answer.questionKey] = JSON.parse(answer.answer);
+      } catch {
+        acc[answer.questionKey] = answer.answer;
+      }
       return acc;
     }, {} as Record<string, unknown>);
 
@@ -55,8 +62,25 @@ export function OnboardingContainer() {
       answer: JSON.stringify(value),
     });
 
-    // Recalculate applicable questions
+    // Delete dependent answers if this question has dependents
     if (allQuestions) {
+      const hasDependents = allQuestions.some(q => q.dependsOnQuestionKey === questionKey);
+      if (hasDependents) {
+        await deleteDependentAnswersMutation.mutateAsync({
+          parentQuestionKey: questionKey,
+        });
+
+        // Remove dependent answers from cache
+        const dependentKeys = allQuestions
+          .filter(q => q.dependsOnQuestionKey === questionKey)
+          .map(q => q.key);
+        for (const key of dependentKeys) {
+          delete newCache[key];
+        }
+        setAnswersCache({ ...newCache });
+      }
+
+      // Recalculate applicable questions
       const newApplicable = computeApplicableQuestions(allQuestions, newCache);
       setApplicableQuestions(newApplicable);
     }
@@ -82,7 +106,7 @@ export function OnboardingContainer() {
 
   const handleFinish = async () => {
     await completeOnboardingMutation.mutateAsync();
-    router.replace('/(tabs)');
+    router.replace('/(tabs)/' as any);
   };
 
   const handleNext = () => {
@@ -105,7 +129,7 @@ export function OnboardingContainer() {
           <QuestionText text={currentQuestion.questionText} />
           <QuestionInput
             question={currentQuestion}
-            value={answersCache[currentQuestion.key] ?? null}
+            value={(answersCache[currentQuestion.key] as string | number | string[] | undefined) ?? null}
             onChange={(value) => handleAnswer(currentQuestion.key, value)}
           />
         </QuestionCard>

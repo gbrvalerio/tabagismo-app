@@ -13,7 +13,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "drizzle-kit generate && rm -f db/migrations/migrations.js",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

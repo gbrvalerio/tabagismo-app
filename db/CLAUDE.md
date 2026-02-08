@@ -454,3 +454,7 @@ On first launch, `_layout.tsx` checks if questions table is empty and runs `seed
 
 ### Type errors in repository
 **Fix:** Ensure schema types are exported: `export type User = typeof users.$inferSelect`
+
+### Jest fails with "Unexpected identifier TABLE" from migrations.js
+**Cause:** `drizzle-kit generate` auto-creates a `migrations.js` file that imports `.sql` files, which Jest can't parse.
+**Fix:** The `db:generate` script auto-removes `migrations.js` after generation. If it reappears, delete it manually (`rm db/migrations/migrations.js`) and clear Jest cache (`npx jest --clearCache`). The file is in `.gitignore`. We use `migrations.ts` instead.

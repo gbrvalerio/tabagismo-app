@@ -20,4 +20,5 @@ CREATE TABLE \`onboarding_answers\` (
 	\`answered_at\` integer NOT NULL,
 	\`updated_at\` integer NOT NULL
 );
+CREATE UNIQUE INDEX \`onboarding_answers_question_key_unique\` ON \`onboarding_answers\` (\`question_key\`);
 `;

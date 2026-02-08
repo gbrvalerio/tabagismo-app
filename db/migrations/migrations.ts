@@ -3,13 +3,11 @@
 import journal from './meta/_journal.json';
 import m0000 from './0000_true_gideon';
 import m0001 from './0001_add_onboarding_tables';
-import m0002 from './0002_add_question_key_unique';
 
 export default {
   journal,
   migrations: {
     m0000,
     m0001,
-    m0002,
   }
 };

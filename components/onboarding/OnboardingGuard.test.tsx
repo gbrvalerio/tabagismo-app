@@ -72,9 +72,39 @@ describe('OnboardingGuard', () => {
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
-  it('should render children', () => {
+  it('should render children when onboarding is completed', () => {
     mockUseOnboardingStatus.mockReturnValue({
       data: true,
+      isLoading: false,
+    });
+
+    const { getByText } = render(
+      <OnboardingGuard>
+        <Text>Content</Text>
+      </OnboardingGuard>
+    );
+
+    expect(getByText('Content')).toBeDefined();
+  });
+
+  it('should not render children while loading', () => {
+    mockUseOnboardingStatus.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+    });
+
+    const { queryByText } = render(
+      <OnboardingGuard>
+        <Text>Content</Text>
+      </OnboardingGuard>
+    );
+
+    expect(queryByText('Content')).toBeNull();
+  });
+
+  it('should render children while redirecting to onboarding to prevent unmount loop', () => {
+    mockUseOnboardingStatus.mockReturnValue({
+      data: false,
       isLoading: false,
     });
 

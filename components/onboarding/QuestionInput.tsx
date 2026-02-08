@@ -4,18 +4,26 @@ import { OnboardingNumberInput } from './inputs/NumberInput';
 import { SingleChoiceCards } from './inputs/SingleChoiceCards';
 import { MultipleChoiceCards } from './inputs/MultipleChoiceCards';
 
+type QuestionValue = string | number | string[] | null;
+
+interface QuestionMetadata {
+  choices?: string[];
+}
+
 interface QuestionInputProps {
   question: Question;
-  value: any;
-  onChange: (value: any) => void;
+  value: QuestionValue;
+  onChange: (value: QuestionValue) => void;
 }
 
 export function QuestionInput({ question, value, onChange }: QuestionInputProps) {
+  const metadata = question.metadata as QuestionMetadata | null;
+
   switch (question.type) {
     case 'TEXT':
       return (
         <OnboardingTextInput
-          value={value ?? ''}
+          value={(value as string) ?? ''}
           onChange={onChange}
           placeholder="Digite sua resposta"
         />
@@ -24,7 +32,7 @@ export function QuestionInput({ question, value, onChange }: QuestionInputProps)
     case 'NUMBER':
       return (
         <OnboardingNumberInput
-          value={value}
+          value={value as number | null}
           onChange={onChange}
           placeholder="Digite um número"
         />
@@ -33,8 +41,8 @@ export function QuestionInput({ question, value, onChange }: QuestionInputProps)
     case 'SINGLE_CHOICE':
       return (
         <SingleChoiceCards
-          choices={(question.metadata as any)?.choices ?? []}
-          value={value}
+          choices={metadata?.choices ?? []}
+          value={value as string | null}
           onChange={onChange}
         />
       );
@@ -42,8 +50,8 @@ export function QuestionInput({ question, value, onChange }: QuestionInputProps)
     case 'MULTIPLE_CHOICE':
       return (
         <MultipleChoiceCards
-          choices={(question.metadata as any)?.choices ?? []}
-          value={value ?? []}
+          choices={metadata?.choices ?? []}
+          value={(value as string[]) ?? []}
           onChange={onChange}
         />
       );

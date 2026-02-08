@@ -43,6 +43,9 @@ coverage/
 *.lcov
 .nyc_output
 
+# Drizzle auto-generated migrations.js (breaks Metro/Jest - we use migrations.ts)
+db/migrations/migrations.js
+
 # generated native folders
 /ios
 /android

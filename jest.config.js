@@ -24,7 +24,9 @@ module.exports = {
     '!app/_layout.tsx',
     '!db/migrations/**',
     '!db/client.ts',
-    '!db/repositories/settings.repository.ts', // Exclude from coverage
+    '!db/repositories/settings.repository.ts', // Exclude from coverage - requires real DB
+    '!db/repositories/onboarding.repository.ts', // Exclude from coverage - requires real DB
+    '!db/seed/seed-questions.ts', // Exclude from coverage - requires real DB
     '!lib/query-client.ts',
     '!hooks/use-color-scheme.ts',
     '!**/*.config.{js,ts}',

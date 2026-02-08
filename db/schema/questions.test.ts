@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { questions, QuestionType, QuestionCategory } from './questions';
+import { questions, QuestionType, QuestionCategory, getDefaultCreatedAt } from './questions';
 
 describe('questions schema', () => {
   it('should export QuestionType enum', () => {
@@ -29,6 +29,11 @@ describe('questions schema', () => {
     expect(questions.dependsOnValue).toBeDefined();
     expect(questions.metadata).toBeDefined();
     expect(questions.createdAt).toBeDefined();
+  });
+
+  it('should have getDefaultCreatedAt return a Date', () => {
+    const result = getDefaultCreatedAt();
+    expect(result).toBeInstanceOf(Date);
   });
 
   it('should have correct column names', () => {

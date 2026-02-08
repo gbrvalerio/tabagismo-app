@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { onboardingAnswers } from './onboarding-answers';
+import { onboardingAnswers, getDefaultAnsweredAt, getDefaultAnswerUpdatedAt } from './onboarding-answers';
 
 describe('onboardingAnswers schema', () => {
   it('should have all required columns defined', () => {
@@ -9,6 +9,16 @@ describe('onboardingAnswers schema', () => {
     expect(onboardingAnswers.answer).toBeDefined();
     expect(onboardingAnswers.answeredAt).toBeDefined();
     expect(onboardingAnswers.updatedAt).toBeDefined();
+  });
+
+  it('should have getDefaultAnsweredAt return a Date', () => {
+    const result = getDefaultAnsweredAt();
+    expect(result).toBeInstanceOf(Date);
+  });
+
+  it('should have getDefaultAnswerUpdatedAt return a Date', () => {
+    const result = getDefaultAnswerUpdatedAt();
+    expect(result).toBeInstanceOf(Date);
   });
 
   it('should have correct column names', () => {

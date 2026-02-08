@@ -1,5 +1,7 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
+export const getDefaultCreatedAt = () => new Date();
+
 export const questions = sqliteTable('questions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   key: text('key').notNull().unique(),
@@ -13,7 +15,7 @@ export const questions = sqliteTable('questions', {
   metadata: text('metadata', { mode: 'json' }),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .$defaultFn(getDefaultCreatedAt),
 });
 
 export type Question = typeof questions.$inferSelect;

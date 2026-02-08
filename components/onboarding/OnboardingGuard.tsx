@@ -16,5 +16,9 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
     }
   }, [onboardingCompleted, isLoading]);
 
+  if (isLoading) {
+    return null;
+  }
+
   return <>{children}</>;
 }

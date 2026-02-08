@@ -61,6 +61,35 @@ const mockTwoQuestions = [
   },
 ];
 
+const mockQuestionsWithDependency = [
+  {
+    id: 1,
+    key: 'addiction_type',
+    order: 1,
+    type: 'SINGLE_CHOICE',
+    category: 'ADDICTION',
+    questionText: 'Tipo de dependência?',
+    required: true,
+    dependsOnQuestionKey: null,
+    dependsOnValue: null,
+    metadata: { choices: ['Cigarro', 'Vape'] },
+    createdAt: new Date(),
+  },
+  {
+    id: 2,
+    key: 'cigarettes_per_day',
+    order: 2,
+    type: 'NUMBER',
+    category: 'ADDICTION',
+    questionText: 'Quantos cigarros por dia?',
+    required: true,
+    dependsOnQuestionKey: 'addiction_type',
+    dependsOnValue: 'Cigarro',
+    metadata: {},
+    createdAt: new Date(),
+  },
+];
+
 const mockUseOnboardingQuestions = jest.fn();
 const mockUseOnboardingAnswers = jest.fn();
 const mockUseSaveAnswer = jest.fn();
@@ -319,6 +348,163 @@ describe('OnboardingContainer - Navigation', () => {
 
     await waitFor(() => {
       expect(screen.getByText('First?')).toBeDefined();
+    });
+  });
+});
+
+describe('OnboardingContainer - Dependent Answer Deletion', () => {
+  const mockSaveMutateAsync = jest.fn().mockResolvedValue(undefined);
+  const mockDeleteDependentMutateAsync = jest.fn().mockResolvedValue(undefined);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockSaveMutateAsync });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: mockDeleteDependentMutateAsync });
+    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
+  });
+
+  it('should delete dependent answers when parent answer changes', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestionsWithDependency,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [
+        { questionKey: 'addiction_type', answer: JSON.stringify('Cigarro') },
+        { questionKey: 'cigarettes_per_day', answer: JSON.stringify(10) },
+      ],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Tipo de dependência?')).toBeDefined();
+    });
+
+    // Change parent answer — should trigger deletion of dependent answers
+    fireEvent.press(screen.getByText('Vape'));
+
+    await waitFor(() => {
+      expect(mockDeleteDependentMutateAsync).toHaveBeenCalledWith({
+        parentQuestionKey: 'addiction_type',
+      });
+    });
+  });
+
+  it('should not delete dependent answers for questions without dependents', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('First?')).toBeDefined();
+    });
+
+    const input = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input, 'Answer');
+
+    await waitFor(() => {
+      expect(mockSaveMutateAsync).toHaveBeenCalled();
+    });
+
+    expect(mockDeleteDependentMutateAsync).not.toHaveBeenCalled();
+  });
+});
+
+describe('OnboardingContainer - Infinite Loop Prevention', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn().mockResolvedValue(undefined) });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
+  });
+
+  it('should not re-initialize answers cache when existingAnswers reference changes after mutation', async () => {
+    const answers = [{ questionKey: 'q1', answer: JSON.stringify('Answer') }];
+
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: answers,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { rerender } = render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeDefined();
+    });
+
+    // Navigate to second question and answer it
+    const input = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input, 'Answer 2');
+
+    await waitFor(() => {
+      expect(screen.getByText('Concluir')).toBeDefined();
+    });
+
+    // Simulate query refetch returning new array reference (as happens after invalidation)
+    const newAnswersRef = [
+      { questionKey: 'q1', answer: JSON.stringify('Answer') },
+      { questionKey: 'q2', answer: JSON.stringify('Answer 2') },
+    ];
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: newAnswersRef,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    rerender(<OnboardingContainer />);
+
+    // Should still show the last question, not reset to first unanswered
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeDefined();
+      expect(screen.getByText('Concluir')).toBeDefined();
+    });
+  });
+});
+
+describe('OnboardingContainer - JSON Parse Safety', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
+  });
+
+  it('should handle malformed JSON in existing answers gracefully', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [{ questionKey: 'name', answer: '{invalid json' }],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    // Should not crash — should render the question
+    await waitFor(() => {
+      expect(screen.getByText('Qual é o seu nome?')).toBeDefined();
     });
   });
 });
