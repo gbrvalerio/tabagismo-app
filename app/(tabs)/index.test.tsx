@@ -4,6 +4,9 @@ import HomeScreen from './index';
 import { createTestQueryClient } from '@/lib/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
 
+import { useOnboardingStatus, useCompleteOnboarding, useResetOnboarding, useDeleteAllAnswers } from '@/db';
+import { Alert } from 'react-native';
+
 // Mock expo-router
 const mockReplace = jest.fn();
 jest.mock('expo-router', () => ({
@@ -15,14 +18,13 @@ jest.mock('@/db', () => ({
   useOnboardingStatus: jest.fn(),
   useCompleteOnboarding: jest.fn(),
   useResetOnboarding: jest.fn(),
+  useDeleteAllAnswers: jest.fn(),
 }));
-
-import { useOnboardingStatus, useCompleteOnboarding, useResetOnboarding } from '@/db';
-import { Alert } from 'react-native';
 
 const mockUseOnboardingStatus = useOnboardingStatus as jest.MockedFunction<typeof useOnboardingStatus>;
 const mockUseCompleteOnboarding = useCompleteOnboarding as jest.MockedFunction<typeof useCompleteOnboarding>;
 const mockUseResetOnboarding = useResetOnboarding as jest.MockedFunction<typeof useResetOnboarding>;
+const mockUseDeleteAllAnswers = useDeleteAllAnswers as jest.MockedFunction<typeof useDeleteAllAnswers>;
 
 // Helper to render with providers
 const renderHomeScreen = () => {
@@ -44,9 +46,19 @@ describe('HomeScreen', () => {
     status: 'idle',
   } as any;
 
+  const defaultDeleteAllAnswersMock = {
+    mutate: jest.fn(),
+    mutateAsync: jest.fn().mockResolvedValue(undefined),
+    isPending: false,
+    isError: false,
+    error: null,
+    status: 'idle',
+  } as any;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseResetOnboarding.mockReturnValue(defaultResetMock);
+    mockUseDeleteAllAnswers.mockReturnValue(defaultDeleteAllAnswersMock);
     mockReplace.mockClear();
   });
 
@@ -495,10 +507,10 @@ describe('HomeScreen', () => {
 
       expect(alertSpy).toHaveBeenCalledWith(
         'Refazer Onboarding',
-        'Deseja refazer o onboarding? Suas respostas anteriores serão mantidas.',
+        'Deseja refazer o onboarding? Todas as suas respostas anteriores serão apagadas.',
         expect.arrayContaining([
           expect.objectContaining({ text: 'Cancelar', style: 'cancel' }),
-          expect.objectContaining({ text: 'Refazer' }),
+          expect.objectContaining({ text: 'Refazer', style: 'destructive' }),
         ]),
       );
 

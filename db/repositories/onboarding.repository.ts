@@ -89,3 +89,16 @@ export function useDeleteDependentAnswers() {
     },
   });
 }
+
+export function useDeleteAllAnswers() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      await db.delete(onboardingAnswers).execute();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['onboarding', 'answers'] });
+    },
+  });
+}
