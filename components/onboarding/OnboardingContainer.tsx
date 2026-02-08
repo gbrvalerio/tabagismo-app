@@ -50,6 +50,7 @@ import { animations } from "@/lib/theme/animations";
 export function OnboardingContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answersCache, setAnswersCache] = useState<Record<string, unknown>>({});
+  const [animatingCoinIndex, setAnimatingCoinIndex] = useState<number | null>(null);
 
   const { data: allQuestions, isLoading: questionsLoading } =
     useOnboardingQuestions();
@@ -181,6 +182,7 @@ export function OnboardingContainer() {
 
     // Award coin only for new answers
     if (isFirstTime) {
+      setAnimatingCoinIndex(currentIndex);
       await incrementCoinsMutation.mutateAsync(1);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
@@ -286,6 +288,8 @@ export function OnboardingContainer() {
                 ?.filter((a) => a.coinAwarded)
                 .map((a) => a.questionKey) ?? []
             }
+            animatingCoinIndex={animatingCoinIndex}
+            onCoinAnimationComplete={() => setAnimatingCoinIndex(null)}
           />
         </View>
 
