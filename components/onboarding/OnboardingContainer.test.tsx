@@ -819,7 +819,7 @@ describe('OnboardingContainer - New Layout Structure', () => {
     });
   });
 
-  it('should not render back button when currentIndex = 0', async () => {
+  it('should hide back button when currentIndex = 0', async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -832,7 +832,22 @@ describe('OnboardingContainer - New Layout Structure', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.queryByText('← Voltar')).toBeNull();
+      const backButton = screen.getByTestId('back-button');
+      // Walk up to the wrapper View that has the hidden style
+      let node = backButton.parent;
+      let foundOpacity = false;
+      while (node) {
+        const style = node.props?.style;
+        const flatStyle = Array.isArray(style)
+          ? Object.assign({}, ...style.flat(Infinity).filter(Boolean))
+          : style;
+        if (flatStyle?.opacity === 0) {
+          foundOpacity = true;
+          break;
+        }
+        node = node.parent;
+      }
+      expect(foundOpacity).toBe(true);
     });
   });
 
@@ -1012,8 +1027,22 @@ describe('Integration: Complete onboarding flow', () => {
     // Verify the saved answer is displayed
     expect(screen.getByDisplayValue('Saved Answer')).toBeDefined();
 
-    // Back button should not be visible on first question
-    expect(screen.queryByText('← Voltar')).toBeNull();
+    // Back button should be hidden on first question
+    const hiddenBackButton = screen.getByTestId('back-button');
+    let node = hiddenBackButton.parent;
+    let foundOpacity = false;
+    while (node) {
+      const style = node.props?.style;
+      const flatStyle = Array.isArray(style)
+        ? Object.assign({}, ...style.flat(Infinity).filter(Boolean))
+        : style;
+      if (flatStyle?.opacity === 0) {
+        foundOpacity = true;
+        break;
+      }
+      node = node.parent;
+    }
+    expect(foundOpacity).toBe(true);
   });
 });
 

@@ -266,16 +266,17 @@ export function OnboardingContainer() {
         {/* Header - Fixed at top */}
         <View style={styles.header} testID="onboarding-header">
           <View style={styles.headerRow}>
-            {currentIndex > 0 && (
+            <View style={currentIndex === 0 ? styles.backButtonHidden : undefined}>
               <TouchableOpacity
                 onPress={handleBack}
                 style={styles.backButton}
                 activeOpacity={0.7}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                testID="back-button"
               >
                 <Text style={styles.backButtonText}>← Voltar</Text>
               </TouchableOpacity>
-            )}
+            </View>
             <View style={styles.spacer} />
             <CoinCounter testID="coin-counter" />
           </View>
@@ -398,7 +399,10 @@ const styles = StyleSheet.create({
   backButton: {
     alignSelf: "flex-start",
     paddingVertical: spacing.sm,
-    marginBottom: spacing.sm,
+  },
+  backButtonHidden: {
+    opacity: 0,
+    pointerEvents: 'none' as const,
   },
   backButtonText: {
     fontFamily: typographyPresets.subhead.fontFamily,
