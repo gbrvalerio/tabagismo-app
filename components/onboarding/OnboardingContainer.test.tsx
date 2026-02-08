@@ -222,6 +222,7 @@ describe('OnboardingContainer - Answer Handling', () => {
       expect(mockMutateAsync).toHaveBeenCalledWith({
         questionKey: 'name',
         answer: JSON.stringify('João'),
+        isFirstTime: true,
       });
     });
   });
@@ -931,6 +932,7 @@ describe('Integration: Complete onboarding flow', () => {
       expect(mockSaveAnswer).toHaveBeenCalledWith({
         questionKey: 'q1',
         answer: '"Answer 1"',
+        isFirstTime: true,
       });
     });
 
@@ -953,6 +955,7 @@ describe('Integration: Complete onboarding flow', () => {
       expect(mockSaveAnswer).toHaveBeenCalledWith({
         questionKey: 'q2',
         answer: '"Answer 2"',
+        isFirstTime: true,
       });
     });
 
@@ -1194,5 +1197,108 @@ describe('OnboardingContainer gamification', () => {
       expect(screen.getByTestId('coin-trail')).toBeDefined();
       expect(screen.queryByTestId('progress-bar')).toBeNull();
     });
+  });
+});
+
+describe('coin award logic', () => {
+  const mockSaveMutateAsync = jest.fn().mockResolvedValue(undefined);
+  const mockIncrementMutateAsync = jest.fn().mockResolvedValue(undefined);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockSaveMutateAsync });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseUserCoins.mockReturnValue({ data: 0, isLoading: false, isSuccess: true });
+    mockUseIncrementCoins.mockReturnValue({ mutateAsync: mockIncrementMutateAsync });
+  });
+
+  it('should award coin on first answer', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('')).toBeDefined();
+    });
+
+    const input = screen.getByDisplayValue('');
+    fireEvent.changeText(input, 'Test answer');
+
+    await waitFor(() => {
+      expect(mockIncrementMutateAsync).toHaveBeenCalledWith(1);
+    });
+  });
+
+  it('should pass isFirstTime true for new answers', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('')).toBeDefined();
+    });
+
+    const input = screen.getByDisplayValue('');
+    fireEvent.changeText(input, 'Test answer');
+
+    await waitFor(() => {
+      expect(mockSaveMutateAsync).toHaveBeenCalledWith({
+        questionKey: 'name',
+        answer: JSON.stringify('Test answer'),
+        isFirstTime: true,
+      });
+    });
+  });
+
+  it('should not award coin on answer update', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [{ questionKey: 'name', answer: JSON.stringify('First answer'), coinAwarded: true }],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('First answer')).toBeDefined();
+    });
+
+    const input = screen.getByDisplayValue('First answer');
+    fireEvent.changeText(input, 'Updated answer');
+
+    await waitFor(() => {
+      expect(mockSaveMutateAsync).toHaveBeenCalledWith({
+        questionKey: 'name',
+        answer: JSON.stringify('Updated answer'),
+        isFirstTime: false,
+      });
+    });
+
+    // Should NOT have called increment coins
+    expect(mockIncrementMutateAsync).not.toHaveBeenCalled();
   });
 });

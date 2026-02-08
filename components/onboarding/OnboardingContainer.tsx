@@ -1,6 +1,7 @@
 import {
   useCompleteOnboarding,
   useDeleteDependentAnswers,
+  useIncrementCoins,
   useOnboardingAnswers,
   useOnboardingQuestions,
   useSaveAnswer,
@@ -54,6 +55,7 @@ export function OnboardingContainer() {
     useOnboardingAnswers();
   const saveAnswerMutation = useSaveAnswer();
   const deleteDependentAnswersMutation = useDeleteDependentAnswers();
+  const incrementCoinsMutation = useIncrementCoins();
   const completeOnboardingMutation = useCompleteOnboarding();
   const router = useRouter();
 
@@ -160,15 +162,25 @@ export function OnboardingContainer() {
   }, [isAnswered, currentIndex, isLoading]);
 
   const handleAnswer = async (questionKey: string, value: unknown) => {
+    // Check if answer already exists
+    const existingAnswer = existingAnswers?.find((a) => a.questionKey === questionKey);
+    const isFirstTime = !existingAnswer;
+
     // Update cache immediately (optimistic)
     const newCache = { ...answersCache, [questionKey]: value };
     setAnswersCache(newCache);
 
-    // Save to database
+    // Save to database with isFirstTime flag
     await saveAnswerMutation.mutateAsync({
       questionKey,
       answer: JSON.stringify(value),
+      isFirstTime,
     });
+
+    // Award coin only for new answers
+    if (isFirstTime) {
+      await incrementCoinsMutation.mutateAsync(1);
+    }
 
     // Delete dependent answers if this question has dependents
     if (allQuestions) {
