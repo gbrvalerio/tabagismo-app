@@ -73,6 +73,21 @@ describe('MultipleChoiceCards', () => {
     expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
   });
 
+  it('should render badge text as plain text without pill styling', () => {
+    const { toJSON } = render(<MultipleChoiceCards choices={choices} value={[]} onChange={() => {}} />);
+    const tree = toJSON();
+    // The header is the first child, badge is inside header
+    const header = (tree as any).children[0];
+    const badge = header.children[0];
+    const badgeStyle = badge.props.style;
+    const flatStyle = Array.isArray(badgeStyle)
+      ? Object.assign({}, ...badgeStyle.flat(Infinity).filter(Boolean))
+      : badgeStyle;
+    expect(flatStyle.backgroundColor).toBeUndefined();
+    expect(flatStyle.borderRadius).toBeUndefined();
+    expect(flatStyle.borderWidth).toBeUndefined();
+  });
+
   it('should show selection counter when items are selected', () => {
     render(<MultipleChoiceCards choices={choices} value={['Ansiedade', 'Estresse']} onChange={() => {}} />);
     expect(screen.getByText('2')).toBeDefined();

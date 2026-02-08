@@ -98,6 +98,23 @@ describe('SingleChoiceCards', () => {
     expect(flatStyle.fontSize).toBe(16);
   });
 
+  it('should render badge text as plain text without pill styling', () => {
+    render(<SingleChoiceCards choices={choices} value={null} onChange={() => {}} />);
+    const { toJSON } = render(<SingleChoiceCards choices={choices} value={null} onChange={() => {}} />);
+    const tree = toJSON();
+    // The header is the first child, badge is inside header
+    const header = (tree as any).children[0];
+    const badge = header.children[0];
+    const badgeStyle = badge.props.style;
+    const flatStyle = Array.isArray(badgeStyle)
+      ? Object.assign({}, ...badgeStyle.flat(Infinity).filter(Boolean))
+      : badgeStyle;
+    // Should not have pill styling (no background, border, border-radius)
+    expect(flatStyle.backgroundColor).toBeUndefined();
+    expect(flatStyle.borderRadius).toBeUndefined();
+    expect(flatStyle.borderWidth).toBeUndefined();
+  });
+
   it('should trigger haptic feedback on press', () => {
     const onChange = jest.fn();
     const { impactAsync, ImpactFeedbackStyle } = jest.requireMock('expo-haptics');

@@ -95,13 +95,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   badge: {
-    backgroundColor: colors.neutral.gray[100],
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
     alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: colors.neutral.gray[300],
   },
   badgeText: {
     fontSize: typography.fontSize.sm,
