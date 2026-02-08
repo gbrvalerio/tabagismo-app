@@ -26,4 +26,20 @@ describe('QuestionCard', () => {
     );
     expect(toJSON()).toBeDefined();
   });
+
+  it('should have flex: 1 to fill available space', () => {
+    const { getByTestId } = render(
+      <QuestionCard>
+        <Text>Content</Text>
+      </QuestionCard>
+    );
+
+    const card = getByTestId('question-card');
+    const styles = card.props.style;
+    const flatStyle = Array.isArray(styles)
+      ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+      : styles;
+
+    expect(flatStyle.flex).toBe(1);
+  });
 });

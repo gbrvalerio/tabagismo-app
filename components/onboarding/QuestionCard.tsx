@@ -40,7 +40,7 @@ export function QuestionCard({ children }: QuestionCardProps) {
   }));
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
+    <Animated.View style={[styles.container, animatedStyle]} testID="question-card">
       <View style={styles.shadowWrapper}>
         <View style={styles.card}>
           <View style={styles.accentBar} />
@@ -53,6 +53,7 @@ export function QuestionCard({ children }: QuestionCardProps) {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     width: '100%',
     marginTop: spacing.lg,
   },

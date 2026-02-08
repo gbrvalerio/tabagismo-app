@@ -868,3 +868,123 @@ describe('OnboardingContainer - New Layout Structure', () => {
     });
   });
 });
+
+describe('Integration: Complete onboarding flow', () => {
+  it('should navigate through questions with auto-focus and keyboard', async () => {
+    const mockSaveAnswer = jest.fn().mockResolvedValue(undefined);
+    const mockDeleteDependentAnswers = jest.fn().mockResolvedValue(undefined);
+    const mockCompleteOnboarding = jest.fn().mockResolvedValue(undefined);
+
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+    mockUseSaveAnswer.mockReturnValue({
+      mutateAsync: mockSaveAnswer,
+    });
+    mockUseDeleteDependentAnswers.mockReturnValue({
+      mutateAsync: mockDeleteDependentAnswers,
+    });
+    mockUseCompleteOnboarding.mockReturnValue({
+      mutateAsync: mockCompleteOnboarding,
+    });
+
+    render(<OnboardingContainer />);
+
+    // Wait for first question to render
+    await waitFor(() => {
+      expect(screen.getByText('First?')).toBeDefined();
+    });
+
+    // Verify SafeAreaView and KeyboardAvoidingView are present
+    expect(screen.getByTestId('safe-area-container')).toBeDefined();
+    expect(screen.getByTestId('keyboard-avoiding-view')).toBeDefined();
+
+    // Answer first question
+    const input = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input, 'Answer 1');
+
+    await waitFor(() => {
+      expect(mockSaveAnswer).toHaveBeenCalledWith({
+        questionKey: 'q1',
+        answer: '"Answer 1"',
+      });
+    });
+
+    // Navigate to second question
+    const nextButton = screen.getByText('Próxima →');
+    fireEvent.press(nextButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeDefined();
+    });
+
+    // Verify back button appears
+    expect(screen.getByText('← Voltar')).toBeDefined();
+
+    // Answer second question
+    const input2 = screen.getByPlaceholderText('Digite sua resposta');
+    fireEvent.changeText(input2, 'Answer 2');
+
+    await waitFor(() => {
+      expect(mockSaveAnswer).toHaveBeenCalledWith({
+        questionKey: 'q2',
+        answer: '"Answer 2"',
+      });
+    });
+
+    // Finish onboarding
+    const finishButton = screen.getByText('✓ Concluir');
+    fireEvent.press(finishButton);
+
+    await waitFor(() => {
+      expect(mockCompleteOnboarding).toHaveBeenCalled();
+    });
+  });
+
+  it('should handle back navigation with preserved answers', async () => {
+    const mockSaveAnswer = jest.fn().mockResolvedValue(undefined);
+
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockTwoQuestions,
+      isLoading: false,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [
+        { id: 1, userId: 1, questionKey: 'q1', answer: '"Saved Answer"', createdAt: new Date() },
+      ],
+      isLoading: false,
+    });
+    mockUseSaveAnswer.mockReturnValue({
+      mutateAsync: mockSaveAnswer,
+    });
+
+    render(<OnboardingContainer />);
+
+    // Should start at second question (first is answered)
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeDefined();
+    });
+
+    // Back button should be visible
+    expect(screen.getByText('← Voltar')).toBeDefined();
+
+    // Navigate back
+    const backButton = screen.getByText('← Voltar');
+    fireEvent.press(backButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('First?')).toBeDefined();
+    });
+
+    // Verify the saved answer is displayed
+    expect(screen.getByDisplayValue('Saved Answer')).toBeDefined();
+
+    // Back button should not be visible on first question
+    expect(screen.queryByText('← Voltar')).toBeNull();
+  });
+});
