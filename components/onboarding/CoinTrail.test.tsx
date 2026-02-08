@@ -164,6 +164,42 @@ describe('CoinTrail', () => {
     expect(coins.length).toBe(3);
   });
 
+  it('should have vertical padding on container', () => {
+    const { getByTestId } = render(
+      <CoinTrail
+        testID="coin-trail"
+        currentStep={1}
+        totalSteps={3}
+        answeredQuestions={[]}
+      />
+    );
+
+    const container = getByTestId('coin-trail');
+    const flatStyle = Array.isArray(container.props.style)
+      ? Object.assign({}, ...container.props.style)
+      : container.props.style;
+    expect(flatStyle.paddingVertical).toBe(16);
+  });
+
+  it('should inset progress line by coin radius', () => {
+    const { getByTestId, toJSON } = render(
+      <CoinTrail
+        testID="coin-trail"
+        currentStep={1}
+        totalSteps={3}
+        answeredQuestions={[]}
+      />
+    );
+
+    // Find the progress line container by checking the parent of progress-bg
+    const tree = toJSON();
+    // The progress line container is the second child of the main container
+    // (first child is progressLineContainer, second is coinsRow)
+    const progressLineContainer = (tree as any).children[0];
+    expect(progressLineContainer.props.style.left).toBe(24); // spacing.md (16) + coin radius (8)
+    expect(progressLineContainer.props.style.right).toBe(24);
+  });
+
   it('should render coins with showGlow for answered coins', () => {
     const { getAllByTestId } = render(
       <CoinTrail

@@ -64,11 +64,12 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
   },
   progressLineContainer: {
     position: 'absolute',
-    left: spacing.md,
-    right: spacing.md,
+    left: spacing.md + 8, // Inset by coin radius (16px / 2)
+    right: spacing.md + 8,
     top: '50%',
     height: 2,
     marginTop: -1,
