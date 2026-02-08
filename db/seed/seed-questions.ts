@@ -63,8 +63,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     order: 6,
     type: QuestionType.SINGLE_CHOICE,
     category: QuestionCategory.HABITS,
-    questionText:
-      "Quanto você gasta por carteira de cigarros (aproximadamente)?",
+    questionText: "Quanto você gasta em média por carteira de cigarros?",
     required: true,
     dependsOnQuestionKey: "addiction_type",
     dependsOnValue: "Cigarro/Tabaco",
@@ -90,7 +89,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     order: 8,
     type: QuestionType.SINGLE_CHOICE,
     category: QuestionCategory.HABITS,
-    questionText: "Quanto você gasta por pod (aproximadamente)?",
+    questionText: "Quanto você gasta em média por pod?",
     required: true,
     dependsOnQuestionKey: "addiction_type",
     dependsOnValue: "Pod/Vape",

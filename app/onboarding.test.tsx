@@ -45,6 +45,8 @@ jest.mock('@/db/repositories', () => ({
   useSaveAnswer: () => ({ mutateAsync: jest.fn() }),
   useDeleteDependentAnswers: () => ({ mutateAsync: jest.fn() }),
   useCompleteOnboarding: () => ({ mutateAsync: jest.fn() }),
+  useIncrementCoins: () => ({ mutateAsync: jest.fn() }),
+  useUserCoins: () => ({ data: 0, isLoading: false }),
 }));
 
 describe('OnboardingScreen', () => {
