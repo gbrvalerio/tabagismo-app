@@ -1,6 +1,20 @@
 import { describe, it, expect } from '@jest/globals';
 import { onboardingQuestionsData, seedOnboardingQuestions } from './seed-questions';
 import { QuestionType, QuestionCategory } from '../schema/questions';
+import { db } from '../client';
+
+// Mock db for seed function execution
+jest.mock('../client', () => {
+  const mockExecute = jest.fn().mockResolvedValue(undefined);
+  const mockValues = jest.fn().mockResolvedValue(undefined);
+
+  return {
+    db: {
+      delete: jest.fn(() => ({ execute: mockExecute })),
+      insert: jest.fn(() => ({ values: mockValues })),
+    },
+  };
+});
 
 describe('onboardingQuestionsData', () => {
   it('should contain at least 10 questions', () => {
@@ -61,7 +75,35 @@ describe('onboardingQuestionsData', () => {
 });
 
 describe('seedOnboardingQuestions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should be a function', () => {
     expect(typeof seedOnboardingQuestions).toBe('function');
+  });
+
+  it('should delete existing questions before inserting', async () => {
+    await seedOnboardingQuestions();
+
+    expect(db.delete).toHaveBeenCalled();
+  });
+
+  it('should insert all question data', async () => {
+    await seedOnboardingQuestions();
+
+    expect(db.insert).toHaveBeenCalled();
+  });
+
+  it('should log the number of inserted questions', async () => {
+    const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+    await seedOnboardingQuestions();
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining(`[SEED] Inserted ${onboardingQuestionsData.length} questions`)
+    );
+
+    consoleSpy.mockRestore();
   });
 });

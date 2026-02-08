@@ -8,6 +8,37 @@ import {
   useSaveAnswer,
   useDeleteDependentAnswers,
 } from './onboarding.repository';
+import { db } from '../client';
+
+// Mock db methods for mutation coverage
+jest.mock('../client', () => {
+  const mockReturning = jest.fn().mockResolvedValue([{ id: 1 }]);
+  const mockExecute = jest.fn().mockResolvedValue(undefined);
+  const mockGet = jest.fn().mockResolvedValue(undefined);
+  const mockAll = jest.fn().mockResolvedValue([]);
+  const mockWhere = jest.fn(() => ({
+    get: mockGet,
+    returning: mockReturning,
+    execute: mockExecute,
+  }));
+  const mockSet = jest.fn(() => ({ where: mockWhere }));
+  const mockValues = jest.fn(() => ({ returning: mockReturning }));
+  const mockOrderBy = jest.fn(() => ({ all: mockAll }));
+  const mockFrom = jest.fn(() => ({
+    all: mockAll,
+    where: mockWhere,
+    orderBy: mockOrderBy,
+  }));
+
+  return {
+    db: {
+      select: jest.fn(() => ({ from: mockFrom })),
+      insert: jest.fn(() => ({ values: mockValues })),
+      update: jest.fn(() => ({ set: mockSet })),
+      delete: jest.fn(() => ({ where: mockWhere })),
+    },
+  };
+});
 
 const createWrapper = () => {
   const queryClient = createTestQueryClient();
@@ -17,6 +48,10 @@ const createWrapper = () => {
 };
 
 describe('onboarding.repository', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('useOnboardingQuestions', () => {
     it('should provide query data and loading state', async () => {
       const { result } = renderHook(() => useOnboardingQuestions(), {
@@ -27,7 +62,6 @@ describe('onboarding.repository', () => {
         expect(!result.current.isLoading).toBe(true);
       });
 
-      // The hook should resolve (success or error, depending on mock)
       expect(result.current.isSuccess || result.current.isError).toBe(true);
     });
 
@@ -48,10 +82,21 @@ describe('onboarding.repository', () => {
         expect(!result.current.isLoading).toBe(true);
       });
 
-      // Data should be either array or undefined based on mock behavior
       if (result.current.isSuccess) {
         expect(Array.isArray(result.current.data)).toBe(true);
       }
+    });
+
+    it('should call db.select and order by order field', async () => {
+      const { result } = renderHook(() => useOnboardingQuestions(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(!result.current.isLoading).toBe(true);
+      });
+
+      expect(db.select).toHaveBeenCalled();
     });
   });
 
@@ -119,18 +164,53 @@ describe('onboarding.repository', () => {
       expect(result.current.isError).toBe(false);
     });
 
-    it('should execute mutation when called', async () => {
+    it('should insert new answer when none exists', async () => {
       const { result } = renderHook(() => useSaveAnswer(), {
         wrapper: createWrapper(),
       });
 
       await act(async () => {
-        result.current.mutate({ questionKey: 'name', answer: JSON.stringify('John') });
+        await result.current.mutateAsync({ questionKey: 'name', answer: JSON.stringify('John') });
       });
 
       await waitFor(() => {
-        expect(result.current.isSuccess || result.current.isError).toBe(true);
+        expect(result.current.isSuccess).toBe(true);
       });
+
+      // Should have called select to check existing, then insert
+      expect(db.select).toHaveBeenCalled();
+      expect(db.insert).toHaveBeenCalled();
+    });
+
+    it('should update existing answer when one exists', async () => {
+      // Mock get() to return an existing answer
+      const mockGet = jest.fn().mockResolvedValue({ id: 1, questionKey: 'name', answer: '"Old"' });
+      const mockWhere = jest.fn(() => ({
+        get: mockGet,
+        returning: jest.fn().mockResolvedValue([{ id: 1 }]),
+      }));
+      const mockFrom = jest.fn(() => ({
+        all: jest.fn().mockResolvedValue([]),
+        where: mockWhere,
+        orderBy: jest.fn(() => ({ all: jest.fn().mockResolvedValue([]) })),
+      }));
+      const mockSet = jest.fn(() => ({ where: jest.fn(() => ({ returning: jest.fn().mockResolvedValue([{ id: 1 }]) })) }));
+      (db.select as jest.Mock).mockReturnValue({ from: mockFrom });
+      (db.update as jest.Mock).mockReturnValue({ set: mockSet });
+
+      const { result } = renderHook(() => useSaveAnswer(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({ questionKey: 'name', answer: JSON.stringify('Jane') });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(db.update).toHaveBeenCalled();
     });
 
     it('should have reset capability', () => {
@@ -171,18 +251,65 @@ describe('onboarding.repository', () => {
       expect(result.current.isError).toBe(false);
     });
 
-    it('should execute mutation when called', async () => {
+    it('should delete answers for dependent questions', async () => {
+      // Mock questions with dependencies
+      const mockDependentQuestions = [
+        { key: 'cigarettes_per_day', dependsOnQuestionKey: 'addiction_type', dependsOnValue: 'Cigarro/Tabaco' },
+        { key: 'pod_duration_days', dependsOnQuestionKey: 'addiction_type', dependsOnValue: 'Pod/Vape' },
+        { key: 'name', dependsOnQuestionKey: null, dependsOnValue: null },
+      ];
+      const mockAll = jest.fn().mockResolvedValue(mockDependentQuestions);
+      const mockExecute = jest.fn().mockResolvedValue(undefined);
+      const mockWhere = jest.fn(() => ({ execute: mockExecute }));
+      const mockFrom = jest.fn(() => ({
+        all: mockAll,
+        where: mockWhere,
+        orderBy: jest.fn(() => ({ all: mockAll })),
+      }));
+      (db.select as jest.Mock).mockReturnValue({ from: mockFrom });
+      (db.delete as jest.Mock).mockReturnValue({ where: mockWhere });
+
       const { result } = renderHook(() => useDeleteDependentAnswers(), {
         wrapper: createWrapper(),
       });
 
       await act(async () => {
-        result.current.mutate({ parentQuestionKey: 'addiction_type' });
+        await result.current.mutateAsync({ parentQuestionKey: 'addiction_type' });
       });
 
       await waitFor(() => {
-        expect(result.current.isSuccess || result.current.isError).toBe(true);
+        expect(result.current.isSuccess).toBe(true);
       });
+
+      // Should have deleted answers for both dependent questions
+      expect(db.delete).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not delete any answers when no dependent questions exist', async () => {
+      const mockAll = jest.fn().mockResolvedValue([
+        { key: 'name', dependsOnQuestionKey: null, dependsOnValue: null },
+      ]);
+      const mockFrom = jest.fn(() => ({
+        all: mockAll,
+        where: jest.fn(() => ({ execute: jest.fn() })),
+        orderBy: jest.fn(() => ({ all: mockAll })),
+      }));
+      (db.select as jest.Mock).mockReturnValue({ from: mockFrom });
+      (db.delete as jest.Mock).mockClear();
+
+      const { result } = renderHook(() => useDeleteDependentAnswers(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        await result.current.mutateAsync({ parentQuestionKey: 'nonexistent_key' });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(db.delete).not.toHaveBeenCalled();
     });
 
     it('should have reset capability', () => {

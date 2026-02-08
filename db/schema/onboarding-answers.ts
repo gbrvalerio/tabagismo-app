@@ -1,5 +1,8 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
+export const getDefaultAnsweredAt = () => new Date();
+export const getDefaultAnswerUpdatedAt = () => new Date();
+
 export const onboardingAnswers = sqliteTable('onboarding_answers', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   questionKey: text('question_key').notNull(),
@@ -7,10 +10,10 @@ export const onboardingAnswers = sqliteTable('onboarding_answers', {
   answer: text('answer').notNull(),
   answeredAt: integer('answered_at', { mode: 'timestamp' })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .$defaultFn(getDefaultAnsweredAt),
   updatedAt: integer('updated_at', { mode: 'timestamp' })
     .notNull()
-    .$defaultFn(() => new Date()),
+    .$defaultFn(getDefaultAnswerUpdatedAt),
 });
 
 export type OnboardingAnswer = typeof onboardingAnswers.$inferSelect;
