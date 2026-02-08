@@ -7,6 +7,7 @@ import {
   useSaveAnswer,
 } from "@/db/repositories";
 import { computeApplicableQuestions } from "@/lib/onboarding-flow";
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -183,6 +184,7 @@ export function OnboardingContainer() {
     if (isFirstTime) {
       setShowCoinAnimation(true);
       await incrementCoinsMutation.mutateAsync(1);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
 
     // Delete dependent answers if this question has dependents
