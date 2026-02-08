@@ -1,7 +1,16 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react-native';
 import { OnboardingContainer } from './OnboardingContainer';
+
+jest.mock('@/assets/images/coin.svg', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const MockCoinIcon = (props: any) => React.createElement(View, { ...props, testID: props.testID || 'coin-icon' });
+  MockCoinIcon.displayName = 'MockCoinIcon';
+  return MockCoinIcon;
+});
 
 jest.mock('expo-linear-gradient', () => ({
   LinearGradient: ({ children }: { children: React.ReactNode }) => children,

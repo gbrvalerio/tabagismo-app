@@ -1,19 +1,15 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
 import { render } from '@testing-library/react-native';
 
 import { CoinSvg } from './CoinSvg';
 
-// Mock react-native-svg
-jest.mock('react-native-svg', () => {
+// Mock the SVG import
+jest.mock('@/assets/images/coin.svg', () => {
   const { View } = require('react-native');
-  return {
-    __esModule: true,
-    default: (props: any) => <View {...props} />,
-    Svg: (props: any) => <View {...props} testID={props.testID || 'svg'} />,
-    G: (props: any) => <View {...props} />,
-    Ellipse: (props: any) => <View {...props} testID="svg-ellipse" />,
-    Path: (props: any) => <View {...props} testID="svg-path" />,
-  };
+  const MockCoinIcon = (props: any) => <View {...props} testID={props.testID || 'coin-icon'} />;
+  MockCoinIcon.displayName = 'MockCoinIcon';
+  return MockCoinIcon;
 });
 
 describe('CoinSvg', () => {
@@ -43,25 +39,31 @@ describe('CoinSvg', () => {
     expect(svg.props.height).toBe(24);
   });
 
-  it('should render outlined variant with grey colors', () => {
-    const { getAllByTestId } = render(<CoinSvg variant="outlined" />);
-    const ellipses = getAllByTestId('svg-ellipse');
-    expect(ellipses[0].props.fill).toBe('#CCCCCC');
-    expect(ellipses[1].props.fill).toBe('#BBBBBB');
+  it('should render outlined variant with reduced opacity', () => {
+    const { getByTestId } = render(<CoinSvg variant="outlined" />);
+    const container = getByTestId('coin-svg-container');
+    const flatStyle = Array.isArray(container.props.style)
+      ? Object.assign({}, ...container.props.style.flat())
+      : container.props.style;
+    expect(flatStyle.opacity).toBe(0.35);
   });
 
-  it('should render filled variant with gold colors', () => {
-    const { getAllByTestId } = render(<CoinSvg variant="filled" />);
-    const ellipses = getAllByTestId('svg-ellipse');
-    expect(ellipses[0].props.fill).toBe('#F7A531');
-    expect(ellipses[1].props.fill).toBe('#F39119');
+  it('should render filled variant with full opacity', () => {
+    const { getByTestId } = render(<CoinSvg variant="filled" />);
+    const container = getByTestId('coin-svg-container');
+    const flatStyle = Array.isArray(container.props.style)
+      ? Object.assign({}, ...container.props.style.flat())
+      : container.props.style;
+    expect(flatStyle.opacity).toBeUndefined();
   });
 
-  it('should default to filled variant with gold colors', () => {
-    const { getAllByTestId } = render(<CoinSvg />);
-    const ellipses = getAllByTestId('svg-ellipse');
-    expect(ellipses[0].props.fill).toBe('#F7A531');
-    expect(ellipses[1].props.fill).toBe('#F39119');
+  it('should default to filled variant with full opacity', () => {
+    const { getByTestId } = render(<CoinSvg />);
+    const container = getByTestId('coin-svg-container');
+    const flatStyle = Array.isArray(container.props.style)
+      ? Object.assign({}, ...container.props.style.flat())
+      : container.props.style;
+    expect(flatStyle.opacity).toBeUndefined();
   });
 
   it('should apply glow shadow when showGlow is true', () => {
@@ -93,15 +95,15 @@ describe('CoinSvg', () => {
     expect(flatStyle.shadowColor).toBeUndefined();
   });
 
-  it('should render SVG elements', () => {
-    const { getAllByTestId } = render(<CoinSvg />);
-    // Should render SVG paths and ellipses
-    const paths = getAllByTestId('svg-path');
-    expect(paths.length).toBeGreaterThan(0);
+  it('should render SVG component', () => {
+    const { getByTestId } = render(<CoinSvg />);
+    const svg = getByTestId('coin-svg');
+    expect(svg).toBeTruthy();
   });
 
   it('should accept custom testID', () => {
     const { getByTestId } = render(<CoinSvg testID="custom-coin" />);
     expect(getByTestId('custom-coin-container')).toBeTruthy();
+    expect(getByTestId('custom-coin')).toBeTruthy();
   });
 });

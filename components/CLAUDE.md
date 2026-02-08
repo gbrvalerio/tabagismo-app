@@ -147,7 +147,7 @@ Animated progress bar. Takes `progress` (0-100). Uses `withSpring` for smooth wi
 
 **File:** `onboarding/CoinSvg.tsx`
 
-SVG-based coin icon using `react-native-svg`. Renders a detailed gold coin with star design. Supports outlined (35% opacity) and filled variants, with optional glow shadow effect.
+Wrapper component for the coin SVG asset (`assets/images/coin.svg`). Imports the SVG file as a React component using react-native-svg-transformer. Supports outlined (35% opacity) and filled variants, with optional glow shadow effect.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
@@ -155,6 +155,8 @@ SVG-based coin icon using `react-native-svg`. Renders a detailed gold coin with 
 | `variant` | `'outlined' \| 'filled'` | `'filled'` | Visual style (35% opacity vs full) |
 | `showGlow` | `boolean` | `false` | Enables gold shadow glow effect |
 | `testID` | `string` | `'coin-svg'` | Test identifier |
+
+**Implementation Note:** This component imports the SVG file directly rather than hardcoding SVG markup, following the project's asset management guidelines.
 
 ### AnimatedCoin
 

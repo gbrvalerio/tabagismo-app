@@ -23,6 +23,34 @@ The code should be in english but the user facing strings in Brazilian Portugues
 - **Data Layer:** TanStack Query v5
 - **Navigation:** expo-router (file-based)
 - **Language:** TypeScript
+- **SVG Support:** react-native-svg + react-native-svg-transformer
+
+---
+
+## Assets & Media
+
+### SVG Files
+
+**IMPORTANT:** Always import SVG files as React components instead of copying SVG markup into components.
+
+✅ **DO:** Import SVG files
+```typescript
+import CoinIcon from '@/assets/images/coin.svg';
+
+<CoinIcon width={24} height={24} />
+```
+
+❌ **DON'T:** Copy SVG markup into components
+```typescript
+// Bad - hardcoded SVG paths
+<Svg><Path d="M..." /></Svg>
+```
+
+**Why?**
+- Keeps components clean and maintainable
+- Single source of truth for SVG assets
+- Easier to update designs
+- Better for version control
 
 ---
 

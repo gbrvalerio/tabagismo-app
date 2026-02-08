@@ -4,6 +4,14 @@ import { render, act } from '@testing-library/react-native';
 
 import { AnimatedCoin } from './AnimatedCoin';
 
+// Mock the SVG import
+jest.mock('@/assets/images/coin.svg', () => {
+  const { View } = require('react-native');
+  const MockCoinIcon = (props: any) => <View {...props} testID={props.testID || 'coin-icon'} />;
+  MockCoinIcon.displayName = 'MockCoinIcon';
+  return MockCoinIcon;
+});
+
 // Mock react-native-svg
 jest.mock('react-native-svg', () => {
   const { View } = require('react-native');
@@ -79,7 +87,7 @@ describe('AnimatedCoin', () => {
     );
 
     // Animation is triggered - we verify by checking the component doesn't crash
-    expect(onComplete).not.toThrow;
+    expect(onComplete).not.toThrow();
   });
 
   it('should call onAnimationComplete after animation finishes', () => {
