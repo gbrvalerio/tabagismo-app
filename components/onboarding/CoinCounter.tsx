@@ -6,9 +6,10 @@ import Animated, {
   withSequence,
   withSpring,
 } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useUserCoins } from '@/db/repositories';
-import { CoinIcon } from './CoinIcon';
-import { colors, spacing, typography } from '@/lib/theme/tokens';
+import { CoinSvg } from './CoinSvg';
+import { spacing, typographyPresets } from '@/lib/theme/tokens';
 
 interface CoinCounterProps {
   testID?: string;
@@ -21,7 +22,7 @@ export function CoinCounter({ testID }: CoinCounterProps) {
   useEffect(() => {
     if (coins > 0) {
       scale.value = withSequence(
-        withSpring(1.2, { damping: 10, stiffness: 200 }),
+        withSpring(1.15, { damping: 10, stiffness: 200 }),
         withSpring(1, { damping: 10, stiffness: 200 })
       );
     }
@@ -32,9 +33,17 @@ export function CoinCounter({ testID }: CoinCounterProps) {
   }));
 
   return (
-    <Animated.View testID={testID} style={[styles.container, animatedStyle]}>
-      <CoinIcon size={20} variant="filled" />
-      <Text style={styles.count}>{coins}</Text>
+    <Animated.View testID={testID} style={animatedStyle}>
+      <LinearGradient
+        testID={testID ? `${testID}-gradient` : 'coin-counter-gradient'}
+        colors={['#F7A531', '#F39119']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.container}
+      >
+        <CoinSvg size={24} variant="filled" />
+        <Text style={styles.count}>{coins}</Text>
+      </LinearGradient>
     </Animated.View>
   );
 }
@@ -43,11 +52,18 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.xs + 2, // 6px
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md - 4, // 12px
+    borderRadius: 9999,
+    shadowColor: '#F7A531',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   count: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.neutral.black,
+    ...typographyPresets.coinCounter,
+    color: '#FFFFFF',
   },
 });

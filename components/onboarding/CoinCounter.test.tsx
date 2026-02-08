@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
 import { render } from '@testing-library/react-native';
 
@@ -8,6 +9,27 @@ jest.mock('react-native-reanimated', () => {
   const Reanimated = require('react-native-reanimated/mock');
   Reanimated.default.call = () => {};
   return Reanimated;
+});
+
+// Mock react-native-svg
+jest.mock('react-native-svg', () => {
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: (props: any) => <View {...props} />,
+    Svg: (props: any) => <View {...props} testID={props.testID || 'svg'} />,
+    G: (props: any) => <View {...props} />,
+    Ellipse: (props: any) => <View {...props} />,
+    Path: (props: any) => <View {...props} />,
+  };
+});
+
+// Mock expo-linear-gradient
+jest.mock('expo-linear-gradient', () => {
+  const { View } = require('react-native');
+  return {
+    LinearGradient: (props: any) => <View {...props} testID={props.testID || 'linear-gradient'} />,
+  };
 });
 
 const mockUseUserCoins = jest.fn();
@@ -41,9 +63,9 @@ describe('CoinCounter', () => {
     expect(getByText('12')).toBeTruthy();
   });
 
-  it('should render coin icon', () => {
+  it('should render CoinSvg instead of emoji', () => {
     const { getByTestId } = render(<CoinCounter />);
-    expect(getByTestId('coin-icon')).toBeTruthy();
+    expect(getByTestId('coin-svg-container')).toBeTruthy();
   });
 
   it('should accept testID prop', () => {
@@ -60,5 +82,28 @@ describe('CoinCounter', () => {
 
     const { getByText } = render(<CoinCounter />);
     expect(getByText('0')).toBeTruthy();
+  });
+
+  it('should render with pill gradient container', () => {
+    const { getByTestId } = render(<CoinCounter testID="coin-counter" />);
+    expect(getByTestId('coin-counter-gradient')).toBeTruthy();
+  });
+
+  it('should use Poppins Bold for count text', () => {
+    const { getByText } = render(<CoinCounter />);
+    const countText = getByText('0');
+    const flatStyle = Array.isArray(countText.props.style)
+      ? Object.assign({}, ...countText.props.style.flat())
+      : countText.props.style;
+    expect(flatStyle.fontFamily).toBe('Poppins_700Bold');
+  });
+
+  it('should render white count text', () => {
+    const { getByText } = render(<CoinCounter />);
+    const countText = getByText('0');
+    const flatStyle = Array.isArray(countText.props.style)
+      ? Object.assign({}, ...countText.props.style.flat())
+      : countText.props.style;
+    expect(flatStyle.color).toBe('#FFFFFF');
   });
 });
