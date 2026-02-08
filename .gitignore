@@ -38,6 +38,12 @@ yarn-error.*
 
 app-example
 
+# Testing
+coverage/
+*.lcov
+.nyc_output
+
 # generated native folders
 /ios
 /android
+.worktrees/
