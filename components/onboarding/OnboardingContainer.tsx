@@ -328,7 +328,7 @@ export function OnboardingContainer() {
           </View>
 
           {/* Footer - Overlays bottom of content */}
-          <View style={styles.footer} testID="onboarding-footer">
+          <View style={styles.footer} testID="onboarding-footer" pointerEvents="box-none">
             {isAnswered && !isLastQuestion && (
               <Animated.View
                 entering={FadeInDown.springify().damping(18).stiffness(140)}
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
-    backgroundColor: '#F8F9FB', // Match gradient bottom color
+    backgroundColor: 'transparent',
   },
   nextButton: {
     width: "100%",
