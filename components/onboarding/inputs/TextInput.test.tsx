@@ -50,14 +50,24 @@ describe('OnboardingTextInput', () => {
     expect(screen.getByDisplayValue('John')).toBeDefined();
   });
 
-  it('should have large font size', () => {
+  it('should have Poppins Regular font family on input', () => {
     render(<OnboardingTextInput value="" onChange={() => {}} placeholder="Nome" />);
     const input = screen.getByDisplayValue('');
     const styles = input.props.style;
     const flatStyle = Array.isArray(styles)
       ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
       : styles;
-    expect(flatStyle.fontSize).toBe(18);
+    expect(flatStyle.fontFamily).toBe('Poppins_400Regular');
+  });
+
+  it('should have 16px font size on input', () => {
+    render(<OnboardingTextInput value="" onChange={() => {}} placeholder="Nome" />);
+    const input = screen.getByDisplayValue('');
+    const styles = input.props.style;
+    const flatStyle = Array.isArray(styles)
+      ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+      : styles;
+    expect(flatStyle.fontSize).toBe(16);
   });
 
   it('should respect maxLength of 100 characters', () => {

@@ -139,4 +139,24 @@ describe('OnboardingNumberInput', () => {
     render(<OnboardingNumberInput value={25} onChange={() => {}} placeholder="Idade" />);
     expect(screen.getByText('#')).toBeDefined();
   });
+
+  it('should have Poppins Regular font family on input', () => {
+    render(<OnboardingNumberInput value={null} onChange={() => {}} placeholder="Idade" />);
+    const input = screen.getByDisplayValue('');
+    const styles = input.props.style;
+    const flatStyle = Array.isArray(styles)
+      ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+      : styles;
+    expect(flatStyle.fontFamily).toBe('Poppins_400Regular');
+  });
+
+  it('should have 16px font size on input', () => {
+    render(<OnboardingNumberInput value={null} onChange={() => {}} placeholder="Idade" />);
+    const input = screen.getByDisplayValue('');
+    const styles = input.props.style;
+    const flatStyle = Array.isArray(styles)
+      ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+      : styles;
+    expect(flatStyle.fontSize).toBe(16);
+  });
 });

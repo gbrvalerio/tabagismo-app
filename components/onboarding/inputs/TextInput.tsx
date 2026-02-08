@@ -8,7 +8,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { colors, spacing, borderRadius, typography, shadows } from '@/lib/theme/tokens';
+import { colors, spacing, borderRadius, typography, typographyPresets, shadows } from '@/lib/theme/tokens';
 
 interface OnboardingTextInputProps {
   value: string;
@@ -172,10 +172,15 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
     minHeight: 64,
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.neutral.white,
+    borderRadius: borderRadius.md,
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
     justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   glassBackground: {
     position: 'absolute',
@@ -189,13 +194,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: spacing.lg,
     top: 20,
+    fontFamily: typographyPresets.body.fontFamily,
     fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.medium as any,
   },
   input: {
-    fontSize: 18,
-    fontWeight: typography.fontWeight.medium as any,
-    color: colors.neutral.black,
+    fontFamily: typographyPresets.body.fontFamily,
+    fontSize: typographyPresets.body.fontSize,
+    color: '#1A1A1A',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg + spacing.sm,
     paddingBottom: spacing.sm,
