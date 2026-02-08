@@ -370,20 +370,22 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: spacing.md,
     justifyContent: "flex-start",
+    minHeight: 0, // Allows flexbox to properly shrink
   },
   cardWrapper: {
-    flexGrow: 1, // Grows to fill space when button is hidden, shrinks when button is shown
+    // Card sizes to content, Layout animation handles smooth transitions
+    flexShrink: 1, // Allows card to shrink when footer appears
   },
   questionHeader: {
     marginBottom: spacing.sm,
+    flexShrink: 0, // Question text should not shrink
   },
   scrollView: {
-    flexGrow: 1, // Grows to fill available space in card
-    flexShrink: 1, // Shrinks when constrained
+    flex: 1, // Takes available space, enables scrolling
+    minHeight: 0, // Allows proper flexbox shrinking
   },
   scrollContent: {
     paddingBottom: spacing.xl,
-    flexGrow: 1, // Ensures content can expand to fill ScrollView
   },
   footer: {
     paddingHorizontal: spacing.md,

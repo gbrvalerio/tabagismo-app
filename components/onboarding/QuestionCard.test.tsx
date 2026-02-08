@@ -27,7 +27,7 @@ describe('QuestionCard', () => {
     expect(toJSON()).toBeDefined();
   });
 
-  it('should grow to fill available space', () => {
+  it('should size to content with animated layout', () => {
     const { getByTestId } = render(
       <QuestionCard questionKey="test-key">
         <Text>Content</Text>
@@ -40,8 +40,8 @@ describe('QuestionCard', () => {
       ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
       : styles;
 
-    // Card should have flexGrow to fill available space when button is hidden
-    expect(flatStyle.flexGrow).toBe(1);
+    // Card should size to content (no flexGrow) with Layout animations for smooth transitions
+    expect(flatStyle.flexGrow).toBeUndefined();
     expect(flatStyle.width).toBe('100%');
   });
 
