@@ -97,38 +97,33 @@ Wraps the app's `Stack` in `_layout.tsx`. Checks `useOnboardingStatus()` and red
 
 **File:** `onboarding/OnboardingContainer.tsx`
 
-Main orchestrator wrapped in SafeAreaView and KeyboardAvoidingView for proper mobile layout. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/onboarding-flow`. Handles answer saving, navigation (Voltar/Próxima/Concluir), completion, and coin awards.
+Main orchestrator wrapped in LinearGradient (#FFFFFF → #F8F9FB), SafeAreaView, and KeyboardAvoidingView. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/onboarding-flow`. Handles answer saving, navigation (Voltar/Próxima/Concluir), completion, and coin awards.
 
 **Layout Structure:**
-- Header: Back button (when currentIndex > 0) + CoinCounter (top-right) + CoinTrail (progress dots)
-- Content: Fixed question text + ScrollView for inputs/options
-- Footer: Next/Finish button (when answered)
-- Overlay: CoinBurstAnimation (triggers on first-time answers)
+- Gradient background: LinearGradient wrapper (#FFFFFF → #F8F9FB)
+- Header: Back button (Poppins, when currentIndex > 0) + CoinCounter (pill, top-right) + CoinTrail (progress line with coins)
+- Content: Fixed QuestionText (Poppins Bold 30px) + ScrollView for inputs/options
+- Footer: Next/Finish button (Poppins SemiBold 18px, rounded pill, with idle shake animation)
 
 **Gamification:**
 - Awards 1 coin per first-time answer via `useIncrementCoins`
-- Shows CoinBurstAnimation arc trajectory on coin award
+- Triggers 3D flip animation on CoinTrail coin via `animatingCoinIndex` state
 - Triggers haptic feedback (success notification) on coin award
 - Tracks `isFirstTime` flag to prevent duplicate coin awards on answer updates
+- Idle button shake/pulse animation after 3 seconds if user hasn't progressed
 
 **Safe Area & Keyboard:**
 - Uses `SafeAreaView` with `edges={['top', 'bottom']}` for notch/home indicator support
 - Uses `KeyboardAvoidingView` with platform-specific behavior (iOS: padding, Android: height)
 - ScrollView enables scrolling for long option lists
 
-**Hooks used:** `useOnboardingQuestions`, `useOnboardingAnswers`, `useSaveAnswer`, `useDeleteDependentAnswers`, `useCompleteOnboarding`, `useUserCoins`, `useIncrementCoins`
-
-### QuestionCard
-
-**File:** `onboarding/QuestionCard.tsx`
-
-Animated wrapper for question content. Uses `react-native-reanimated` with slide-in (`translateX`), scale, and fade animations via `withSpring` and `withTiming`.
+**Hooks used:** `useOnboardingQuestions`, `useOnboardingAnswers`, `useSaveAnswer`, `useDeleteDependentAnswers`, `useCompleteOnboarding`, `useIncrementCoins`
 
 ### QuestionText
 
 **File:** `onboarding/QuestionText.tsx`
 
-Displays question text. Uses `useThemeColor({}, 'text')` for theming. Font size 24, weight 700.
+Displays question text using Poppins Bold typography. Uses `typographyPresets.hero` (Poppins_700Bold, 30px, letterSpacing -0.3, lineHeight 38). Color: `colors.neutral.black`.
 
 ### QuestionInput (Factory)
 
@@ -148,23 +143,40 @@ Extracts `choices` from `question.metadata` for choice-based types.
 
 Animated progress bar. Takes `progress` (0-100). Uses `withSpring` for smooth width transitions. No longer used in OnboardingContainer (replaced by CoinTrail).
 
-### CoinIcon
+### CoinSvg
 
-**File:** `onboarding/CoinIcon.tsx`
+**File:** `onboarding/CoinSvg.tsx`
 
-Base coin visualization with outlined/filled variants and optional pulse animation. Uses `react-native-reanimated` for highlight pulse effect.
+SVG-based coin icon using `react-native-svg`. Renders a detailed gold coin with star design. Supports outlined (35% opacity) and filled variants, with optional glow shadow effect.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `size` | `number` | `24` | Coin diameter in pixels |
+| `variant` | `'outlined' \| 'filled'` | `'filled'` | Visual style (35% opacity vs full) |
+| `showGlow` | `boolean` | `false` | Enables gold shadow glow effect |
+| `testID` | `string` | `'coin-svg'` | Test identifier |
+
+### AnimatedCoin
+
+**File:** `onboarding/AnimatedCoin.tsx`
+
+Animated wrapper around CoinSvg. Provides 3D flip animation (scaleX 1→0→1 over 600ms) and highlighted pulse animation (scale 1→1.2 repeating). Triggers haptic feedback on flip.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `size` | `number` | — | Coin diameter in pixels |
-| `variant` | `'outlined' \| 'filled'` | — | Visual style (gray border vs gold fill) |
+| `variant` | `'outlined' \| 'filled'` | — | Visual style passed to CoinSvg |
+| `animate` | `boolean` | `false` | Triggers 3D flip animation (once) |
 | `highlighted` | `boolean` | `false` | Enables repeating pulse animation |
+| `showGlow` | `boolean` | `false` | Enables glow on CoinSvg |
+| `onAnimationComplete` | `() => void` | — | Called after 600ms flip completes |
+| `testID` | `string` | `'animated-coin'` | Test identifier |
 
 ### CoinCounter
 
 **File:** `onboarding/CoinCounter.tsx`
 
-Displays current coin count with animated bounce on increment. Reads from `useUserCoins()` hook. Shows gold coin icon + count text.
+Pill-shaped counter with LinearGradient background (#F7A531 → #F39119). Shows CoinSvg (20px, filled, glow) + coin count text using `typographyPresets.coinCounter` (Poppins Bold 18px). Bounce animation on increment via `withSpring`. Reads from `useUserCoins()` hook.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
@@ -174,36 +186,27 @@ Displays current coin count with animated bounce on increment. Reads from `useUs
 
 **File:** `onboarding/CoinTrail.tsx`
 
-Progress indicator showing coins as dots. Outlined = not answered, filled = earned. Highlights current question coin with pulse animation.
+Progress indicator with a gradient progress line and AnimatedCoin dots (16px). Progress line fills proportionally to answered questions using LinearGradient (#F7A531 → #F39119). Coins show as outlined (unanswered) or filled (answered). Current step coin has highlighted pulse. Supports `animatingCoinIndex` for triggering 3D flip on newly answered questions.
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
 | `currentStep` | `number` | — | Current question (1-indexed) |
 | `totalSteps` | `number` | — | Total questions count |
 | `answeredQuestions` | `string[]` | — | Array of answered question keys |
+| `animatingCoinIndex` | `number \| null` | `null` | Index of coin to animate (3D flip) |
+| `onCoinAnimationComplete` | `() => void` | — | Called after flip animation completes |
 | `testID` | `string` | — | Test identifier |
-
-### CoinBurstAnimation
-
-**File:** `onboarding/CoinBurstAnimation.tsx`
-
-Animated coin that flies from center to top-right in an arc trajectory with 2 full rotations and fade-out. Triggers on first-time answers.
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `isVisible` | `boolean` | — | Controls render and animation start |
-| `onComplete` | `() => void` | — | Called after 800ms animation completes |
 
 ### Input Components
 
-Located in `onboarding/inputs/`:
+Located in `onboarding/inputs/`. All use Poppins typography and design tokens from `@/lib/theme/tokens`.
 
 | Component | File | Description |
 |-----------|------|-------------|
-| `OnboardingTextInput` | `inputs/TextInput.tsx` | Text input with auto-focus (300ms delay), bottom border, uses `icon` theme color |
-| `OnboardingNumberInput` | `inputs/NumberInput.tsx` | Numeric input with auto-focus (300ms delay), `keyboardType="numeric"`, `parseInt` validation |
-| `SingleChoiceCards` | `inputs/SingleChoiceCards.tsx` | Touchable cards with haptic feedback, single selection |
-| `MultipleChoiceCards` | `inputs/MultipleChoiceCards.tsx` | Touchable cards with haptic feedback, toggle selection |
+| `OnboardingTextInput` | `inputs/TextInput.tsx` | Text input with floating label, auto-focus (300ms), 2px bottom border (gray→primary), Poppins Regular 16px, soft shadow |
+| `OnboardingNumberInput` | `inputs/NumberInput.tsx` | Numeric input with floating label, auto-focus (300ms), 2px bottom border (gray→secondary), Poppins Regular 16px, number badge, soft shadow |
+| `SingleChoiceCards` | `inputs/SingleChoiceCards.tsx` | Touchable cards with haptic feedback, transparent→primary border on select, 5% primary tint background, Poppins Regular 16px, 0.97 scale press, radio circle indicator |
+| `MultipleChoiceCards` | `inputs/MultipleChoiceCards.tsx` | Touchable cards with haptic feedback, transparent→secondary border on select, 5% secondary tint background, Poppins Regular 16px, 0.97 scale press, checkbox indicator |
 
 ---
 
