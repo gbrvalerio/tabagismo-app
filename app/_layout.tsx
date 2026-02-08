@@ -10,6 +10,9 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { queryClient } from '@/lib/query-client';
 import { runMigrations } from '@/db';
+import { seedOnboardingQuestions } from '@/db/seed/seed-questions';
+import { db } from '@/db/client';
+import { questions } from '@/db/schema';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -70,7 +73,15 @@ export default function RootLayout() {
   const [dbReady, setDbReady] = useState(false);
 
   useEffect(() => {
-    runMigrations()
+    async function initDatabase() {
+      await runMigrations();
+      const existingQuestions = await db.select().from(questions).all();
+      if (existingQuestions.length === 0) {
+        await seedOnboardingQuestions();
+      }
+    }
+
+    initDatabase()
       .then(() => setDbReady(true))
       .catch((error) => {
         console.error('Failed to initialize database:', error);
