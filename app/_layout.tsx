@@ -1,4 +1,11 @@
 import {
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+  useFonts,
+} from "@expo-google-fonts/poppins";
+import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
@@ -77,6 +84,12 @@ const styles = StyleSheet.create({
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [dbReady, setDbReady] = useState(false);
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+  });
 
   useEffect(() => {
     async function initDatabase() {
@@ -95,7 +108,7 @@ export default function RootLayout() {
       });
   }, []);
 
-  if (!dbReady) {
+  if (!dbReady || !fontsLoaded) {
     return <LoadingScreen />;
   }
 
