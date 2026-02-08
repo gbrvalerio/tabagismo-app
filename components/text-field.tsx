@@ -9,9 +9,16 @@ import {
   type NativeSyntheticEvent,
   type TextInputFocusEventData,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  interpolateColor,
+} from 'react-native-reanimated';
 
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { colors, spacing, borderRadius, typography } from '@/lib/theme/tokens';
+import { timing, animations } from '@/lib/theme/animations';
 
 export type TextFieldProps = Omit<TextInputProps, 'editable'> & {
   label?: string;
@@ -40,20 +47,39 @@ export function TextField({
   const hasError = !!error;
   const isDisabled = disabled || loading;
 
+  // Animation shared value: 0 = unfocused, 1 = focused
+  const focusAnimation = useSharedValue(0);
+
+  const animatedBorderStyle = useAnimatedStyle(() => {
+    if (hasError) {
+      return { borderColor: colors.semantic.error };
+    }
+
+    const borderColor = interpolateColor(
+      focusAnimation.value,
+      [0, 1],
+      [colors.neutral.gray[300], colors.primary.base]
+    );
+
+    return { borderColor };
+  });
+
   const handleFocus = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
     setIsFocused(true);
+    focusAnimation.value = withTiming(1, {
+      duration: timing.fast,
+      easing: animations.easing.easeOut,
+    });
     onFocus?.(e);
   };
 
   const handleBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
     setIsFocused(false);
+    focusAnimation.value = withTiming(0, {
+      duration: timing.fast,
+      easing: animations.easing.easeOut,
+    });
     onBlur?.(e);
-  };
-
-  const getBorderColor = () => {
-    if (hasError) return colors.semantic.error;
-    if (isFocused) return colors.primary.base;
-    return colors.neutral.gray[300];
   };
 
   return (
@@ -71,15 +97,15 @@ export function TextField({
           {label}
         </Text>
       )}
-      <View style={styles.inputWrapper}>
+      <Animated.View
+        testID={testID ? `${testID}-animated-border` : undefined}
+        style={[styles.inputWrapper, styles.inputBorder, animatedBorderStyle]}
+      >
         <TextInput
           testID={testID ? `${testID}-input` : undefined}
           style={[
             styles.input,
-            {
-              color: textColor,
-              borderColor: getBorderColor(),
-            },
+            { color: textColor },
             style,
           ]}
           placeholderTextColor={iconColor}
@@ -96,7 +122,7 @@ export function TextField({
             style={styles.loadingIndicator}
           />
         )}
-      </View>
+      </Animated.View>
       {hasError ? (
         <Text style={[styles.helperText, { color: colors.semantic.error }]}>
           {error}
@@ -126,9 +152,12 @@ const styles = StyleSheet.create({
     position: 'relative',
     justifyContent: 'center',
   },
-  input: {
+  inputBorder: {
     borderWidth: 1,
     borderRadius: borderRadius.md,
+    borderColor: colors.neutral.gray[300],
+  },
+  input: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 4,
     fontSize: typography.fontSize.md,

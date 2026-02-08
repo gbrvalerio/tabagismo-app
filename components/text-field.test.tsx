@@ -137,11 +137,11 @@ describe('TextField', () => {
     it('should apply error border color', () => {
       render(<TextField error="Erro" testID="text-field" />);
 
-      const input = screen.getByTestId('text-field-input');
-      const inputStyle = input.props.style;
-      const flatStyle = Array.isArray(inputStyle)
-        ? Object.assign({}, ...inputStyle.filter(Boolean))
-        : inputStyle;
+      const animatedBorder = screen.getByTestId('text-field-animated-border');
+      const borderStyle = animatedBorder.props.style;
+      const flatStyle = Array.isArray(borderStyle)
+        ? Object.assign({}, ...borderStyle.filter(Boolean))
+        : borderStyle;
       expect(flatStyle.borderColor).toBe('#FF4757');
     });
 
@@ -180,6 +180,52 @@ describe('TextField', () => {
         ? Object.assign({}, ...labelStyle.filter(Boolean))
         : labelStyle;
       expect(flatStyle.color).toBe('#FF4757');
+    });
+  });
+
+  describe('Focus animation', () => {
+    it('should render animated input wrapper', () => {
+      render(<TextField testID="text-field" />);
+
+      expect(screen.getByTestId('text-field-animated-border')).toBeTruthy();
+    });
+
+    it('should still call onFocus with animation', () => {
+      const onFocus = jest.fn();
+      render(<TextField onFocus={onFocus} testID="text-field" />);
+
+      fireEvent(screen.getByTestId('text-field-input'), 'focus');
+      expect(onFocus).toHaveBeenCalled();
+    });
+
+    it('should still call onBlur with animation', () => {
+      const onBlur = jest.fn();
+      render(<TextField onBlur={onBlur} testID="text-field" />);
+
+      fireEvent(screen.getByTestId('text-field-input'), 'blur');
+      expect(onBlur).toHaveBeenCalled();
+    });
+
+    it('should render correctly in focused state', () => {
+      render(<TextField testID="text-field" />);
+
+      const input = screen.getByTestId('text-field-input');
+      fireEvent(input, 'focus');
+
+      // Component should still render correctly after focus
+      expect(screen.getByTestId('text-field-animated-border')).toBeTruthy();
+      expect(input).toBeTruthy();
+    });
+
+    it('should render correctly in unfocused state after blur', () => {
+      render(<TextField testID="text-field" />);
+
+      const input = screen.getByTestId('text-field-input');
+      fireEvent(input, 'focus');
+      fireEvent(input, 'blur');
+
+      expect(screen.getByTestId('text-field-animated-border')).toBeTruthy();
+      expect(input).toBeTruthy();
     });
   });
 

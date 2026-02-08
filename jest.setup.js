@@ -59,3 +59,30 @@ jest.mock('@/components/ui/icon-symbol', () => ({
 jest.mock('@/hooks/use-color-scheme', () => ({
   useColorScheme: jest.fn(() => 'light'),
 }));
+
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => {
+  const React = require('react');
+  const View = require('react-native').View;
+  return {
+    __esModule: true,
+    default: {
+      View: View,
+      createAnimatedComponent: (component) => component,
+    },
+    useSharedValue: (initialValue) => ({ value: initialValue }),
+    useAnimatedStyle: (styleFactory) => styleFactory(),
+    withTiming: (toValue) => toValue,
+    withSpring: (toValue) => toValue,
+    Easing: {
+      linear: (v) => v,
+      ease: (v) => v,
+      out: () => (v) => v,
+      in: () => (v) => v,
+      inOut: () => (v) => v,
+      cubic: (v) => v,
+      bezier: () => (v) => v,
+    },
+    interpolateColor: (_value, _inputRange, outputRange) => outputRange[0],
+  };
+});
