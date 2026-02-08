@@ -1302,3 +1302,71 @@ describe('coin award logic', () => {
     expect(mockIncrementMutateAsync).not.toHaveBeenCalled();
   });
 });
+
+describe('coin burst animation', () => {
+  const mockSaveMutateAsync = jest.fn().mockResolvedValue(undefined);
+  const mockIncrementMutateAsync = jest.fn().mockResolvedValue(undefined);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockSaveMutateAsync });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseUserCoins.mockReturnValue({ data: 0, isLoading: false, isSuccess: true });
+    mockUseIncrementCoins.mockReturnValue({ mutateAsync: mockIncrementMutateAsync });
+  });
+
+  it('should show animation on first answer', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('')).toBeDefined();
+    });
+
+    const input = screen.getByDisplayValue('');
+    fireEvent.changeText(input, 'Test answer');
+
+    await waitFor(() => {
+      expect(screen.getByTestId('coin-burst')).toBeDefined();
+    });
+  });
+
+  it('should not show animation on answer update', async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [{ questionKey: 'name', answer: JSON.stringify('First answer'), coinAwarded: true }],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('First answer')).toBeDefined();
+    });
+
+    const input = screen.getByDisplayValue('First answer');
+    fireEvent.changeText(input, 'Updated answer');
+
+    await waitFor(() => {
+      expect(mockSaveMutateAsync).toHaveBeenCalled();
+    });
+
+    expect(screen.queryByTestId('coin-burst')).toBeNull();
+  });
+});

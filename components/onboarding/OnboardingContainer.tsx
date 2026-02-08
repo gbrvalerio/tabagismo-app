@@ -30,6 +30,7 @@ import Animated, {
   FadeInDown,
   Layout,
 } from "react-native-reanimated";
+import { CoinBurstAnimation } from "./CoinBurstAnimation";
 import { CoinCounter } from "./CoinCounter";
 import { CoinTrail } from "./CoinTrail";
 import { QuestionCard } from "./QuestionCard";
@@ -48,6 +49,7 @@ import { animations } from "@/lib/theme/animations";
 export function OnboardingContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answersCache, setAnswersCache] = useState<Record<string, unknown>>({});
+  const [showCoinAnimation, setShowCoinAnimation] = useState(false);
 
   const { data: allQuestions, isLoading: questionsLoading } =
     useOnboardingQuestions();
@@ -179,6 +181,7 @@ export function OnboardingContainer() {
 
     // Award coin only for new answers
     if (isFirstTime) {
+      setShowCoinAnimation(true);
       await incrementCoinsMutation.mutateAsync(1);
     }
 
@@ -351,6 +354,10 @@ export function OnboardingContainer() {
           )}
         </View>
       </KeyboardAvoidingView>
+      <CoinBurstAnimation
+        isVisible={showCoinAnimation}
+        onComplete={() => setShowCoinAnimation(false)}
+      />
     </SafeAreaView>
   );
 }
