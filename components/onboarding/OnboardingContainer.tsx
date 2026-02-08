@@ -370,19 +370,20 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: spacing.md,
     justifyContent: "flex-start",
+    overflow: "hidden", // Prevents content from overflowing beyond bounds
   },
   cardWrapper: {
     // Card sizes to content, Layout animation handles smooth transitions
     flexShrink: 1, // Allows card to shrink when footer appears
-    maxHeight: "100%", // Prevents growing beyond available space
+    flex: 1, // Takes available space from content area
+    minHeight: 0, // Enables proper flexbox shrinking
   },
   questionHeader: {
     marginBottom: spacing.sm,
+    flexShrink: 0, // Don't shrink the question text
   },
   scrollView: {
-    flexGrow: 0, // Don't grow beyond content
-    flexShrink: 1, // But can shrink if needed
-    maxHeight: 600, // Reasonable max height for scrolling
+    flex: 1, // Takes available space in card
   },
   scrollContent: {
     paddingBottom: spacing.xl,
