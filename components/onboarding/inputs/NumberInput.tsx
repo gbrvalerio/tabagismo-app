@@ -9,7 +9,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { colors, spacing, borderRadius, typography, typographyPresets, shadows } from '@/lib/theme/tokens';
+import { colors, spacing, borderRadius, typography, shadows } from '@/lib/theme/tokens';
 
 interface OnboardingNumberInputProps {
   value: number | null;
@@ -25,7 +25,6 @@ export function OnboardingNumberInput({ value, onChange, placeholder }: Onboardi
   // Animated values - initialize based on whether there's a value
   const labelPosition = useSharedValue(value !== null ? 1 : 0);
   const borderProgress = useSharedValue(value !== null ? 0.5 : 0);
-  const glowOpacity = useSharedValue(value !== null ? 1 : 0);
   const numberPulse = useSharedValue(1);
 
   // Auto-focus on mount
@@ -42,15 +41,12 @@ export function OnboardingNumberInput({ value, onChange, placeholder }: Onboardi
     setLocalText(value?.toString() ?? '');
   }, [value]);
 
-  // Animate label and border on focus/value change
+  // Animate label on focus/value change
   useEffect(() => {
     const shouldFloat = isFocused || localText.length > 0;
     labelPosition.value = withTiming(shouldFloat ? 1 : 0, {
       duration: 150,
       easing: Easing.out(Easing.cubic),
-    });
-    glowOpacity.value = withTiming(shouldFloat ? 1 : 0, {
-      duration: 150,
     });
   }, [isFocused, localText]);
 
@@ -125,23 +121,17 @@ export function OnboardingNumberInput({ value, onChange, placeholder }: Onboardi
     };
   });
 
-
   const borderStyle = useAnimatedStyle(() => {
-    const borderColor = interpolateColor(
+    const borderBottomColor = interpolateColor(
       borderProgress.value,
       [0, 0.5, 1],
-      [colors.neutral.gray[300], colors.secondary.light, colors.secondary.base]
+      [colors.neutral.gray[300], colors.neutral.gray[400], colors.secondary.base]
     );
 
     return {
-      borderColor,
-      borderWidth: 2 + borderProgress.value * 1,
+      borderBottomColor,
     };
   });
-
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value * 0.2,
-  }));
 
   const numberIndicatorStyle = useAnimatedStyle(() => ({
     transform: [{ scale: numberPulse.value }],
@@ -153,14 +143,8 @@ export function OnboardingNumberInput({ value, onChange, placeholder }: Onboardi
     <View style={styles.wrapper}>
       <Pressable onPress={handlePressContainer} accessible={false}>
         <View style={styles.container}>
-          {/* Animated glow effect */}
-          <Animated.View style={[styles.glow, glowStyle]} />
-
           {/* Main input container */}
           <Animated.View style={[styles.inputContainer, borderStyle]}>
-            {/* Glass morphism background */}
-            <View style={styles.glassBackground} />
-
             {/* Floating label */}
             <Animated.Text style={[styles.label, labelStyle]}>
               {placeholder}
@@ -200,49 +184,32 @@ const styles = StyleSheet.create({
     width: '100%',
     position: 'relative',
   },
-  glow: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.secondary.base,
-    ...shadows.sm,
-  },
   inputContainer: {
     position: 'relative',
     width: '100%',
     minHeight: 64,
     borderRadius: borderRadius.md,
-    backgroundColor: '#FFFFFF',
-    overflow: 'hidden',
+    backgroundColor: colors.neutral.white,
     justifyContent: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: colors.neutral.gray[300],
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
   },
-  glassBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-  },
   label: {
     position: 'absolute',
     left: spacing.lg,
     top: 20,
-    fontFamily: typographyPresets.body.fontFamily,
     fontSize: typography.fontSize.md,
+    fontFamily: typography.fontFamily.poppins.regular,
   },
   input: {
-    fontFamily: typographyPresets.body.fontFamily,
-    fontSize: typographyPresets.body.fontSize,
-    color: '#1A1A1A',
+    fontSize: typography.fontSize.md,
+    fontFamily: typography.fontFamily.poppins.regular,
+    color: colors.neutral.black,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg + spacing.sm,
     paddingBottom: spacing.sm,
@@ -264,7 +231,7 @@ const styles = StyleSheet.create({
   },
   numberBadgeText: {
     fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.bold as any,
+    fontFamily: typography.fontFamily.poppins.bold,
     color: colors.neutral.white,
   },
 });
