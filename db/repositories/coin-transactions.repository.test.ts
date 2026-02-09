@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { renderHook, waitFor , act } from '@testing-library/react-native';
 import { createTestQueryClient } from '@/lib/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { useUserCoins, useAwardCoins, useHasQuestionReward, useResetUserCoins } from './coin-transactions.repository';
+import { useUserCoins, useAwardCoins, useHasQuestionReward, useResetUserCoins, useHasNotificationReward } from './coin-transactions.repository';
 import { db } from '../client';
 import { coinTransactions, TransactionType } from '../schema/coin-transactions';
 
@@ -568,5 +568,41 @@ describe('useHasQuestionReward - context support', () => {
 
     expect(onboardingResult.current.data).toBe(true);
     expect(checkinResult.current.data).toBe(false);
+  });
+});
+
+describe('useHasNotificationReward', () => {
+  it('should return false when no notification permission transaction exists', async () => {
+    const { result } = renderHook(() => useHasNotificationReward(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toBe(false);
+  });
+
+  it('should return true when notification permission transaction exists', async () => {
+    // Insert a notification permission transaction
+    await db.insert(coinTransactions).values({
+      amount: 15,
+      type: TransactionType.NOTIFICATION_PERMISSION,
+      metadata: JSON.stringify({ source: 'notification_permission' }),
+    }).returning();
+
+    const { result } = renderHook(() => useHasNotificationReward(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toBe(true);
+  });
+
+  it('should use correct query key', async () => {
+    const { result } = renderHook(() => useHasNotificationReward(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(queryClient.getQueryState(['transactions', 'notification_permission'])).toBeDefined();
   });
 });

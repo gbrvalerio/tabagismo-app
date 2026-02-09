@@ -79,6 +79,25 @@ export function useHasQuestionReward(context: string, questionKey: string) {
   });
 }
 
+/**
+ * Check if user has already received notification permission reward
+ * Used to prevent duplicate rewards
+ */
+export function useHasNotificationReward() {
+  return useQuery({
+    queryKey: ['transactions', 'notification_permission'],
+    queryFn: async () => {
+      const transaction = await db
+        .select()
+        .from(coinTransactions)
+        .where(eq(coinTransactions.type, TransactionType.NOTIFICATION_PERMISSION))
+        .get();
+
+      return !!transaction;
+    },
+  });
+}
+
 export function useResetUserCoins() {
   const queryClient = useQueryClient();
 
