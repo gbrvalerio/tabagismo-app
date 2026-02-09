@@ -173,7 +173,7 @@ export function CelebrationDialog({
   return (
     <Modal transparent visible={visible} animationType="none">
       <Pressable
-        style={styles.overlay}
+        style={styles.overlayPressable}
         onPress={handleDismiss}
         testID={`${testID}-overlay`}
       >
@@ -237,6 +237,11 @@ export function CelebrationDialog({
 }
 
 const styles = StyleSheet.create({
+  overlayPressable: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(26, 26, 46, 0.85)',
