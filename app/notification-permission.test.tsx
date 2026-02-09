@@ -1,4 +1,11 @@
 // Mock dependencies BEFORE imports
+import { render, screen, waitFor, fireEvent } from '@testing-library/react-native';
+import { Linking, Alert } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import NotificationPermissionScreen from './notification-permission';
+import { useHasNotificationReward, useAwardCoins } from '@/db/repositories';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
 const mockRouterReplace = jest.fn();
 const mockRouterPush = jest.fn();
 
@@ -23,12 +30,12 @@ jest.mock('@/components/celebration', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require('react');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { View, Text } = require('react-native');
-  const MockCelebrationDialog = ({ visible, title }: any) => {
+  const { View, Text, TouchableOpacity } = require('react-native');
+  const MockCelebrationDialog = ({ visible, title, onDismiss }: any) => {
     if (!visible) return null;
     return React.createElement(
-      View,
-      { testID: 'celebration-dialog-overlay' },
+      TouchableOpacity,
+      { testID: 'celebration-dialog-overlay', onPress: onDismiss },
       React.createElement(Text, null, title)
     );
   };
@@ -40,13 +47,6 @@ jest.mock('@/components/celebration', () => {
 jest.mock('expo-linear-gradient', () => ({
   LinearGradient: ({ children }: { children: React.ReactNode }) => children,
 }));
-
-import { render, screen, waitFor, fireEvent } from '@testing-library/react-native';
-import { Linking, Alert } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import NotificationPermissionScreen from './notification-permission';
-import { useHasNotificationReward, useAwardCoins } from '@/db/repositories';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock Linking.openSettings after imports
 jest.spyOn(Linking, 'openSettings').mockImplementation(jest.fn());
@@ -240,7 +240,123 @@ describe('NotificationPermissionScreen', () => {
     });
   });
 
+  describe('Infinite Loop Prevention', () => {
+    it('should not retrigger checkPermission when hasReward changes after awarding coins', async () => {
+      let rewardValue = false;
+      const mockAwardCoins = jest.fn().mockImplementation(async () => {
+        // Simulate TanStack Query invalidating cache after mutation
+        rewardValue = true;
+      });
+
+      // Mock useHasNotificationReward to return dynamic value
+      (useHasNotificationReward as jest.Mock).mockImplementation(() => ({
+        data: rewardValue,
+      }));
+
+      (useAwardCoins as jest.Mock).mockReturnValue({
+        mutateAsync: mockAwardCoins,
+        isPending: false,
+      });
+
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: 'granted',
+      });
+
+      render(<NotificationPermissionScreen />, { wrapper: createWrapper() });
+
+      // Wait for initial checkPermission call
+      await waitFor(
+        () => {
+          expect(Notifications.getPermissionsAsync).toHaveBeenCalledTimes(1);
+        },
+        { timeout: 500 }
+      );
+
+      // Award coins happens, hasReward changes from false -> true
+      await waitFor(() => {
+        expect(mockAwardCoins).toHaveBeenCalledTimes(1);
+      });
+
+      // Wait a bit more to ensure no additional checkPermission calls
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // Should still be called only once (from mount), not again after hasReward change
+      expect(Notifications.getPermissionsAsync).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Celebration Dialog', () => {
+    it('should navigate to tabs when celebration is dismissed', async () => {
+      const mockAwardCoins = jest.fn().mockResolvedValue({});
+      (useAwardCoins as jest.Mock).mockReturnValue({
+        mutateAsync: mockAwardCoins,
+        isPending: false,
+      });
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: 'granted',
+      });
+      (useHasNotificationReward as jest.Mock).mockReturnValue({ data: false });
+
+      const { getByTestId } = render(<NotificationPermissionScreen />, {
+        wrapper: createWrapper(),
+      });
+
+      // Wait for celebration to show
+      await waitFor(() => {
+        expect(getByTestId('celebration-dialog-overlay')).toBeTruthy();
+      });
+
+      // Dismiss celebration by tapping overlay (fires onDismiss)
+      fireEvent.press(getByTestId('celebration-dialog-overlay'));
+
+      await waitFor(() => {
+        expect(mockRouterReplace).toHaveBeenCalledWith('/(tabs)');
+      });
+    });
+  });
+
+  describe('Request Permission Flow', () => {
+    it('should set denied status when permission request is denied', async () => {
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: 'undetermined',
+      });
+      (Notifications.requestPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: 'denied',
+      });
+
+      const { getByText } = render(<NotificationPermissionScreen />, {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => getByText('Permitir Notificações'));
+
+      fireEvent.press(getByText('Permitir Notificações'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Você negou anteriormente. Ative nas configurações do app.')).toBeTruthy();
+      });
+    });
+  });
+
   describe('Error Handling', () => {
+    it('should log error when initial permission check fails', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      (Notifications.getPermissionsAsync as jest.Mock).mockRejectedValue(
+        new Error('Permission check failed')
+      );
+
+      render(<NotificationPermissionScreen />, { wrapper: createWrapper() });
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          '[NotificationPermission]',
+          expect.any(Error)
+        );
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
     it('should show alert when permission request fails', async () => {
       const alertSpy = jest.spyOn(Alert, 'alert');
       (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({

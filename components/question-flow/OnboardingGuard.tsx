@@ -12,6 +12,7 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
 
   useEffect(() => {
     if (!isLoading && onboardingCompleted === false) {
+      // @ts-expect-error - Route not in typed routes
       router.replace('/onboarding');
     }
   }, [onboardingCompleted, isLoading, router]);

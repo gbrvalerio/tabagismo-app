@@ -33,37 +33,42 @@ export default function NotificationPermissionScreen() {
   const { data: hasReward } = useHasNotificationReward();
   const awardCoins = useAwardCoins();
   const router = useRouter();
+  const initialCheckDone = React.useRef(false);
 
-  const checkPermission = useCallback(async () => {
-    try {
-      const { status } = await Notifications.getPermissionsAsync();
-      setPermissionStatus(status as PermissionStatus);
-
-      // If already granted and not rewarded, show celebration
-      if (status === 'granted' && !hasReward) {
-        await awardCoins.mutateAsync({
-          amount: 15,
-          type: TransactionType.NOTIFICATION_PERMISSION,
-          metadata: {
-            source: 'notification_permission',
-            grantedAt: new Date().toISOString(),
-          },
-        });
-        setShowCelebration(true);
-      } else if (status === 'granted' && hasReward) {
-        // Already rewarded, skip to tabs
-        // @ts-expect-error - Route group (tabs) is not in typed routes
-        router.replace('/(tabs)');
-      }
-    } catch (error) {
-      logError(error, 'NotificationPermission');
-    }
-  }, [hasReward, awardCoins, router]);
-
-  // Check permission on mount
+  // Check permission on mount only (not when hasReward changes)
   useEffect(() => {
+    if (initialCheckDone.current) return;
+    initialCheckDone.current = true;
+
+    const checkPermission = async () => {
+      try {
+        const { status } = await Notifications.getPermissionsAsync();
+        setPermissionStatus(status as PermissionStatus);
+
+        // If already granted and not rewarded, show celebration
+        if (status === 'granted' && !hasReward) {
+          await awardCoins.mutateAsync({
+            amount: 15,
+            type: TransactionType.NOTIFICATION_PERMISSION,
+            metadata: {
+              source: 'notification_permission',
+              grantedAt: new Date().toISOString(),
+            },
+          });
+          setShowCelebration(true);
+        } else if (status === 'granted' && hasReward) {
+          // Already rewarded, skip to tabs
+          // @ts-expect-error - Route group (tabs) is not in typed routes
+          router.replace('/(tabs)');
+        }
+      } catch (error) {
+        logError(error, 'NotificationPermission');
+      }
+    };
+
     checkPermission();
-  }, [checkPermission]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - run once on mount
 
   const handleRequestPermission = async () => {
     try {

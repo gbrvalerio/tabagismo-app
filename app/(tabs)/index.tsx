@@ -29,6 +29,7 @@ export default function HomeScreen() {
             await deleteAllAnswersMutation.mutateAsync();
             await resetCoinsMutation.mutateAsync();
             await resetMutation.mutateAsync();
+            // @ts-expect-error - Route not in typed routes
             router.replace('/onboarding');
           },
         },
