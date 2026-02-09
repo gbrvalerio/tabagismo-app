@@ -6,6 +6,8 @@ import m0001 from './0001_add_onboarding_tables';
 import m0002 from './0002_add_coins';
 import m0003 from './0003_backfill_coins';
 import m0004 from './0004_add_coin_transactions';
+import m0005 from './0005_backfill_transactions';
+import m0006 from './0006_cleanup_old_coin_fields';
 
 export default {
   journal,
@@ -15,5 +17,7 @@ export default {
     m0002,
     m0003,
     m0004,
+    m0005,
+    m0006,
   }
 };
