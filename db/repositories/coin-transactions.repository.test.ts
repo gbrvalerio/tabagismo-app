@@ -1,21 +1,20 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor , act } from '@testing-library/react-native';
 import { createTestQueryClient } from '@/lib/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useUserCoins, useAwardCoins, useHasQuestionReward, useResetUserCoins } from './coin-transactions.repository';
-import { act } from '@testing-library/react-native';
 import { db } from '../client';
 import { coinTransactions, TransactionType } from '../schema';
 
 // Shared state for the mock database
 const mockDbState = {
-  transactions: [] as Array<{
+  transactions: [] as {
     id: number;
     amount: number;
     type: string;
     metadata: string | null;
-  }>,
+  }[],
   nextId: 1,
   selectColumns: null as any,
   whereFilters: null as any, // Store where filters in a structured way
@@ -370,7 +369,7 @@ describe('useHasQuestionReward', () => {
       amount: 1,
       type: TransactionType.ONBOARDING_ANSWER,
       metadata: JSON.stringify({ questionKey: 'q1' }),
-    });
+    }).returning();
 
     const { result } = renderHook(() => useHasQuestionReward('q1'), {
       wrapper: createWrapper(),
@@ -423,7 +422,7 @@ describe('useHasQuestionReward', () => {
         type: TransactionType.ONBOARDING_ANSWER,
         metadata: JSON.stringify({ questionKey: 'q1' }),
       },
-    ]);
+    ]).returning();
 
     const { result } = renderHook(() => useHasQuestionReward('q1'), {
       wrapper: createWrapper(),
@@ -443,7 +442,7 @@ describe('useResetUserCoins', () => {
       { amount: 1, type: 'onboarding_answer', metadata: '{"questionKey":"q1"}' },
       { amount: 2, type: 'onboarding_answer', metadata: '{"questionKey":"q2"}' },
       { amount: 3, type: 'bonus', metadata: null },
-    ]);
+    ]).returning();
 
     const { result } = renderHook(
       () => ({
