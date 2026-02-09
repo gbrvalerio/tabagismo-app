@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Modal,
   View,
@@ -15,7 +15,6 @@ import Animated, {
   withDelay,
   withRepeat,
   withSequence,
-  Easing,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from '@/lib/haptics';
@@ -59,6 +58,29 @@ export function CelebrationDialog({
   const modalScale = useSharedValue(0);
   const modalTranslateY = useSharedValue(50);
   const buttonGlowOpacity = useSharedValue(0);
+
+  const clearAutoDismissTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const handleDismiss = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onDismiss();
+  }, [onDismiss]);
+
+  const startAutoDismissTimer = useCallback(() => {
+    clearAutoDismissTimer();
+    timerRef.current = setTimeout(() => {
+      /* istanbul ignore else - interaction state is tested via separate test cases */
+      if (!isInteracted) {
+        handleDismiss();
+      }
+    }, autoDismissDelay);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearAutoDismissTimer, handleDismiss, autoDismissDelay]);
 
   useEffect(() => {
     if (visible) {
@@ -111,29 +133,8 @@ export function CelebrationDialog({
     }
 
     return () => clearAutoDismissTimer();
-  }, [visible]);
-
-  const startAutoDismissTimer = () => {
-    clearAutoDismissTimer();
-    timerRef.current = setTimeout(() => {
-      /* istanbul ignore else - interaction state is tested via separate test cases */
-      if (!isInteracted) {
-        handleDismiss();
-      }
-    }, autoDismissDelay);
-  };
-
-  const clearAutoDismissTimer = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-  };
-
-  const handleDismiss = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onDismiss();
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, startAutoDismissTimer, clearAutoDismissTimer]);
 
   const handleUserInteraction = () => {
     setIsInteracted(true);

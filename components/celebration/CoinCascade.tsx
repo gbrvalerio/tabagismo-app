@@ -6,8 +6,8 @@ import Animated, {
   withDelay,
   withSequence,
   withTiming,
-  withSpring,
   Easing,
+  runOnJS,
 } from 'react-native-reanimated';
 import { AnimatedCoin } from '@/components/question-flow/AnimatedCoin';
 import * as Haptics from '@/lib/haptics';
@@ -77,6 +77,10 @@ function FallingCoin({ path, testID }: FallingCoinProps) {
   const opacity = useSharedValue(0);
   const shadowRadius = useSharedValue(2);
 
+  const triggerHaptic = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  };
+
   useEffect(() => {
     const duration = 600;
 
@@ -109,7 +113,7 @@ function FallingCoin({ path, testID }: FallingCoinProps) {
         );
 
         // Haptic feedback on landing
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        runOnJS(triggerHaptic)();
       })
     );
 
