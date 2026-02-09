@@ -52,6 +52,7 @@ export function CelebrationDialog({
   testID = 'celebration-dialog',
 }: CelebrationDialogProps) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const modalRef = useRef<View>(null);
   const [isInteracted, setIsInteracted] = useState(false);
   const [modalCenterY, setModalCenterY] = useState(screenHeight / 2);
 
@@ -142,11 +143,16 @@ export function CelebrationDialog({
     clearAutoDismissTimer();
   };
 
-  const handleModalLayout = useCallback((event: any) => {
-    const { y, height } = event.nativeEvent.layout;
-    // Calculate the center Y position of the modal card
-    const centerY = y + height / 2;
-    setModalCenterY(centerY);
+  const handleModalLayout = useCallback(() => {
+    // Use measureInWindow to get absolute screen position
+    // setTimeout ensures the layout has been committed
+    setTimeout(() => {
+      modalRef.current?.measureInWindow((_x, y, _width, height) => {
+        // Calculate the center Y position of the modal card on screen
+        const centerY = y + height / 2;
+        setModalCenterY(centerY);
+      });
+    }, 0);
   }, []);
 
   const overlayStyle = useAnimatedStyle(() => ({
@@ -180,6 +186,7 @@ export function CelebrationDialog({
         <Animated.View style={[styles.overlay, overlayStyle]}>
           <Pressable onPress={handleUserInteraction} testID={`${testID}-card`}>
             <Animated.View
+              ref={modalRef}
               style={[styles.modalCard, modalStyle]}
               onLayout={handleModalLayout}
             >
