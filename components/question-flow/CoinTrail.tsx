@@ -27,7 +27,7 @@ export function CoinTrail({
 }: CoinTrailProps) {
   const [progressLineTop, setProgressLineTop] = useState(0);
   const progress =
-    totalSteps > 0 ? (answeredQuestions.length / totalSteps) * 100 : 0;
+    totalSteps > 0 ? Math.min((answeredQuestions.length / totalSteps) * 100, 100) : 0;
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { height } = event.nativeEvent.layout;

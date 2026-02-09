@@ -52,7 +52,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs + 2, // 6px
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md - 4, // 12px
     borderRadius: 9999,
@@ -65,5 +64,6 @@ const styles = StyleSheet.create({
   count: {
     ...typographyPresets.coinCounter,
     color: '#FFFFFF',
+    marginLeft: spacing.xs + 2, // 6px gap between coin and count
   },
 });
