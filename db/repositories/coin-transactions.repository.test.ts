@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { createTestQueryClient } from '@/lib/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -18,12 +18,17 @@ const mockDbState = {
   }>,
   nextId: 1,
   selectColumns: null as any,
+  whereFilters: null as any, // Store where filters in a structured way
 };
 
 jest.mock('../client', () => {
+  let pendingWhereConditions: any = null;
+  let pendingInsertValues: any = null;
+
   const mockExecuteDelete = jest.fn().mockImplementation(() => {
     mockDbState.transactions = [];
     mockDbState.nextId = 1;
+    pendingWhereConditions = null;
     return Promise.resolve(undefined);
   });
 
@@ -33,23 +38,68 @@ jest.mock('../client', () => {
     // If we selected aggregate columns (like { total: ... }), return total
     if (mockDbState.selectColumns?.total !== undefined) {
       const total = mockDbState.transactions.reduce((sum, t) => sum + t.amount, 0);
+      mockDbState.selectColumns = null;
       return Promise.resolve({ total });
     }
-    // Otherwise, return the first transaction
-    return Promise.resolve(mockDbState.transactions[0] || undefined);
+
+    // If we have where conditions, filter transactions
+    let filteredTransactions = [...mockDbState.transactions];
+    if (pendingWhereConditions) {
+      filteredTransactions = mockDbState.transactions.filter(tx => {
+        // Check the where conditions - we store them in mockDbState for inspection
+        const { type, questionKey } = pendingWhereConditions;
+
+        if (type && tx.type !== type) {
+          return false;
+        }
+
+        if (questionKey !== undefined) {
+          if (!tx.metadata) return false;
+          try {
+            const metadata = JSON.parse(tx.metadata);
+            return metadata.questionKey === questionKey;
+          } catch {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      pendingWhereConditions = null;
+    }
+
+    // Return the first matching transaction
+    const result = filteredTransactions[0] || undefined;
+    return Promise.resolve(result);
   });
 
-  let pendingInsertValues: any = null;
+  const mockAll = jest.fn().mockImplementation(() => {
+    let filteredTransactions = [...mockDbState.transactions];
+    if (pendingWhereConditions) {
+      // Reset conditions after use
+      pendingWhereConditions = null;
+    }
+    return Promise.resolve(filteredTransactions);
+  });
 
   const mockReturning = jest.fn().mockImplementation(() => {
     if (pendingInsertValues) {
-      const newTx = {
-        id: mockDbState.nextId++,
-        ...pendingInsertValues,
-      };
-      mockDbState.transactions.push(newTx);
+      const valuesToInsert = Array.isArray(pendingInsertValues)
+        ? pendingInsertValues
+        : [pendingInsertValues];
+
+      const inserted = valuesToInsert.map(values => {
+        const newTx = {
+          id: mockDbState.nextId++,
+          ...values,
+        };
+        mockDbState.transactions.push(newTx);
+        return newTx;
+      });
+
       pendingInsertValues = null;
-      return Promise.resolve([newTx]);
+      return Promise.resolve(inserted);
     }
     return Promise.resolve([]);
   });
@@ -62,15 +112,50 @@ jest.mock('../client', () => {
     };
   });
 
-  const mockWhere = jest.fn(() => ({
-    get: mockGet,
-    execute: mockExecuteGeneric,
-    returning: mockReturning,
-  }));
+  const mockWhere = jest.fn((conditions?: any) => {
+    // Try to extract filter information from the drizzle conditions object
+    if (conditions) {
+      const filters: any = {};
 
-  const mockAll = jest.fn().mockImplementation(() =>
-    Promise.resolve([...mockDbState.transactions])
-  );
+      // Check if it's an and() condition with nested values
+      if (conditions.value && Array.isArray(conditions.value)) {
+        conditions.value.forEach((cond: any) => {
+          // Handle eq() condition for type
+          if (cond.value && cond.value.value === 'onboarding_answer') {
+            filters.type = 'onboarding_answer';
+          }
+
+          // Handle sql`...` condition with queryChunks for json_extract
+          if (cond.queryChunks && Array.isArray(cond.queryChunks)) {
+            // queryChunks structure: [string, param, string, param, ...]
+            // For json_extract, we're looking for the questionKey parameter
+            const chunks = cond.queryChunks;
+            for (let i = 0; i < chunks.length; i++) {
+              // Parameters are objects with value property
+              if (typeof chunks[i] === 'object' && chunks[i] !== null) {
+                if (chunks[i].value !== undefined) {
+                  // This is the questionKey parameter
+                  filters.questionKey = chunks[i].value;
+                  break;
+                }
+              }
+            }
+          }
+        });
+      }
+
+      pendingWhereConditions = Object.keys(filters).length > 0 ? filters : null;
+    } else {
+      pendingWhereConditions = null;
+    }
+
+    return {
+      get: mockGet,
+      all: mockAll,
+      execute: mockExecuteGeneric,
+      returning: mockReturning,
+    };
+  });
 
   const mockFrom = jest.fn(() => ({
     get: mockGet,
@@ -95,8 +180,10 @@ jest.mock('../client', () => {
   };
 });
 
+let queryClient: ReturnType<typeof createTestQueryClient>;
+
 const createWrapper = () => {
-  const queryClient = createTestQueryClient();
+  queryClient = createTestQueryClient();
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return React.createElement(QueryClientProvider, { client: queryClient }, children);
   };
@@ -107,18 +194,19 @@ beforeEach(() => {
   mockDbState.transactions = [];
   mockDbState.nextId = 1;
   mockDbState.selectColumns = null;
+  mockDbState.whereFilters = null;
+});
+
+// Clean up query client after each test to prevent open handles
+afterEach(() => {
+  if (queryClient) {
+    queryClient.clear();
+  }
 });
 
 describe('useUserCoins', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should return 0 when no transactions exist', async () => {
-    const mockGet = jest.fn().mockResolvedValue({ total: 0 });
-    const mockFrom = jest.fn(() => ({ get: mockGet }));
-    (db.select as jest.Mock).mockReturnValue({ from: mockFrom });
-
+    // mockDbState is already empty from beforeEach
     const { result } = renderHook(() => useUserCoins(), {
       wrapper: createWrapper(),
     });
@@ -128,9 +216,13 @@ describe('useUserCoins', () => {
   });
 
   it('should return correct sum with single transaction', async () => {
-    const mockGet = jest.fn().mockResolvedValue({ total: 5 });
-    const mockFrom = jest.fn(() => ({ get: mockGet }));
-    (db.select as jest.Mock).mockReturnValue({ from: mockFrom });
+    // Add a transaction to mockDbState
+    mockDbState.transactions.push({
+      id: 1,
+      amount: 5,
+      type: 'onboarding_answer',
+      metadata: null,
+    });
 
     const { result } = renderHook(() => useUserCoins(), {
       wrapper: createWrapper(),
@@ -141,9 +233,11 @@ describe('useUserCoins', () => {
   });
 
   it('should return correct sum with multiple transactions', async () => {
-    const mockGet = jest.fn().mockResolvedValue({ total: 6 });
-    const mockFrom = jest.fn(() => ({ get: mockGet }));
-    (db.select as jest.Mock).mockReturnValue({ from: mockFrom });
+    // Add multiple transactions
+    mockDbState.transactions.push(
+      { id: 1, amount: 2, type: 'onboarding_answer', metadata: null },
+      { id: 2, amount: 4, type: 'bonus', metadata: null }
+    );
 
     const { result } = renderHook(() => useUserCoins(), {
       wrapper: createWrapper(),
@@ -154,9 +248,11 @@ describe('useUserCoins', () => {
   });
 
   it('should handle negative amounts correctly', async () => {
-    const mockGet = jest.fn().mockResolvedValue({ total: 7 });
-    const mockFrom = jest.fn(() => ({ get: mockGet }));
-    (db.select as jest.Mock).mockReturnValue({ from: mockFrom });
+    // Add transactions with negative amounts
+    mockDbState.transactions.push(
+      { id: 1, amount: 10, type: 'bonus', metadata: null },
+      { id: 2, amount: -3, type: 'purchase', metadata: null }
+    );
 
     const { result } = renderHook(() => useUserCoins(), {
       wrapper: createWrapper(),
@@ -168,9 +264,7 @@ describe('useUserCoins', () => {
 });
 
 describe('useAwardCoins', () => {
-  beforeEach(async () => {
-    await db.delete(coinTransactions).execute();
-  });
+  // State is already reset in the global beforeEach
 
   it('should create transaction and invalidate cache', async () => {
     const { result } = renderHook(
@@ -260,9 +354,7 @@ describe('useAwardCoins', () => {
 });
 
 describe('useHasQuestionReward', () => {
-  beforeEach(async () => {
-    await db.delete(coinTransactions).execute();
-  });
+  // State is already reset in the global beforeEach
 
   it('should return false when no transaction exists', async () => {
     const { result } = renderHook(() => useHasQuestionReward('q1'), {
@@ -343,9 +435,7 @@ describe('useHasQuestionReward', () => {
 });
 
 describe('useResetUserCoins', () => {
-  beforeEach(async () => {
-    await db.delete(coinTransactions).execute();
-  });
+  // State is already reset in the global beforeEach
 
   it('should delete all transactions and reset balance to 0', async () => {
     // Create some transactions
