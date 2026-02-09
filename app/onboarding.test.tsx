@@ -44,13 +44,13 @@ jest.mock("@/components/celebration/CelebrationDialog", () => {
   const React = require("react");
   const { TouchableOpacity, View, Text } = require("react-native");
   return {
-    CelebrationDialog: ({ visible, onComplete }: any) => {
+    CelebrationDialog: ({ visible, onDismiss }: any) => {
       if (!visible) return null;
       return React.createElement(
         TouchableOpacity,
         {
           testID: "celebration-dialog",
-          onPress: onComplete,
+          onPress: onDismiss,
         },
         React.createElement(Text, null, "Celebration")
       );

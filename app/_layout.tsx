@@ -13,15 +13,19 @@ import {
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { ErrorBoundary, FallbackProps } from "react-error-boundary";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, AppState, AppStateStatus, StyleSheet, Text, View } from "react-native";
+import * as Notifications from "expo-notifications";
 import "react-native-reanimated";
 
+import { CelebrationDialog } from "@/components/celebration";
 import { OnboardingGuard } from "@/components/question-flow/OnboardingGuard";
 import { runMigrations } from "@/db";
 import { db } from "@/db/client";
+import { useAwardCoins, useHasNotificationReward } from "@/db/repositories";
 import { questions } from "@/db/schema";
+import { TransactionType } from "@/db/schema/coin-transactions";
 import { seedOnboardingQuestions } from "@/db/seed/seed-questions";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { queryClient } from "@/lib/query-client";
@@ -91,6 +95,12 @@ export default function RootLayout() {
     Poppins_700Bold,
   });
 
+  // Notification permission detection
+  const statusRef = useRef<'granted' | 'denied' | 'undetermined'>('undetermined');
+  const [notificationCelebration, setNotificationCelebration] = useState(false);
+  const { data: hasReward } = useHasNotificationReward();
+  const awardCoins = useAwardCoins();
+
   useEffect(() => {
     async function initDatabase() {
       await runMigrations();
@@ -107,6 +117,56 @@ export default function RootLayout() {
         setDbReady(true); // Continue anyway to show error boundary
       });
   }, []);
+
+  // AppState listener for notification permission detection
+  useEffect(() => {
+    // Initialize permission status
+    (async () => {
+      try {
+        const { status } = await Notifications.getPermissionsAsync();
+        statusRef.current = status as 'granted' | 'denied' | 'undetermined';
+      } catch (error) {
+        console.error('Failed to get initial permission status:', error);
+      }
+    })();
+
+    // Listen for app state changes
+    const subscription = AppState.addEventListener(
+      'change',
+      async (nextAppState: AppStateStatus) => {
+        if (nextAppState === 'active') {
+          try {
+            const { status } = await Notifications.getPermissionsAsync();
+            const previousStatus = statusRef.current;
+
+            // Check if permission changed from not-granted to granted
+            if (previousStatus !== 'granted' && status === 'granted') {
+              // Check if already rewarded
+              if (!hasReward) {
+                // Award coins and show celebration
+                await awardCoins.mutateAsync({
+                  amount: 15,
+                  type: TransactionType.NOTIFICATION_PERMISSION,
+                  metadata: {
+                    source: 'settings_activation',
+                    detectedAt: new Date().toISOString(),
+                  },
+                });
+                setNotificationCelebration(true);
+              }
+            }
+
+            // Update status ref
+            statusRef.current = status as 'granted' | 'denied' | 'undetermined';
+          } catch (error) {
+            console.error('Failed to check permission status:', error);
+          }
+        }
+      }
+    );
+
+    return () => subscription.remove();
+  }, [hasReward, awardCoins]);
 
   if (!dbReady || !fontsLoaded) {
     return <LoadingScreen />;
@@ -129,9 +189,26 @@ export default function RootLayout() {
                   gestureEnabled: false,
                 }}
               />
+              <Stack.Screen
+                name="notification-permission"
+                options={{
+                  headerShown: false,
+                  gestureEnabled: false,
+                }}
+              />
             </Stack>
           </OnboardingGuard>
           <StatusBar style="auto" />
+
+          {/* Global notification celebration */}
+          <CelebrationDialog
+            visible={notificationCelebration}
+            title="Notificações Ativadas!"
+            subtitle="Agora você receberá lembretes importantes!"
+            coinsEarned={15}
+            autoDismissDelay={0}
+            onDismiss={() => setNotificationCelebration(false)}
+          />
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

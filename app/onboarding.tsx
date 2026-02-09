@@ -15,7 +15,7 @@ export default function OnboardingScreen() {
     setShowCelebration(true);
   };
 
-  const handleCelebrationComplete = () => {
+  const handleCelebrationDismiss = () => {
     setShowCelebration(false);
     router.push('/notification-permission');
   };
@@ -29,10 +29,10 @@ export default function OnboardingScreen() {
       />
       <CelebrationDialog
         visible={showCelebration}
-        onComplete={handleCelebrationComplete}
+        onDismiss={handleCelebrationDismiss}
         title="Parabéns!"
-        message="Você completou seu perfil!"
-        coins={0}
+        subtitle="Você completou seu perfil!"
+        coinsEarned={0}
       />
     </View>
   );
