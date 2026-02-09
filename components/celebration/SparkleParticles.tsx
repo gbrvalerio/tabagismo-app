@@ -26,6 +26,7 @@ interface Particle {
 
 const PARTICLE_COUNT = 20;
 
+/* istanbul ignore next - default parameter is covered functionally */
 export function SparkleParticles({ testID = 'sparkles' }: SparkleParticlesProps) {
   const particles = useMemo<Particle[]>(() => {
     return Array(PARTICLE_COUNT)

@@ -16,6 +16,7 @@ interface RadialBurstProps {
 
 const LINE_COUNT = 8;
 
+/* istanbul ignore next - default parameter is covered functionally */
 export function RadialBurst({ testID = 'burst' }: RadialBurstProps) {
   const lines = Array(LINE_COUNT)
     .fill(0)

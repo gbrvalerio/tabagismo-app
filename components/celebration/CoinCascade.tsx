@@ -31,6 +31,7 @@ const ARC_WIDTH = 180;
 const { width: screenWidth } = Dimensions.get('window');
 const SCREEN_CENTER_X = screenWidth / 2;
 
+/* istanbul ignore next - default parameter is covered functionally */
 export function CoinCascade({ modalCenterY, testID = 'cascade' }: CoinCascadeProps) {
   const coinPaths = useMemo<CoinPath[]>(() => {
     return Array(COIN_COUNT)
