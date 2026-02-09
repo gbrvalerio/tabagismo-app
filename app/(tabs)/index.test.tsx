@@ -19,12 +19,15 @@ jest.mock('@/db', () => ({
   useCompleteOnboarding: jest.fn(),
   useResetOnboarding: jest.fn(),
   useDeleteAllAnswers: jest.fn(),
+  useResetUserCoins: jest.fn(),
 }));
 
 const mockUseOnboardingStatus = useOnboardingStatus as jest.MockedFunction<typeof useOnboardingStatus>;
 const mockUseCompleteOnboarding = useCompleteOnboarding as jest.MockedFunction<typeof useCompleteOnboarding>;
 const mockUseResetOnboarding = useResetOnboarding as jest.MockedFunction<typeof useResetOnboarding>;
 const mockUseDeleteAllAnswers = useDeleteAllAnswers as jest.MockedFunction<typeof useDeleteAllAnswers>;
+const { useResetUserCoins } = require('@/db') as any;
+const mockUseResetUserCoins = useResetUserCoins as jest.MockedFunction<typeof useResetUserCoins>;
 
 // Helper to render with providers
 const renderHomeScreen = () => {
@@ -55,10 +58,20 @@ describe('HomeScreen', () => {
     status: 'idle',
   } as any;
 
+  const defaultResetCoinsMock = {
+    mutate: jest.fn(),
+    mutateAsync: jest.fn().mockResolvedValue(undefined),
+    isPending: false,
+    isError: false,
+    error: null,
+    status: 'idle',
+  } as any;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseResetOnboarding.mockReturnValue(defaultResetMock);
     mockUseDeleteAllAnswers.mockReturnValue(defaultDeleteAllAnswersMock);
+    mockUseResetUserCoins.mockReturnValue(defaultResetCoinsMock);
     mockReplace.mockClear();
   });
 
@@ -507,7 +520,7 @@ describe('HomeScreen', () => {
 
       expect(alertSpy).toHaveBeenCalledWith(
         'Refazer Onboarding',
-        'Deseja refazer o onboarding? Todas as suas respostas anteriores serão apagadas.',
+        'Deseja refazer o onboarding? Todas as suas respostas e moedas serão apagadas.',
         expect.arrayContaining([
           expect.objectContaining({ text: 'Cancelar', style: 'cancel' }),
           expect.objectContaining({ text: 'Refazer', style: 'destructive' }),
@@ -637,6 +650,72 @@ describe('HomeScreen', () => {
       renderHomeScreen();
 
       expect(mockUseCompleteOnboarding).toHaveBeenCalled();
+    });
+  });
+
+  describe('reset onboarding with transactions', () => {
+    it('should call useResetUserCoins when reset is confirmed', async () => {
+      const resetCoinsMutateAsync = jest.fn().mockResolvedValue(undefined);
+      const deleteAnswersMutateAsync = jest.fn().mockResolvedValue(undefined);
+      const resetMutateAsync = jest.fn().mockResolvedValue(undefined);
+
+      mockUseOnboardingStatus.mockReturnValue({
+        data: true,
+        isLoading: false,
+        error: null,
+        isError: false,
+        status: 'success',
+      } as any);
+
+      mockUseCompleteOnboarding.mockReturnValue({
+        mutate: jest.fn(),
+        isPending: false,
+        isError: false,
+        error: null,
+        status: 'idle',
+      } as any);
+
+      mockUseResetOnboarding.mockReturnValue({
+        mutate: jest.fn(),
+        mutateAsync: resetMutateAsync,
+        isPending: false,
+        isError: false,
+        error: null,
+        status: 'idle',
+      } as any);
+
+      mockUseDeleteAllAnswers.mockReturnValue({
+        mutate: jest.fn(),
+        mutateAsync: deleteAnswersMutateAsync,
+        isPending: false,
+        isError: false,
+        error: null,
+        status: 'idle',
+      } as any);
+
+      mockUseResetUserCoins.mockReturnValue({
+        mutate: jest.fn(),
+        mutateAsync: resetCoinsMutateAsync,
+        isPending: false,
+        isError: false,
+        error: null,
+        status: 'idle',
+      } as any);
+
+      const alertSpy = jest.spyOn(Alert, 'alert');
+
+      renderHomeScreen();
+
+      fireEvent.press(screen.getByTestId('reset-onboarding-button'));
+
+      const alertButtons = alertSpy.mock.calls[0][2] as any[];
+      const refazerButton = alertButtons.find((b: any) => b.text === 'Refazer');
+
+      await refazerButton.onPress();
+
+      expect(resetCoinsMutateAsync).toHaveBeenCalled();
+
+      alertSpy.mockRestore();
     });
   });
 });
