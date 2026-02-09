@@ -18,7 +18,7 @@ import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import "react-native-reanimated";
 
-import { OnboardingGuard } from "@/components/onboarding/OnboardingGuard";
+import { OnboardingGuard } from "@/components/question-flow/OnboardingGuard";
 import { runMigrations } from "@/db";
 import { db } from "@/db/client";
 import { questions } from "@/db/schema";

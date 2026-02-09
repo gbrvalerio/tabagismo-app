@@ -33,10 +33,10 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { CoinCounter } from "../onboarding/CoinCounter";
-import { CoinTrail } from "../onboarding/CoinTrail";
-import { QuestionInput } from "../onboarding/QuestionInput";
-import { QuestionText } from "../onboarding/QuestionText";
+import { CoinCounter } from "./CoinCounter";
+import { CoinTrail } from "./CoinTrail";
+import { QuestionInput } from "./QuestionInput";
+import { QuestionText } from "./QuestionText";
 
 import { animations } from "@/lib/theme/animations";
 import {

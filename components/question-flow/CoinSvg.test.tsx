@@ -12,7 +12,7 @@ jest.mock('@/assets/images/coin.svg', () => {
   return MockCoinIcon;
 });
 
-jest.mock('@/components/onboarding/GrayscaleCoinIcon', () => {
+jest.mock('@/components/question-flow/GrayscaleCoinIcon', () => {
   const { View } = require('react-native');
   const MockGrayscaleCoinIcon = (props: any) => <View {...props} testID={props.testID || 'grayscale-coin-icon'} />;
   MockGrayscaleCoinIcon.displayName = 'MockGrayscaleCoinIcon';

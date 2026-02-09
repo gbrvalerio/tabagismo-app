@@ -1,5 +1,5 @@
 import CoinIcon from "@/assets/images/coin.svg";
-import GrayscaleCoinIcon from "@/components/onboarding/GrayscaleCoinIcon";
+import GrayscaleCoinIcon from "@/components/question-flow/GrayscaleCoinIcon";
 import { StyleSheet, View } from "react-native";
 
 interface CoinSvgProps {

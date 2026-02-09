@@ -7,7 +7,7 @@ import {
   useSaveAnswer,
 } from "@/db/repositories";
 import { TransactionType , coinTransactions } from "@/db/schema";
-import { computeApplicableQuestions } from "@/lib/onboarding-flow";
+import { computeApplicableQuestions } from "@/lib/question-flow";
 import * as Haptics from "@/lib/haptics";
 import { db } from "@/db/client";
 import { eq, and, sql } from "drizzle-orm";
