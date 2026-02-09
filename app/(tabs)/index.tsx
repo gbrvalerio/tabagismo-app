@@ -12,7 +12,7 @@ export default function HomeScreen() {
   const { data: onboardingCompleted, isLoading } = useOnboardingStatus();
   const completeMutation = useCompleteOnboarding();
   const resetMutation = useResetOnboarding();
-  const deleteAllAnswersMutation = useDeleteAllAnswers();
+  const deleteAllAnswersMutation = useDeleteAllAnswers('onboarding');
   const resetCoinsMutation = useResetUserCoins();
   const router = useRouter();
 

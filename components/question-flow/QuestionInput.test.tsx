@@ -26,6 +26,7 @@ jest.mock('react-native-reanimated', () => {
 
 const makeQuestion = (overrides: Partial<Question>): Question => ({
   id: 1,
+  context: 'onboarding',
   key: 'test',
   order: 1,
   type: 'TEXT',
