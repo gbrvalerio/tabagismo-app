@@ -341,3 +341,52 @@ describe('useHasQuestionReward', () => {
     expect(result.current.data).toBe(true);
   });
 });
+
+describe('useResetUserCoins', () => {
+  beforeEach(async () => {
+    await db.delete(coinTransactions).execute();
+  });
+
+  it('should delete all transactions and reset balance to 0', async () => {
+    // Create some transactions
+    await db.insert(coinTransactions).values([
+      { amount: 1, type: 'onboarding_answer', metadata: '{"questionKey":"q1"}' },
+      { amount: 2, type: 'onboarding_answer', metadata: '{"questionKey":"q2"}' },
+      { amount: 3, type: 'bonus', metadata: null },
+    ]);
+
+    const { result } = renderHook(
+      () => ({
+        coins: useUserCoins(),
+        reset: useResetUserCoins(),
+      }),
+      { wrapper: createWrapper() }
+    );
+
+    await waitFor(() => expect(result.current.coins.isSuccess).toBe(true));
+    expect(result.current.coins.data).toBe(6);
+
+    await act(async () => {
+      await result.current.reset.mutateAsync();
+    });
+
+    await waitFor(() => expect(result.current.coins.data).toBe(0));
+
+    // Verify transactions were deleted
+    const transactions = await db.select().from(coinTransactions).all();
+    expect(transactions.length).toBe(0);
+  });
+
+  it('should handle empty transaction table', async () => {
+    const { result } = renderHook(() => useResetUserCoins(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync();
+    });
+
+    const transactions = await db.select().from(coinTransactions).all();
+    expect(transactions.length).toBe(0);
+  });
+});

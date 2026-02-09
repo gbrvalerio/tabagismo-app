@@ -3,7 +3,12 @@ import { sql, eq, and } from 'drizzle-orm';
 import { db } from '../client';
 import { coinTransactions, TransactionType } from '../schema';
 
-export function useUserCoins() {
+/**
+ * Get user's total coins from transaction ledger
+ * This is the new implementation that sums from coin_transactions table
+ * @deprecated For now, export as separate function to avoid naming conflict with users.repository
+ */
+export function useUserCoinsFromTransactions() {
   return useQuery({
     queryKey: ['users', 'coins'],
     queryFn: async () => {
@@ -16,6 +21,14 @@ export function useUserCoins() {
       return result?.total ?? 0;
     },
   });
+}
+
+/**
+ * Get user's total coins from transaction ledger
+ * Alias for useUserCoinsFromTransactions for cleaner API
+ */
+export function useUserCoins() {
+  return useUserCoinsFromTransactions();
 }
 
 export function useAwardCoins() {

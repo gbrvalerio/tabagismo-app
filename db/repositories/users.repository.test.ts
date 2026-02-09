@@ -42,12 +42,12 @@ const createWrapper = () => {
   };
 };
 
-describe('users.repository', () => {
+describe('users.repository (DEPRECATED)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('useUserCoins', () => {
+  describe('useUserCoins (deprecated)', () => {
     it('should return 0 when no user exists', async () => {
       const mockGet = jest.fn().mockResolvedValue(undefined);
       const mockFrom = jest.fn(() => ({ get: mockGet }));
@@ -83,7 +83,7 @@ describe('users.repository', () => {
     });
   });
 
-  describe('useIncrementCoins', () => {
+  describe('useIncrementCoins (deprecated)', () => {
     it('should increment coins when user exists', async () => {
       const mockGet = jest.fn().mockResolvedValue({ id: 1, coins: 3 });
       const mockFrom = jest.fn(() => ({ get: mockGet }));

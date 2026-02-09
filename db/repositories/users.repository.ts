@@ -3,6 +3,10 @@ import { sql } from 'drizzle-orm';
 import { db } from '../client';
 import { users } from '../schema';
 
+/**
+ * @deprecated Use useUserCoins from coin-transactions.repository.ts instead
+ * This hook reads from the deprecated users.coins field
+ */
 export function useUserCoins() {
   return useQuery({
     queryKey: ['users', 'coins'],
@@ -13,6 +17,10 @@ export function useUserCoins() {
   });
 }
 
+/**
+ * @deprecated Use useAwardCoins from coin-transactions.repository.ts instead
+ * This hook updates the deprecated users.coins field directly
+ */
 export function useIncrementCoins() {
   const queryClient = useQueryClient();
 
