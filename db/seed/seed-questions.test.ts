@@ -74,6 +74,12 @@ describe('onboardingQuestionsData', () => {
   });
 });
 
+describe('seed-questions - context field', () => {
+  it('onboardingQuestionsData should include context field', () => {
+    expect(onboardingQuestionsData.every(q => q.context === 'onboarding')).toBe(true);
+  });
+});
+
 describe('seedOnboardingQuestions', () => {
   beforeEach(() => {
     jest.clearAllMocks();

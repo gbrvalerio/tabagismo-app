@@ -1,4 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
+import { getTableConfig } from 'drizzle-orm/sqlite-core';
 import { questionAnswers, getDefaultAnsweredAt, getDefaultAnswerUpdatedAt } from './question-answers';
 
 describe('questionAnswers schema', () => {
@@ -49,11 +50,13 @@ describe('questionAnswers schema', () => {
   });
 
   it('should have a unique index on context, questionKey, userId', () => {
-    const tableConfig = questionAnswers._.config;
-    const indexes = Object.values(tableConfig.indexes ?? {});
-    const uniqueIdx = indexes.find(
-      (idx: any) => idx.config.unique === true
+    const config = getTableConfig(questionAnswers);
+    const uniqueIdx = config.indexes.find(
+      (idx) => idx.config.name === 'question_answers_context_key_user_unique'
     );
     expect(uniqueIdx).toBeDefined();
+    expect(uniqueIdx!.config.unique).toBe(true);
+    const columnNames = uniqueIdx!.config.columns.map((c) => c.name);
+    expect(columnNames).toEqual(['context', 'question_key', 'user_id']);
   });
 });

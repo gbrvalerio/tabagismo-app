@@ -1,10 +1,11 @@
 import { db } from "../client";
-import { questions } from "../schema";
+import { questions } from "../schema/questions";
 import type { NewQuestion } from "../schema/questions";
 import { QuestionCategory, QuestionType } from "../schema/questions";
 
 export const onboardingQuestionsData: NewQuestion[] = [
   {
+    context: "onboarding",
     key: "name",
     order: 1,
     type: QuestionType.TEXT,
@@ -14,6 +15,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     metadata: {},
   },
   {
+    context: "onboarding",
     key: "gender",
     order: 2,
     type: QuestionType.SINGLE_CHOICE,
@@ -23,6 +25,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     metadata: { choices: ["Masculino", "Feminino", "Outro"] },
   },
   {
+    context: "onboarding",
     key: "age",
     order: 3,
     type: QuestionType.SINGLE_CHOICE,
@@ -32,6 +35,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     metadata: { choices: ["12-17", "18-24", "25-44", "45-64", "65+"] },
   },
   {
+    context: "onboarding",
     key: "addiction_type",
     order: 4,
     type: QuestionType.SINGLE_CHOICE,
@@ -41,6 +45,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     metadata: { choices: ["Cigarro/Tabaco", "Pod/Vape"] },
   },
   {
+    context: "onboarding",
     key: "cigarettes_per_day",
     order: 5,
     type: QuestionType.SINGLE_CHOICE,
@@ -59,6 +64,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     },
   },
   {
+    context: "onboarding",
     key: "cigarretes_cost",
     order: 6,
     type: QuestionType.SINGLE_CHOICE,
@@ -72,6 +78,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     },
   },
   {
+    context: "onboarding",
     key: "pod_duration_days",
     order: 7,
     type: QuestionType.SINGLE_CHOICE,
@@ -85,6 +92,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     },
   },
   {
+    context: "onboarding",
     key: "pod_cost",
     order: 8,
     type: QuestionType.SINGLE_CHOICE,
@@ -98,6 +106,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     },
   },
   {
+    context: "onboarding",
     key: "years_smoking",
     order: 9,
     type: QuestionType.SINGLE_CHOICE,
@@ -115,6 +124,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     },
   },
   {
+    context: "onboarding",
     key: "quit_attempts",
     order: 10,
     type: QuestionType.SINGLE_CHOICE,
@@ -126,6 +136,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     },
   },
   {
+    context: "onboarding",
     key: "stop_smoking_date",
     order: 11,
     type: QuestionType.SINGLE_CHOICE,
@@ -143,6 +154,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     },
   },
   {
+    context: "onboarding",
     key: "goals",
     order: 12,
     type: QuestionType.MULTIPLE_CHOICE,
@@ -161,6 +173,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     },
   },
   {
+    context: "onboarding",
     key: "main_fears_and_concerns",
     order: 13,
     type: QuestionType.MULTIPLE_CHOICE,
@@ -182,6 +195,7 @@ export const onboardingQuestionsData: NewQuestion[] = [
     },
   },
   {
+    context: "onboarding",
     key: "religion",
     order: 14,
     type: QuestionType.SINGLE_CHOICE,
