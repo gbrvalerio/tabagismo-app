@@ -22,6 +22,7 @@ jest.mock('react-native-reanimated', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View } = require('react-native');
   return {
+    __esModule: true,
     default: {
       View,
     },
@@ -37,6 +38,14 @@ jest.mock('react-native-reanimated', () => {
 
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+const mockPush = jest.fn();
+jest.mock('expo-router', () => ({
+  useRouter: () => ({
+    push: mockPush,
+    replace: jest.fn(),
+  }),
 }));
 
 jest.mock('@/db/repositories/onboarding-slides.repository', () => ({
@@ -445,5 +454,95 @@ describe('OnboardingSlidesScreen', () => {
     });
 
     expect(Haptics.impactAsync).toHaveBeenCalledWith(Haptics.ImpactFeedbackStyle.Light);
+  });
+
+  it('should NOT show skip button on slide 1', async () => {
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { queryByText } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(queryByText('Pular')).toBeNull();
+    });
+  });
+
+  it('should show skip button on slide 2', async () => {
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getByTestId, findByText } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    // Scroll to slide 2
+    const flatlist = getByTestId('slides-flatlist');
+    fireEvent(flatlist, 'onMomentumScrollEnd', {
+      nativeEvent: {
+        contentOffset: { x: 400 },
+        layoutMeasurement: { width: 400 },
+      },
+    });
+
+    const skipButton = await findByText('Pular');
+    expect(skipButton).toBeTruthy();
+  });
+
+  it('should call markCompleted and navigate on skip', async () => {
+    const mockMutateAsync = jest.fn().mockResolvedValue(undefined);
+    (repository.useMarkSlidesCompleted as jest.Mock).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+      isPending: false,
+    });
+
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getByTestId, findByText } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    // Scroll to slide 2
+    const flatlist = getByTestId('slides-flatlist');
+    fireEvent(flatlist, 'onMomentumScrollEnd', {
+      nativeEvent: {
+        contentOffset: { x: 400 },
+        layoutMeasurement: { width: 400 },
+      },
+    });
+
+    const skipButton = await findByText('Pular');
+    fireEvent.press(skipButton);
+
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith('/onboarding');
+    });
   });
 });
