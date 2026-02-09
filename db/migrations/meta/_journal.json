@@ -36,6 +36,27 @@
       "when": 1770597047170,
       "tag": "0004_wealthy_gertrude_yorkes",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1770597050000,
+      "tag": "0005_backfill_transactions",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1770597053000,
+      "tag": "0006_cleanup_old_coin_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1770601361035,
+      "tag": "0007_genericize_questions",
+      "breakpoints": true
     }
   ]
 }
