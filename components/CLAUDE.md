@@ -214,6 +214,117 @@ Located in `onboarding/inputs/`. All use Poppins typography and design tokens fr
 
 ---
 
+## Celebration Components
+
+Gamified celebration dialog for milestone achievements. Located in `components/celebration/`.
+
+### CelebrationDialog
+
+**File:** `celebration/CelebrationDialog.tsx`
+
+Orchestrator component that displays animated celebration modal with coin cascade, slot machine counter, radial burst, and sparkle particles. Uses "Arcade Explosion" aesthetic with coordinated animations.
+
+```typescript
+import { CelebrationDialog } from '@/components/celebration';
+
+<CelebrationDialog
+  visible={showCelebration}
+  onDismiss={() => setShowCelebration(false)}
+  title="5 Dias Sem Fumar!"
+  subtitle="Continue assim!"
+  coinsEarned={25}
+  autoDismissDelay={5000}
+/>
+```
+
+**Props:**
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `visible` | `boolean` | — | Controls modal visibility (required) |
+| `onDismiss` | `() => void` | — | Callback when user dismisses modal (required) |
+| `title` | `string` | — | Main celebration text (required) |
+| `subtitle` | `string` | — | Optional secondary text |
+| `coinsEarned` | `number` | — | Number of coins to display in counter (required) |
+| `autoDismissDelay` | `number` | `5000` | Auto-dismiss delay in milliseconds |
+| `testID` | `string` | `'celebration-dialog'` | Test identifier |
+
+**Animations:**
+- Modal bounce in with spring physics (100ms delay, damping: 12)
+- Radial burst expand + rotate (200ms delay, 700ms duration)
+- Coin cascade in parabolic arcs (300ms delay, staggered 50ms per coin)
+- Sparkle particles scatter (300ms delay, 800-1200ms lifespan)
+- Title letter-by-letter bounce (500ms delay, staggered 30ms per letter)
+- Slot machine counter flip (800ms delay, 400ms duration)
+- Button glow pulse (1000ms delay, infinite loop)
+
+**Auto-Dismiss Behavior:**
+- Timer starts when `visible` becomes `true`
+- Timer cancels on any user interaction (overlay tap, card tap, button press)
+- Timer does NOT reset after cancellation (one-time countdown)
+- Timer cleans up on unmount
+
+**Haptic Feedback:**
+- Success notification on modal open (100ms)
+- Medium impact on each coin landing (staggered 300-900ms)
+- Light impact on button press and auto-dismiss
+
+### Sub-Components
+
+#### CoinCascade
+
+**File:** `celebration/CoinCascade.tsx`
+
+12 coins rain down in semi-circular fan pattern with parabolic physics.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `modalCenterY` | `number` | Y coordinate for coins to land at |
+| `testID` | `string` | Test identifier |
+
+**Animation:** Parabolic arc with rotation, motion blur (shadow), landing bounce
+
+#### SlotMachineCounter
+
+**File:** `celebration/SlotMachineCounter.tsx`
+
+Animated number counter with digit reels that flip like slot machine.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `value` | `number` | Number to display (0-999+) |
+| `testID` | `string` | Test identifier |
+
+**Animation:** Plus symbol fades in first, digits flip right-to-left with spring overshoot
+
+#### RadialBurst
+
+**File:** `celebration/RadialBurst.tsx`
+
+8 geometric rays shoot outward from modal center.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `testID` | `string` | Test identifier |
+
+**Animation:** Scale expands (0 → 1.5 → 1.0), rotates 15°, opacity flashes (0 → 0.6 → 0.3)
+
+#### SparkleParticles
+
+**File:** `celebration/SparkleParticles.tsx`
+
+20 confetti-like sparkles scatter randomly around modal.
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `testID` | `string` | Test identifier |
+
+**Animation:** Circular scatter, fade in/out, spring scale, rotation
+
+**Color Distribution:** 60% gold, 25% orange, 15% teal
+
+---
+
 ## Design System Components (Planned)
 
 Components being added as part of the gamified design system:
