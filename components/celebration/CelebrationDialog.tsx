@@ -53,6 +53,7 @@ export function CelebrationDialog({
 }: CelebrationDialogProps) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isInteracted, setIsInteracted] = useState(false);
+  const [modalCenterY, setModalCenterY] = useState(screenHeight / 2);
 
   const overlayOpacity = useSharedValue(0);
   const modalScale = useSharedValue(0);
@@ -141,6 +142,13 @@ export function CelebrationDialog({
     clearAutoDismissTimer();
   };
 
+  const handleModalLayout = useCallback((event: any) => {
+    const { y, height } = event.nativeEvent.layout;
+    // Calculate the center Y position of the modal card
+    const centerY = y + height / 2;
+    setModalCenterY(centerY);
+  }, []);
+
   const overlayStyle = useAnimatedStyle(() => ({
     opacity: overlayOpacity.value,
   }));
@@ -162,8 +170,6 @@ export function CelebrationDialog({
 
   if (!visible) return null;
 
-  const modalCenterY = screenHeight / 2;
-
   return (
     <Modal transparent visible={visible} animationType="none">
       <Pressable
@@ -173,7 +179,10 @@ export function CelebrationDialog({
       >
         <Animated.View style={[styles.overlay, overlayStyle]}>
           <Pressable onPress={handleUserInteraction} testID={`${testID}-card`}>
-            <Animated.View style={[styles.modalCard, modalStyle]}>
+            <Animated.View
+              style={[styles.modalCard, modalStyle]}
+              onLayout={handleModalLayout}
+            >
               <RadialBurst testID={`${testID}-burst`} />
               <SparkleParticles testID={`${testID}-sparkles`} />
 
