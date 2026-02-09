@@ -253,4 +253,59 @@ describe('CelebrationDialog', () => {
 
     jest.useRealTimers();
   });
+
+  it('sets up counter position measurement on layout', async () => {
+    // Test that counter container has layout handler and ref
+    const { getByTestId } = render(
+      <CelebrationDialog
+        visible={true}
+        onDismiss={() => {}}
+        title="Title"
+        coinsEarned={25}
+        testID="dialog"
+      />
+    );
+
+    const counterContainer = getByTestId('dialog-counter-container');
+
+    // Verify counter container exists and has onLayout prop
+    expect(counterContainer).toBeTruthy();
+    expect(counterContainer.props.onLayout).toBeDefined();
+  });
+
+  it('renders backdrop that fills entire screen width and height', () => {
+    const { getByTestId } = render(
+      <CelebrationDialog
+        visible={true}
+        onDismiss={() => {}}
+        title="Title"
+        coinsEarned={25}
+        testID="dialog"
+      />
+    );
+
+    const backdrop = getByTestId('dialog-backdrop');
+
+    // The overlay should have style properties that make it fill the screen
+    // In React Native, flex: 1 alone with centered alignment doesn't work
+    // We need explicit width/height or proper parent alignment
+    const overlayStyle = backdrop.props.style;
+    const flatStyle = Array.isArray(overlayStyle)
+      ? Object.assign({}, ...overlayStyle.flat(Infinity))
+      : overlayStyle;
+
+    // Check that overlay has either:
+    // - width: '100%' AND height: '100%', OR
+    // - position: 'absolute' with all edges defined
+    const hasFullWidth = flatStyle.width === '100%';
+    const hasFullHeight = flatStyle.height === '100%';
+    const isAbsoluteFullScreen =
+      flatStyle.position === 'absolute' &&
+      flatStyle.top === 0 &&
+      flatStyle.bottom === 0 &&
+      flatStyle.left === 0 &&
+      flatStyle.right === 0;
+
+    expect(hasFullWidth && hasFullHeight || isAbsoluteFullScreen).toBe(true);
+  });
 });

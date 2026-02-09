@@ -1,34 +1,34 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import * as Haptics from "@/lib/haptics";
 import {
+  borderRadius,
+  colors,
+  shadows,
+  spacing,
+  typographyPresets,
+} from "@/lib/theme/tokens";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Dimensions,
   Modal,
-  View,
-  Text,
   Pressable,
   StyleSheet,
-  Dimensions,
-} from 'react-native';
+  Text,
+  View,
+} from "react-native";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withSpring,
-  withTiming,
+  useSharedValue,
   withDelay,
   withRepeat,
   withSequence,
-} from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import * as Haptics from '@/lib/haptics';
-import {
-  colors,
-  spacing,
-  borderRadius,
-  shadows,
-  typographyPresets,
-} from '@/lib/theme/tokens';
-import { RadialBurst } from './RadialBurst';
-import { SparkleParticles } from './SparkleParticles';
-import { CoinCascade } from './CoinCascade';
-import { SlotMachineCounter } from './SlotMachineCounter';
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
+import { CoinCascade } from "./CoinCascade";
+import { RadialBurst } from "./RadialBurst";
+import { SlotMachineCounter } from "./SlotMachineCounter";
+import { SparkleParticles } from "./SparkleParticles";
 
 export interface CelebrationDialogProps {
   visible: boolean;
@@ -40,7 +40,7 @@ export interface CelebrationDialogProps {
   testID?: string;
 }
 
-const { height: screenHeight } = Dimensions.get('window');
+const { height: screenHeight } = Dimensions.get("window");
 
 export function CelebrationDialog({
   visible,
@@ -49,13 +49,12 @@ export function CelebrationDialog({
   subtitle,
   coinsEarned,
   autoDismissDelay = 5000,
-  testID = 'celebration-dialog',
+  testID = "celebration-dialog",
 }: CelebrationDialogProps) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const modalRef = useRef<View>(null);
   const [isInteracted, setIsInteracted] = useState(false);
-  const [modalCenterY, setModalCenterY] = useState(screenHeight / 2);
-
+  const [coinLandingY, setModalCenterY] = useState(screenHeight / 2);
+  const buttonRef = useRef<View>(null);
   const overlayOpacity = useSharedValue(0);
   const modalScale = useSharedValue(0);
   const modalTranslateY = useSharedValue(50);
@@ -81,7 +80,7 @@ export function CelebrationDialog({
         handleDismiss();
       }
     }, autoDismissDelay);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clearAutoDismissTimer, handleDismiss, autoDismissDelay]);
 
   useEffect(() => {
@@ -101,7 +100,7 @@ export function CelebrationDialog({
           damping: 12,
           stiffness: 200,
           overshootClamping: false,
-        })
+        }),
       );
 
       modalTranslateY.value = withDelay(
@@ -109,7 +108,7 @@ export function CelebrationDialog({
         withSpring(0, {
           damping: 12,
           stiffness: 200,
-        })
+        }),
       );
 
       // Button glow pulse starts after 1 second
@@ -118,11 +117,11 @@ export function CelebrationDialog({
         withRepeat(
           withSequence(
             withTiming(0.6, { duration: 800 }),
-            withTiming(0.3, { duration: 800 })
+            withTiming(0.3, { duration: 800 }),
           ),
           -1,
-          true
-        )
+          true,
+        ),
       );
 
       startAutoDismissTimer();
@@ -143,14 +142,11 @@ export function CelebrationDialog({
     clearAutoDismissTimer();
   };
 
-  const handleModalLayout = useCallback(() => {
-    // Use measureInWindow to get absolute screen position
-    // setTimeout ensures the layout has been committed
+  const handleCounterLayout = useCallback(() => {
+    // Measure counter position for accurate coin landing
     setTimeout(() => {
-      modalRef.current?.measureInWindow((_x, y, _width, height) => {
-        // Calculate the center Y position of the modal card on screen
-        const centerY = y + height / 2;
-        setModalCenterY(centerY);
+      buttonRef.current?.measure((_x, y) => {
+        setModalCenterY(y - 20);
       });
     }, 0);
   }, []);
@@ -183,13 +179,12 @@ export function CelebrationDialog({
         onPress={handleDismiss}
         testID={`${testID}-overlay`}
       >
-        <Animated.View style={[styles.overlay, overlayStyle]}>
+        <Animated.View
+          style={[styles.overlay, overlayStyle]}
+          testID={`${testID}-backdrop`}
+        >
           <Pressable onPress={handleUserInteraction} testID={`${testID}-card`}>
-            <Animated.View
-              ref={modalRef}
-              style={[styles.modalCard, modalStyle]}
-              onLayout={handleModalLayout}
-            >
+            <Animated.View style={[styles.modalCard, modalStyle]}>
               <RadialBurst testID={`${testID}-burst`} />
               <SparkleParticles testID={`${testID}-sparkles`} />
 
@@ -198,19 +193,24 @@ export function CelebrationDialog({
               {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
 
               <CoinCascade
-                modalCenterY={modalCenterY}
+                landingY={coinLandingY}
                 testID={`${testID}-cascade`}
               />
 
-              <View style={styles.counterContainer}>
+              <View
+                style={styles.counterContainer}
+                testID={`${testID}-counter-container`}
+                onLayout={handleCounterLayout}
+              >
                 <SlotMachineCounter
                   value={coinsEarned}
                   testID={`${testID}-counter`}
                 />
               </View>
 
-              <Animated.View style={buttonGlowStyle}>
+              <Animated.View ref={buttonRef} style={buttonGlowStyle}>
                 <Pressable
+                  ref={buttonRef}
                   style={
                     /* istanbul ignore next - render prop pressed state is not testable in RN Testing Library */
                     ({ pressed }) => [
@@ -246,38 +246,40 @@ export function CelebrationDialog({
 const styles = StyleSheet.create({
   overlayPressable: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(26, 26, 46, 0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(26, 26, 46, 0.85)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalCard: {
     backgroundColor: colors.neutral.white,
     borderRadius: borderRadius.xl,
     paddingVertical: spacing.xxl,
     paddingHorizontal: spacing.xl,
-    width: '85%',
+    width: "85%",
     maxWidth: 400,
-    alignItems: 'center',
+    alignItems: "center",
     ...shadows.xl,
     borderWidth: 2,
     borderColor: colors.accent.gold,
-    overflow: 'visible',
+    overflow: "visible",
   },
   title: {
     ...typographyPresets.hero,
     color: colors.primary.base,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: spacing.sm,
   },
   subtitle: {
     ...typographyPresets.body,
     color: colors.neutral.gray[600],
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: spacing.lg,
   },
   counterContainer: {
@@ -286,7 +288,8 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: borderRadius.lg,
-    overflow: 'hidden',
+    overflow: "hidden",
+    marginTop: spacing.xxl,
   },
   buttonPressed: {
     opacity: 0.9,
@@ -295,7 +298,7 @@ const styles = StyleSheet.create({
   buttonGradient: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl * 1.5,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonText: {
     ...typographyPresets.button,

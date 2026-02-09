@@ -39,7 +39,7 @@ jest.mock('@/lib/haptics', () => ({
 describe('CoinCascade', () => {
   it('renders 12 coins', () => {
     const { getAllByTestId } = render(
-      <CoinCascade modalCenterY={400} testID="cascade" />
+      <CoinCascade landingY={400} testID="cascade" />
     );
     // Each coin creates 2 testIDs (coin + glow wrapper), so we should have 24 total
     const allCoinElements = getAllByTestId(/cascade-coin-/);
@@ -54,7 +54,7 @@ describe('CoinCascade', () => {
 
   it('uses AnimatedCoin component', () => {
     const { getAllByTestId } = render(
-      <CoinCascade modalCenterY={400} testID="cascade" />
+      <CoinCascade landingY={400} testID="cascade" />
     );
     const coins = getAllByTestId(/cascade-coin-/);
     expect(coins.length).toBeGreaterThan(0);

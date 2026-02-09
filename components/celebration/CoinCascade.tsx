@@ -1,19 +1,19 @@
-import React, { useEffect, useMemo } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { AnimatedCoin } from "@/components/question-flow/AnimatedCoin";
+import * as Haptics from "@/lib/haptics";
+import React, { useEffect, useMemo } from "react";
+import { Dimensions, StyleSheet, View } from "react-native";
 import Animated, {
-  useSharedValue,
+  Easing,
+  runOnJS,
   useAnimatedStyle,
+  useSharedValue,
   withDelay,
   withSequence,
   withTiming,
-  Easing,
-  runOnJS,
-} from 'react-native-reanimated';
-import { AnimatedCoin } from '@/components/question-flow/AnimatedCoin';
-import * as Haptics from '@/lib/haptics';
+} from "react-native-reanimated";
 
 interface CoinCascadeProps {
-  modalCenterY: number;
+  landingY: number;
   testID?: string;
 }
 
@@ -28,11 +28,14 @@ interface CoinPath {
 
 const COIN_COUNT = 12;
 const ARC_WIDTH = 180;
-const { width: screenWidth } = Dimensions.get('window');
-const SCREEN_CENTER_X = screenWidth / 2;
+const { width: screenWidth } = Dimensions.get("window");
+const SCREEN_CENTER_X = screenWidth / 2 - 62;
 
 /* istanbul ignore next - default parameter is covered functionally */
-export function CoinCascade({ modalCenterY, testID = 'cascade' }: CoinCascadeProps) {
+export function CoinCascade({
+  landingY,
+  testID = "cascade",
+}: CoinCascadeProps) {
   const coinPaths = useMemo<CoinPath[]>(() => {
     return Array(COIN_COUNT)
       .fill(0)
@@ -44,15 +47,15 @@ export function CoinCascade({ modalCenterY, testID = 'cascade' }: CoinCascadePro
           startX: SCREEN_CENTER_X + Math.sin(angleRad) * 120,
           startY: -50,
           endX: SCREEN_CENTER_X + Math.sin(angleRad) * 80,
-          endY: modalCenterY,
+          endY: landingY,
           rotation: angle * 2,
           delay: index * 50,
         };
       });
-  }, [modalCenterY]);
+  }, [landingY]);
 
   return (
-    <View style={styles.container} pointerEvents="none">
+    <View style={styles.container} pointerEvents="none" testID={testID}>
       {coinPaths.map((path, index) => (
         <FallingCoin
           key={index}
@@ -85,10 +88,7 @@ function FallingCoin({ path, testID }: FallingCoinProps) {
     const duration = 600;
 
     // Fade in
-    opacity.value = withDelay(
-      path.delay,
-      withTiming(1, { duration: 100 })
-    );
+    opacity.value = withDelay(path.delay, withTiming(1, { duration: 100 }));
 
     // Parabolic X movement
     translateX.value = withDelay(
@@ -96,25 +96,29 @@ function FallingCoin({ path, testID }: FallingCoinProps) {
       withTiming(path.endX, {
         duration,
         easing: Easing.out(Easing.quad),
-      })
+      }),
     );
 
     // Parabolic Y movement (gravity)
     translateY.value = withDelay(
       path.delay,
-      withTiming(path.endY, {
-        duration,
-        easing: Easing.in(Easing.quad),
-      }, () => {
-        // Landing bounce
-        scale.value = withSequence(
-          withTiming(1.2, { duration: 100 }),
-          withTiming(1.0, { duration: 100 })
-        );
+      withTiming(
+        path.endY,
+        {
+          duration,
+          easing: Easing.in(Easing.quad),
+        },
+        () => {
+          // Landing bounce
+          scale.value = withSequence(
+            withTiming(1.2, { duration: 100 }),
+            withTiming(1.0, { duration: 100 }),
+          );
 
-        // Haptic feedback on landing
-        runOnJS(triggerHaptic)();
-      })
+          // Haptic feedback on landing
+          runOnJS(triggerHaptic)();
+        },
+      ),
     );
 
     // Rotation during fall
@@ -123,7 +127,7 @@ function FallingCoin({ path, testID }: FallingCoinProps) {
       withTiming(path.rotation, {
         duration,
         easing: Easing.linear,
-      })
+      }),
     );
 
     // Motion blur (shadow)
@@ -131,8 +135,8 @@ function FallingCoin({ path, testID }: FallingCoinProps) {
       path.delay,
       withSequence(
         withTiming(8, { duration: duration / 2 }),
-        withTiming(4, { duration: duration / 2 })
-      )
+        withTiming(4, { duration: duration / 2 }),
+      ),
     );
   }, [path, translateX, translateY, rotation, scale, opacity, shadowRadius]);
 
@@ -147,7 +151,7 @@ function FallingCoin({ path, testID }: FallingCoinProps) {
   }));
 
   const shadowStyle = useAnimatedStyle(() => ({
-    shadowColor: '#F7A531',
+    shadowColor: "#F7A531",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: shadowRadius.value,
@@ -168,11 +172,11 @@ function FallingCoin({ path, testID }: FallingCoinProps) {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
+    position: "absolute",
+    width: "100%",
+    height: "100%",
   },
   coin: {
-    position: 'absolute',
+    position: "absolute",
   },
 });
