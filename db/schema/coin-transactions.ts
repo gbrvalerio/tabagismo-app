@@ -21,4 +21,5 @@ export enum TransactionType {
   DAILY_REWARD = 'daily_reward',
   PURCHASE = 'purchase',
   BONUS = 'bonus',
+  NOTIFICATION_PERMISSION = 'notification_permission',
 }

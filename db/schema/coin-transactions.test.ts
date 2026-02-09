@@ -34,6 +34,10 @@ describe('coinTransactions schema', () => {
     expect(TransactionType.BONUS).toBe('bonus');
   });
 
+  it('should include NOTIFICATION_PERMISSION type', () => {
+    expect(TransactionType.NOTIFICATION_PERMISSION).toBe('notification_permission');
+  });
+
   it('should use QUESTION_ANSWER type in transaction objects', () => {
     type CoinTransaction = typeof coinTransactions.$inferSelect;
 
