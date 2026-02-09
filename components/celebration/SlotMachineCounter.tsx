@@ -72,13 +72,13 @@ interface DigitReelProps {
 
 function DigitReel({ targetDigit, delay, testID }: DigitReelProps) {
   const digitHeight = 40;
-  const translateY = useSharedValue(-digitHeight * 10);
+  const translateY = useSharedValue(0);
 
   useEffect(() => {
     translateY.value = withDelay(
       delay,
       withSequence(
-        withTiming(-digitHeight * (targetDigit - 1), {
+        withTiming(-digitHeight * targetDigit + digitHeight, {
           duration: 300,
           easing: Easing.out(Easing.cubic),
         }),
@@ -134,6 +134,7 @@ const styles = StyleSheet.create({
   digit: {
     ...typographyPresets.coinCounter,
     fontSize: 32,
+    lineHeight: 40,
     color: colors.neutral.white,
     textAlign: 'center',
     minWidth: 20,
