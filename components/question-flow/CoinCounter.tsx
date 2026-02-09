@@ -16,7 +16,7 @@ interface CoinCounterProps {
 }
 
 export function CoinCounter({ testID }: CoinCounterProps) {
-  const { data: coins = 0 } = useUserCoins();
+  const { data: coins = 0, isLoading } = useUserCoins();
   const scale = useSharedValue(1);
 
   useEffect(() => {
@@ -32,6 +32,9 @@ export function CoinCounter({ testID }: CoinCounterProps) {
     transform: [{ scale: scale.value }],
   }));
 
+  // Ensure we always display a number
+  const displayValue = isLoading ? '...' : String(coins);
+
   return (
     <Animated.View testID={testID} style={animatedStyle}>
       <LinearGradient
@@ -42,7 +45,7 @@ export function CoinCounter({ testID }: CoinCounterProps) {
         style={styles.container}
       >
         <CoinSvg size={24} variant="filled" />
-        <Text style={styles.count}>{coins}</Text>
+        <Text style={styles.count}>{displayValue}</Text>
       </LinearGradient>
     </Animated.View>
   );
