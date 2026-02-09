@@ -351,7 +351,11 @@ The onboarding screen is a full-screen modal (`gestureEnabled: false`) that appe
 
 **Guard:** `OnboardingGuard` component wraps the `Stack` and checks `useOnboardingStatus()`. If onboarding is not completed, it redirects via `router.replace('/onboarding')`.
 
+**Implementation:** The onboarding screen uses `QuestionFlowContainer` with `context="onboarding"`. The container handles question display, answer saving, navigation, and coin awards generically.
+
 **Completion:** When the user answers the last question and taps "Concluir", `useCompleteOnboarding()` is called which sets the `onboardingCompleted` setting to `true`, then navigates to `/(tabs)` via `router.replace`.
+
+**Flow engine:** `lib/question-flow.ts` provides `computeApplicableQuestions()` and `calculateProgress()` for filtering conditional questions and tracking progress.
 
 ---
 

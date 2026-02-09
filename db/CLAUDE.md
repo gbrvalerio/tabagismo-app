@@ -217,8 +217,8 @@ export default function UsersScreen() {
 ['users', 'search']                   // Search results
 ['settings', 'theme']                 // Specific setting
 ['settings', 'onboardingCompleted']   // Onboarding status
-['onboarding', 'questions']           // All onboarding questions
-['onboarding', 'answers']             // All onboarding answers
+['questions', context]                // Questions by context (e.g., 'onboarding')
+['answers', context]                  // Answers by context
 ```
 
 **Why scoped?** TanStack Query uses keys for caching and invalidation.
@@ -396,17 +396,18 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 /db
   /schema
     /settings.ts              # Settings table schema
-    /questions.ts             # Questions table + QuestionType/QuestionCategory enums
-    /onboarding-answers.ts    # Onboarding answers table (includes coinAwarded field)
+    /questions.ts             # Questions table + QuestionType/QuestionCategory enums (has context field)
+    /question-answers.ts      # Question answers table (context-aware, replaces onboarding-answers)
+    /onboarding-answers.ts    # @deprecated - Use question-answers.ts instead
     /users.ts                 # Users table (id, coins, createdAt)
     /index.ts                 # Export all schemas
   /repositories
     /settings.repository.ts   # Settings hooks (useOnboardingStatus, useCompleteOnboarding)
-    /onboarding.repository.ts # Onboarding hooks (useOnboardingQuestions, useOnboardingAnswers, useSaveAnswer, useDeleteDependentAnswers)
+    /questions.repository.ts  # Generic question hooks (useQuestions, useAnswers, useSaveAnswer, useDeleteDependentAnswers, useDeleteAllAnswers) - context-aware
     /users.repository.ts      # User hooks (useUserCoins, useIncrementCoins)
     /index.ts                 # Export all repositories
   /seed
-    /seed-questions.ts        # Seeds initial onboarding questions
+    /seed-questions.ts        # Seeds initial questions (with context field)
   /migrations
     /0000_name.ts                   # Migration as TS module
     /0001_add_onboarding_tables.ts  # Onboarding tables migration
@@ -422,8 +423,9 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 ## Current Tables
 
 - **settings:** Key-value store (`key`, `value`, `updatedAt`)
-- **questions:** Onboarding questions (`id`, `key`, `order`, `type`, `category`, `questionText`, `required`, `dependsOnQuestionKey`, `dependsOnValue`, `metadata`, `createdAt`)
-- **onboarding_answers:** User answers (`id`, `questionKey`, `userId`, `answer`, `coinAwarded` (deprecated), `answeredAt`, `updatedAt`)
+- **questions:** Questions with context support (`id`, `context`, `key`, `order`, `type`, `category`, `questionText`, `required`, `dependsOnQuestionKey`, `dependsOnValue`, `metadata`, `createdAt`). Unique constraint on (`context`, `key`).
+- **question_answers:** Context-aware answers (`id`, `context`, `questionKey`, `userId`, `answer`, `answeredAt`, `updatedAt`). Unique constraint on (`context`, `questionKey`, `userId`).
+- **onboarding_answers:** @deprecated — Use `question_answers` table instead. (`id`, `questionKey`, `userId`, `answer`, `coinAwarded` (deprecated), `answeredAt`, `updatedAt`)
 - **users:** User profiles (`id`, `coins` (deprecated), `createdAt`)
 - **coin_transactions:** Coin transaction ledger (`id`, `amount`, `type`, `metadata`, `createdAt`)
 
@@ -431,7 +433,8 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 
 ```typescript
 enum TransactionType {
-  ONBOARDING_ANSWER = 'onboarding_answer',
+  ONBOARDING_ANSWER = 'onboarding_answer', // @deprecated - Use QUESTION_ANSWER
+  QUESTION_ANSWER = 'question_answer',
   DAILY_REWARD = 'daily_reward',
   PURCHASE = 'purchase',
   BONUS = 'bonus',
@@ -445,14 +448,22 @@ enum QuestionType { TEXT, NUMBER, SINGLE_CHOICE, MULTIPLE_CHOICE }
 enum QuestionCategory { PROFILE, ADDICTION, HABITS, MOTIVATION, GOALS }
 ```
 
-### Onboarding Repository Hooks
+### Questions Repository Hooks (Generic, Context-Aware)
+
+All hooks take a `context` string parameter (e.g., `'onboarding'`).
 
 | Hook | Type | Query Key | Description |
 |------|------|-----------|-------------|
-| `useOnboardingQuestions()` | Query | `['onboarding', 'questions']` | All questions ordered by `order` |
-| `useOnboardingAnswers()` | Query | `['onboarding', 'answers']` | All saved answers |
-| `useSaveAnswer()` | Mutation | Invalidates answers | Upserts answer by `questionKey`. Accepts `isFirstTime` to track `coinAwarded` flag |
-| `useDeleteDependentAnswers()` | Mutation | Invalidates answers | Deletes answers for questions that depend on a parent |
+| `useQuestions(context)` | Query | `['questions', context]` | All questions for context, ordered by `order` |
+| `useAnswers(context)` | Query | `['answers', context]` | All saved answers for context |
+| `useSaveAnswer(context)` | Mutation | Invalidates answers | Upserts answer by `questionKey` with context |
+| `useDeleteDependentAnswers(context)` | Mutation | Invalidates answers | Deletes answers for questions that depend on a parent |
+| `useDeleteAllAnswers(context)` | Mutation | Invalidates answers | Deletes all answers for context |
+
+### Settings Repository Hooks
+
+| Hook | Type | Query Key | Description |
+|------|------|-----------|-------------|
 | `useOnboardingStatus()` | Query | `['settings', 'onboardingCompleted']` | Returns `boolean` — whether onboarding is done |
 | `useCompleteOnboarding()` | Mutation | Invalidates status | Sets `onboardingCompleted` to `true` |
 
@@ -471,10 +482,12 @@ enum QuestionCategory { PROFILE, ADDICTION, HABITS, MOTIVATION, GOALS }
 |------|--------|-------------|
 | `useIncrementCoins()` (users.repository) | Deprecated | Use `useAwardCoins()` from coin-transactions.repository |
 | `useUserCoins()` (users.repository) | Deprecated | Use `useUserCoins()` from coin-transactions.repository |
+| `useOnboardingQuestions()` (onboarding.repository) | Deprecated | Use `useQuestions('onboarding')` from questions.repository |
+| `useOnboardingAnswers()` (onboarding.repository) | Deprecated | Use `useAnswers('onboarding')` from questions.repository |
 
 ### Conditional Questions
 
-Questions can depend on a parent question's answer via `dependsOnQuestionKey` and `dependsOnValue`. The flow engine (`lib/onboarding-flow.ts`) filters applicable questions at runtime.
+Questions can depend on a parent question's answer via `dependsOnQuestionKey` and `dependsOnValue`. The flow engine (`lib/question-flow.ts`) filters applicable questions at runtime.
 
 ### Auto-Seeding
 

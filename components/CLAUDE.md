@@ -83,9 +83,9 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 
 ---
 
-## Onboarding Components
+## Question Flow Components
 
-All onboarding UI lives in `components/onboarding/`. Uses design tokens from `@/lib/theme/tokens`.
+Question flow UI lives in `components/onboarding/` (will move to `components/question-flow/` in a future task). Uses design tokens from `@/lib/theme/tokens`.
 
 ### OnboardingGuard
 
@@ -93,21 +93,33 @@ All onboarding UI lives in `components/onboarding/`. Uses design tokens from `@/
 
 Wraps the app's `Stack` in `_layout.tsx`. Checks `useOnboardingStatus()` and redirects to `/onboarding` if not completed.
 
-### OnboardingContainer
+### QuestionFlowContainer
 
-**File:** `onboarding/OnboardingContainer.tsx`
+**File:** `onboarding/QuestionFlowContainer.tsx` (generic, context-aware replacement for OnboardingContainer)
 
-Main orchestrator wrapped in LinearGradient (#FFFFFF → #F8F9FB), SafeAreaView, and KeyboardAvoidingView. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/onboarding-flow`. Handles answer saving, navigation (Voltar/Próxima/Concluir), completion, and coin awards.
+Generic orchestrator for any question flow context. Wrapped in LinearGradient (#FFFFFF → #F8F9FB), SafeAreaView, and KeyboardAvoidingView. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/question-flow`.
+
+**Props:**
+| Prop | Type | Description |
+|------|------|-------------|
+| `context` | `string` | Question context (e.g., `'onboarding'`) |
+| `onComplete` | `() => void` | Called when user completes the flow |
 
 **Gamification:**
 - Awards 1 coin per question via `useAwardCoins` (creates transaction record)
-- Checks `coin_transactions` table (not `onboardingAnswers`) to prevent duplicate rewards
+- Checks `coin_transactions` table to prevent duplicate rewards
 - Triggers 3D flip animation on CoinTrail coin via `animatingCoinIndex` state
 - Triggers haptic feedback (success notification) on coin award
-- **Transaction-based:** Coins persist across onboarding resets, only awarded once per question
+- **Transaction-based:** Coins persist across resets, only awarded once per question
 - Idle button shake/pulse animation after 3 seconds if user hasn't progressed
 
-**Hooks used:** `useOnboardingQuestions`, `useOnboardingAnswers`, `useSaveAnswer`, `useDeleteDependentAnswers`, `useCompleteOnboarding`, `useAwardCoins`
+**Hooks used:** `useQuestions(context)`, `useAnswers(context)`, `useSaveAnswer(context)`, `useDeleteDependentAnswers(context)`, `useAwardCoins`
+
+### OnboardingContainer (Deprecated)
+
+**File:** `onboarding/OnboardingContainer.tsx`
+
+@deprecated — Use `QuestionFlowContainer` with `context="onboarding"` instead.
 
 ### QuestionText
 
