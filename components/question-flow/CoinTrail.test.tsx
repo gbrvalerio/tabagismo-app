@@ -56,7 +56,7 @@ jest.mock('expo-linear-gradient', () => {
 describe('CoinTrail', () => {
   it('should render correct number of coins', () => {
     const { getAllByTestId } = render(
-      <CoinTrail currentStep={1} totalSteps={5} answeredQuestions={[]} />
+      <CoinTrail currentStep={1} totalSteps={5} answeredIndices={[]} />
     );
 
     const coins = getAllByTestId('animated-coin');
@@ -68,7 +68,7 @@ describe('CoinTrail', () => {
       <CoinTrail
         currentStep={3}
         totalSteps={5}
-        answeredQuestions={['q1', 'q2']}
+        answeredIndices={[0, 1]}
       />
     );
 
@@ -81,7 +81,7 @@ describe('CoinTrail', () => {
       <CoinTrail
         currentStep={2}
         totalSteps={5}
-        answeredQuestions={['q1']}
+        answeredIndices={[0]}
       />
     );
 
@@ -90,7 +90,7 @@ describe('CoinTrail', () => {
 
   it('should render with 0 answered questions', () => {
     const { getAllByTestId } = render(
-      <CoinTrail currentStep={1} totalSteps={3} answeredQuestions={[]} />
+      <CoinTrail currentStep={1} totalSteps={3} answeredIndices={[]} />
     );
 
     const coins = getAllByTestId('animated-coin');
@@ -103,7 +103,7 @@ describe('CoinTrail', () => {
         testID="coin-trail"
         currentStep={1}
         totalSteps={3}
-        answeredQuestions={[]}
+        answeredIndices={[]}
       />
     );
 
@@ -115,7 +115,7 @@ describe('CoinTrail', () => {
       <CoinTrail
         currentStep={3}
         totalSteps={3}
-        answeredQuestions={['q1', 'q2', 'q3']}
+        answeredIndices={[0, 1, 2]}
       />
     );
 
@@ -129,7 +129,7 @@ describe('CoinTrail', () => {
         testID="coin-trail"
         currentStep={1}
         totalSteps={3}
-        answeredQuestions={[]}
+        answeredIndices={[]}
       />
     );
 
@@ -142,7 +142,7 @@ describe('CoinTrail', () => {
         testID="coin-trail"
         currentStep={2}
         totalSteps={3}
-        answeredQuestions={['q1']}
+        answeredIndices={[0]}
       />
     );
 
@@ -154,7 +154,7 @@ describe('CoinTrail', () => {
       <CoinTrail
         currentStep={2}
         totalSteps={3}
-        answeredQuestions={['q1']}
+        answeredIndices={[0]}
         animatingCoinIndex={0}
       />
     );
@@ -169,7 +169,7 @@ describe('CoinTrail', () => {
       <CoinTrail
         currentStep={2}
         totalSteps={3}
-        answeredQuestions={['q1']}
+        answeredIndices={[0]}
         animatingCoinIndex={0}
         onCoinAnimationComplete={onComplete}
       />
@@ -185,7 +185,7 @@ describe('CoinTrail', () => {
         testID="coin-trail"
         currentStep={1}
         totalSteps={3}
-        answeredQuestions={[]}
+        answeredIndices={[]}
       />
     );
 
@@ -202,7 +202,7 @@ describe('CoinTrail', () => {
         testID="coin-trail"
         currentStep={1}
         totalSteps={3}
-        answeredQuestions={[]}
+        answeredIndices={[]}
       />
     );
 
@@ -222,7 +222,7 @@ describe('CoinTrail', () => {
         testID="coin-trail"
         currentStep={1}
         totalSteps={3}
-        answeredQuestions={[]}
+        answeredIndices={[]}
       />
     );
 
@@ -243,7 +243,7 @@ describe('CoinTrail', () => {
       <CoinTrail
         currentStep={3}
         totalSteps={3}
-        answeredQuestions={['q1', 'q2', 'q3']}
+        answeredIndices={[0, 1, 2]}
       />
     );
 

@@ -81,7 +81,7 @@ describe('CoinCounter', () => {
     expect(getByTestId('coin-counter')).toBeTruthy();
   });
 
-  it('should default to 0 when data is undefined', () => {
+  it('should show loading state when data is undefined and loading', () => {
     mockUseUserCoins.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -89,7 +89,7 @@ describe('CoinCounter', () => {
     });
 
     const { getByText } = render(<CoinCounter />);
-    expect(getByText('0')).toBeTruthy();
+    expect(getByText('...')).toBeTruthy();
   });
 
   it('should render with pill gradient container', () => {

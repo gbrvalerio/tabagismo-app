@@ -11,7 +11,7 @@ const COIN_RADIUS_MAX = COIN_SIZE_CURRENT / 2;
 interface CoinTrailProps {
   currentStep: number;
   totalSteps: number;
-  answeredQuestions: string[];
+  answeredIndices: number[];
   animatingCoinIndex?: number | null;
   onCoinAnimationComplete?: () => void;
   testID?: string;
@@ -20,14 +20,14 @@ interface CoinTrailProps {
 export function CoinTrail({
   currentStep,
   totalSteps,
-  answeredQuestions,
+  answeredIndices,
   animatingCoinIndex = null,
   onCoinAnimationComplete,
   testID,
 }: CoinTrailProps) {
   const [progressLineTop, setProgressLineTop] = useState(0);
   const progress =
-    totalSteps > 0 ? Math.min((answeredQuestions.length / totalSteps) * 100, 100) : 0;
+    totalSteps > 0 ? Math.min((answeredIndices.length / totalSteps) * 100, 100) : 0;
 
   const handleLayout = (event: LayoutChangeEvent) => {
     const { height } = event.nativeEvent.layout;
@@ -53,7 +53,7 @@ export function CoinTrail({
       </View>
       <View style={styles.coinsRow}>
         {Array.from({ length: totalSteps }).map((_, index) => {
-          const isAnswered = index < answeredQuestions.length;
+          const isAnswered = answeredIndices.includes(index);
           const isCurrent = index === currentStep - 1;
           const isAnimating = animatingCoinIndex === index;
 

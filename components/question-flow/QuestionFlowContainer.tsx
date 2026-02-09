@@ -106,6 +106,12 @@ export function QuestionFlowContainer({
     ? computeApplicableQuestions(allQuestions, answersCache)
     : [];
 
+  // Compute which indices have been answered
+  const answeredIndices = applicableQuestions
+    .map((q, index) => ({ key: q.key, index }))
+    .filter(({ key }) => answersCache[key] !== undefined && answersCache[key] !== null && answersCache[key] !== "")
+    .map(({ index }) => index);
+
   const currentQuestion = applicableQuestions[currentIndex];
   const currentAnswer = currentQuestion
     ? answersCache[currentQuestion.key]
@@ -296,9 +302,7 @@ export function QuestionFlowContainer({
                 testID="coin-trail"
                 currentStep={currentIndex + 1}
                 totalSteps={applicableQuestions.length}
-                answeredQuestions={
-                  existingAnswers?.map((a) => a.questionKey) ?? []
-                }
+                answeredIndices={answeredIndices}
                 animatingCoinIndex={animatingCoinIndex}
                 onCoinAnimationComplete={() => setAnimatingCoinIndex(null)}
               />
