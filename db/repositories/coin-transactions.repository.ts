@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sql, eq, and } from 'drizzle-orm';
 import { db } from '../client';
-import { coinTransactions, TransactionType } from '../schema';
+import { coinTransactions, TransactionType } from '../schema/coin-transactions';
 
 /**
  * Get user's total coins from transaction ledger
@@ -60,16 +60,17 @@ export function useAwardCoins() {
   });
 }
 
-export function useHasQuestionReward(questionKey: string) {
+export function useHasQuestionReward(context: string, questionKey: string) {
   return useQuery({
-    queryKey: ['transactions', 'question', questionKey],
+    queryKey: ['transactions', 'question', context, questionKey],
     queryFn: async () => {
       const transaction = await db
         .select()
         .from(coinTransactions)
         .where(
           and(
-            eq(coinTransactions.type, TransactionType.ONBOARDING_ANSWER),
+            eq(coinTransactions.type, TransactionType.QUESTION_ANSWER),
+            sql`json_extract(${coinTransactions.metadata}, '$.context') = ${context}`,
             sql`json_extract(${coinTransactions.metadata}, '$.questionKey') = ${questionKey}`
           )
         )
