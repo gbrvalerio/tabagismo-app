@@ -48,7 +48,7 @@ export function CelebrationDialog({
   title,
   subtitle,
   coinsEarned,
-  autoDismissDelay = 5000,
+  autoDismissDelay = 0,
   testID = "celebration-dialog",
 }: CelebrationDialogProps) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -124,7 +124,10 @@ export function CelebrationDialog({
         ),
       );
 
-      startAutoDismissTimer();
+      // Only start timer if autoDismissDelay > 0
+      if (autoDismissDelay && autoDismissDelay > 0) {
+        startAutoDismissTimer();
+      }
     } else {
       overlayOpacity.value = 0;
       modalScale.value = 0;
