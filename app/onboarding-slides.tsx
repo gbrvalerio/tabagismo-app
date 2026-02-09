@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboardingSlides } from '@/db/repositories/onboarding-slides.repository';
@@ -8,6 +8,15 @@ import { colors } from '@/lib/theme/tokens';
 
 export default function OnboardingSlidesScreen() {
   const { data: slides, isLoading } = useOnboardingSlides();
+
+  const parseMetadata = (metadataString: string | null) => {
+    if (!metadataString) return null;
+    try {
+      return JSON.parse(metadataString);
+    } catch {
+      return null;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -22,16 +31,28 @@ export default function OnboardingSlidesScreen() {
   return (
     <LinearGradient colors={['#FFFFFF', '#F8F9FB']} style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-        <View style={styles.slidesContainer}>
-          {slides?.map((slide) => (
-            <SlideItem
-              key={slide.id}
-              icon={slide.icon}
-              title={slide.title}
-              description={slide.description}
-            />
-          ))}
-        </View>
+        <FlatList
+          testID="slides-flatlist"
+          data={slides}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          initialNumToRender={1}
+          maxToRenderPerBatch={1}
+          renderItem={({ item }) => {
+            const metadata = parseMetadata(item.metadata);
+            return (
+              <SlideItem
+                icon={item.icon}
+                title={item.title}
+                description={item.description}
+                showBenefits={metadata?.showBenefits}
+                benefits={metadata?.benefits}
+              />
+            );
+          }}
+          keyExtractor={(item) => item.id.toString()}
+        />
       </SafeAreaView>
     </LinearGradient>
   );
@@ -42,9 +63,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   safeArea: {
-    flex: 1,
-  },
-  slidesContainer: {
     flex: 1,
   },
 });
