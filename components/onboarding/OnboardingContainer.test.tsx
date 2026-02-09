@@ -1,31 +1,41 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-import React from 'react';
-import { describe, it, expect, beforeEach } from '@jest/globals';
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react-native';
-import { OnboardingContainer } from './OnboardingContainer';
+import { beforeEach, describe, expect, it } from "@jest/globals";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
+import React from "react";
+import { OnboardingContainer } from "./OnboardingContainer";
 
-jest.mock('@/assets/images/coin.svg', () => {
-  const React = require('react');
-  const { View } = require('react-native');
-  const MockCoinIcon = (props: any) => React.createElement(View, { ...props, testID: props.testID || 'coin-icon' });
-  MockCoinIcon.displayName = 'MockCoinIcon';
+jest.mock("@/assets/images/coin.svg", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  const MockCoinIcon = (props: any) =>
+    React.createElement(View, {
+      ...props,
+      testID: props.testID || "coin-icon",
+    });
+  MockCoinIcon.displayName = "MockCoinIcon";
   return MockCoinIcon;
 });
 
-jest.mock('expo-linear-gradient', () => ({
+jest.mock("expo-linear-gradient", () => ({
   LinearGradient: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-jest.mock('expo-haptics', () => ({
+jest.mock("expo-haptics", () => ({
   ImpactFeedbackStyle: {
-    Light: 'Light',
-    Medium: 'Medium',
-    Heavy: 'Heavy',
+    Light: "Light",
+    Medium: "Medium",
+    Heavy: "Heavy",
   },
   NotificationFeedbackType: {
-    Success: 'Success',
-    Warning: 'Warning',
-    Error: 'Error',
+    Success: "Success",
+    Warning: "Warning",
+    Error: "Error",
   },
   impactAsync: jest.fn(),
   notificationAsync: jest.fn(),
@@ -34,11 +44,11 @@ jest.mock('expo-haptics', () => ({
 const mockQuestions = [
   {
     id: 1,
-    key: 'name',
+    key: "name",
     order: 1,
-    type: 'TEXT',
-    category: 'PROFILE',
-    questionText: 'Qual é o seu nome?',
+    type: "TEXT",
+    category: "PROFILE",
+    questionText: "Qual é o seu nome?",
     required: true,
     dependsOnQuestionKey: null,
     dependsOnValue: null,
@@ -50,11 +60,11 @@ const mockQuestions = [
 const mockTwoQuestions = [
   {
     id: 1,
-    key: 'q1',
+    key: "q1",
     order: 1,
-    type: 'TEXT',
-    category: 'PROFILE',
-    questionText: 'First?',
+    type: "TEXT",
+    category: "PROFILE",
+    questionText: "First?",
     required: true,
     dependsOnQuestionKey: null,
     dependsOnValue: null,
@@ -63,11 +73,11 @@ const mockTwoQuestions = [
   },
   {
     id: 2,
-    key: 'q2',
+    key: "q2",
     order: 2,
-    type: 'TEXT',
-    category: 'PROFILE',
-    questionText: 'Second?',
+    type: "TEXT",
+    category: "PROFILE",
+    questionText: "Second?",
     required: true,
     dependsOnQuestionKey: null,
     dependsOnValue: null,
@@ -79,27 +89,27 @@ const mockTwoQuestions = [
 const mockQuestionsWithDependency = [
   {
     id: 1,
-    key: 'addiction_type',
+    key: "addiction_type",
     order: 1,
-    type: 'SINGLE_CHOICE',
-    category: 'ADDICTION',
-    questionText: 'Tipo de dependência?',
+    type: "SINGLE_CHOICE",
+    category: "ADDICTION",
+    questionText: "Tipo de dependência?",
     required: true,
     dependsOnQuestionKey: null,
     dependsOnValue: null,
-    metadata: { choices: ['Cigarro', 'Vape'] },
+    metadata: { choices: ["Cigarro", "Vape"] },
     createdAt: new Date(),
   },
   {
     id: 2,
-    key: 'cigarettes_per_day',
+    key: "cigarettes_per_day",
     order: 2,
-    type: 'NUMBER',
-    category: 'ADDICTION',
-    questionText: 'Quantos cigarros por dia?',
+    type: "NUMBER",
+    category: "ADDICTION",
+    questionText: "Quantos cigarros por dia?",
     required: true,
-    dependsOnQuestionKey: 'addiction_type',
-    dependsOnValue: 'Cigarro',
+    dependsOnQuestionKey: "addiction_type",
+    dependsOnValue: "Cigarro",
     metadata: {},
     createdAt: new Date(),
   },
@@ -114,7 +124,7 @@ const mockUseCompleteOnboarding = jest.fn();
 const mockUseUserCoins = jest.fn();
 const mockUseIncrementCoins = jest.fn();
 
-jest.mock('@/db/repositories', () => ({
+jest.mock("@/db/repositories", () => ({
   useOnboardingQuestions: () => mockUseOnboardingQuestions(),
   useOnboardingAnswers: () => mockUseOnboardingAnswers(),
   useSaveAnswer: () => mockUseSaveAnswer(),
@@ -125,7 +135,7 @@ jest.mock('@/db/repositories', () => ({
 }));
 
 const mockRouterReplace = jest.fn();
-jest.mock('expo-router', () => ({
+jest.mock("expo-router", () => ({
   useRouter: () => ({
     replace: mockRouterReplace,
   }),
@@ -133,21 +143,33 @@ jest.mock('expo-router', () => ({
 
 // Global coin mock defaults for all test suites
 beforeEach(() => {
-  mockUseUserCoins.mockReturnValue({ data: 0, isLoading: false, isSuccess: true });
-  mockUseIncrementCoins.mockReturnValue({ mutateAsync: jest.fn().mockResolvedValue(undefined) });
+  mockUseUserCoins.mockReturnValue({
+    data: 0,
+    isLoading: false,
+    isSuccess: true,
+  });
+  mockUseIncrementCoins.mockReturnValue({
+    mutateAsync: jest.fn().mockResolvedValue(undefined),
+  });
 });
 
-describe('OnboardingContainer', () => {
+describe("OnboardingContainer", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn() });
     mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
     mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
-    mockUseUserCoins.mockReturnValue({ data: 0, isLoading: false, isSuccess: true });
-    mockUseIncrementCoins.mockReturnValue({ mutateAsync: jest.fn().mockResolvedValue(undefined) });
+    mockUseUserCoins.mockReturnValue({
+      data: 0,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseIncrementCoins.mockReturnValue({
+      mutateAsync: jest.fn().mockResolvedValue(undefined),
+    });
   });
 
-  it('should render loading state initially', () => {
+  it("should render loading state initially", () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: undefined,
       isLoading: true,
@@ -160,10 +182,10 @@ describe('OnboardingContainer', () => {
     });
 
     render(<OnboardingContainer />);
-    expect(screen.getByTestId('loading')).toBeDefined();
+    expect(screen.getByTestId("loading")).toBeDefined();
   });
 
-  it('should render first question after loading', async () => {
+  it("should render first question after loading", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -178,11 +200,11 @@ describe('OnboardingContainer', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('Qual é o seu nome?')).toBeDefined();
+      expect(screen.getByText("Qual é o seu nome?")).toBeDefined();
     });
   });
 
-  it('should show progress bar', async () => {
+  it("should show progress bar", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -198,12 +220,12 @@ describe('OnboardingContainer', () => {
 
     await waitFor(() => {
       // Progress bar should be rendered (dots visible)
-      expect(screen.getByTestId('onboarding-header')).toBeDefined();
+      expect(screen.getByTestId("onboarding-header")).toBeDefined();
     });
   });
 });
 
-describe('OnboardingContainer - Answer Handling', () => {
+describe("OnboardingContainer - Answer Handling", () => {
   const mockMutateAsync = jest.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
@@ -212,7 +234,7 @@ describe('OnboardingContainer - Answer Handling', () => {
     mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
   });
 
-  it('should save answer when input changes', async () => {
+  it("should save answer when input changes", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -227,22 +249,22 @@ describe('OnboardingContainer - Answer Handling', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('')).toBeDefined();
+      expect(screen.getByDisplayValue("")).toBeDefined();
     });
 
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'João');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "João");
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith({
-        questionKey: 'name',
-        answer: JSON.stringify('João'),
+        questionKey: "name",
+        answer: JSON.stringify("João"),
         isFirstTime: true,
       });
     });
   });
 
-  it('should update progress based on current question position', async () => {
+  it("should update progress based on current question position", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
@@ -258,26 +280,26 @@ describe('OnboardingContainer - Answer Handling', () => {
 
     // On first question (index 0)
     await waitFor(() => {
-      expect(screen.getByDisplayValue('')).toBeDefined();
+      expect(screen.getByDisplayValue("")).toBeDefined();
     });
 
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Answer');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Answer");
 
     // After answering, next button should appear
     await waitFor(() => {
-      expect(screen.getByText('Próxima →')).toBeDefined();
+      expect(screen.getByText("Próxima →")).toBeDefined();
     });
 
     // Press next to go to second question (index 1)
-    fireEvent.press(screen.getByText('Próxima →'));
+    fireEvent.press(screen.getByText("Próxima →"));
     await waitFor(() => {
-      expect(screen.getByText('Second?')).toBeDefined();
+      expect(screen.getByText("Second?")).toBeDefined();
     });
   });
 });
 
-describe('OnboardingContainer - Navigation', () => {
+describe("OnboardingContainer - Navigation", () => {
   const mockMutateAsync = jest.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
@@ -286,7 +308,7 @@ describe('OnboardingContainer - Navigation', () => {
     mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
   });
 
-  it('should show next button when question is answered', async () => {
+  it("should show next button when question is answered", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
@@ -301,18 +323,18 @@ describe('OnboardingContainer - Navigation', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('First?')).toBeDefined();
+      expect(screen.getByText("First?")).toBeDefined();
     });
 
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Answer');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Answer");
 
     await waitFor(() => {
-      expect(screen.getByText('Próxima →')).toBeDefined();
+      expect(screen.getByText("Próxima →")).toBeDefined();
     });
   });
 
-  it('should advance to next question when next is pressed', async () => {
+  it("should advance to next question when next is pressed", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
@@ -327,31 +349,31 @@ describe('OnboardingContainer - Navigation', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('First?')).toBeDefined();
+      expect(screen.getByText("First?")).toBeDefined();
     });
 
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Answer');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Answer");
 
     await waitFor(() => {
-      expect(screen.getByText('Próxima →')).toBeDefined();
+      expect(screen.getByText("Próxima →")).toBeDefined();
     });
 
-    fireEvent.press(screen.getByText('Próxima →'));
+    fireEvent.press(screen.getByText("Próxima →"));
 
     await waitFor(() => {
-      expect(screen.getByText('Second?')).toBeDefined();
+      expect(screen.getByText("Second?")).toBeDefined();
     });
   });
 
-  it('should show back button after first question', async () => {
+  it("should show back button after first question", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
       isSuccess: true,
     });
     mockUseOnboardingAnswers.mockReturnValue({
-      data: [{ questionKey: 'q1', answer: JSON.stringify('Answer') }],
+      data: [{ questionKey: "q1", answer: JSON.stringify("Answer") }],
       isLoading: false,
       isSuccess: true,
     });
@@ -359,19 +381,19 @@ describe('OnboardingContainer - Navigation', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('Second?')).toBeDefined();
-      expect(screen.getByText('← Voltar')).toBeDefined();
+      expect(screen.getByText("Second?")).toBeDefined();
+      expect(screen.getByText("← Voltar")).toBeDefined();
     });
   });
 
-  it('should go back when back button is pressed', async () => {
+  it("should go back when back button is pressed", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
       isSuccess: true,
     });
     mockUseOnboardingAnswers.mockReturnValue({
-      data: [{ questionKey: 'q1', answer: JSON.stringify('Answer') }],
+      data: [{ questionKey: "q1", answer: JSON.stringify("Answer") }],
       isLoading: false,
       isSuccess: true,
     });
@@ -379,29 +401,31 @@ describe('OnboardingContainer - Navigation', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('Second?')).toBeDefined();
+      expect(screen.getByText("Second?")).toBeDefined();
     });
 
-    fireEvent.press(screen.getByText('← Voltar'));
+    fireEvent.press(screen.getByText("← Voltar"));
 
     await waitFor(() => {
-      expect(screen.getByText('First?')).toBeDefined();
+      expect(screen.getByText("First?")).toBeDefined();
     });
   });
 });
 
-describe('OnboardingContainer - Dependent Answer Deletion', () => {
+describe("OnboardingContainer - Dependent Answer Deletion", () => {
   const mockSaveMutateAsync = jest.fn().mockResolvedValue(undefined);
   const mockDeleteDependentMutateAsync = jest.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockSaveMutateAsync });
-    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: mockDeleteDependentMutateAsync });
+    mockUseDeleteDependentAnswers.mockReturnValue({
+      mutateAsync: mockDeleteDependentMutateAsync,
+    });
     mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
   });
 
-  it('should delete dependent answers when parent answer changes', async () => {
+  it("should delete dependent answers when parent answer changes", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestionsWithDependency,
       isLoading: false,
@@ -409,8 +433,8 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
     });
     mockUseOnboardingAnswers.mockReturnValue({
       data: [
-        { questionKey: 'addiction_type', answer: JSON.stringify('Cigarro') },
-        { questionKey: 'cigarettes_per_day', answer: JSON.stringify(10) },
+        { questionKey: "addiction_type", answer: JSON.stringify("Cigarro") },
+        { questionKey: "cigarettes_per_day", answer: JSON.stringify(10) },
       ],
       isLoading: false,
       isSuccess: true,
@@ -419,20 +443,20 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('Tipo de dependência?')).toBeDefined();
+      expect(screen.getByText("Tipo de dependência?")).toBeDefined();
     });
 
     // Change parent answer — should trigger deletion of dependent answers
-    fireEvent.press(screen.getByText('Vape'));
+    fireEvent.press(screen.getByText("Vape"));
 
     await waitFor(() => {
       expect(mockDeleteDependentMutateAsync).toHaveBeenCalledWith({
-        parentQuestionKey: 'addiction_type',
+        parentQuestionKey: "addiction_type",
       });
     });
   });
 
-  it('should not delete dependent answers for questions without dependents', async () => {
+  it("should not delete dependent answers for questions without dependents", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
@@ -447,11 +471,11 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('First?')).toBeDefined();
+      expect(screen.getByText("First?")).toBeDefined();
     });
 
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Answer');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Answer");
 
     await waitFor(() => {
       expect(mockSaveMutateAsync).toHaveBeenCalled();
@@ -460,16 +484,16 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
     expect(mockDeleteDependentMutateAsync).not.toHaveBeenCalled();
   });
 
-  it('should clear answers for questions after dependent when parent answer changes', async () => {
+  it("should clear answers for questions after dependent when parent answer changes", async () => {
     // Simulate full question flow with dependencies
     const fullQuestionFlow = [
       {
         id: 1,
-        key: 'name',
+        key: "name",
         order: 1,
-        type: 'TEXT',
-        category: 'PROFILE',
-        questionText: 'Nome?',
+        type: "TEXT",
+        category: "PROFILE",
+        questionText: "Nome?",
         required: true,
         dependsOnQuestionKey: null,
         dependsOnValue: null,
@@ -478,50 +502,50 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
       },
       {
         id: 2,
-        key: 'addiction_type',
+        key: "addiction_type",
         order: 2,
-        type: 'SINGLE_CHOICE',
-        category: 'ADDICTION',
-        questionText: 'Tipo de dependência?',
+        type: "SINGLE_CHOICE",
+        category: "ADDICTION",
+        questionText: "Tipo de dependência?",
         required: true,
         dependsOnQuestionKey: null,
         dependsOnValue: null,
-        metadata: { choices: ['Cigarro', 'Vape'] },
+        metadata: { choices: ["Cigarro", "Vape"] },
         createdAt: new Date(),
       },
       {
         id: 3,
-        key: 'cigarettes_per_day',
+        key: "cigarettes_per_day",
         order: 3,
-        type: 'NUMBER',
-        category: 'HABITS',
-        questionText: 'Cigarros por dia?',
+        type: "NUMBER",
+        category: "HABITS",
+        questionText: "Cigarros por dia?",
         required: true,
-        dependsOnQuestionKey: 'addiction_type',
-        dependsOnValue: 'Cigarro',
+        dependsOnQuestionKey: "addiction_type",
+        dependsOnValue: "Cigarro",
         metadata: {},
         createdAt: new Date(),
       },
       {
         id: 4,
-        key: 'pod_duration',
+        key: "pod_duration",
         order: 4,
-        type: 'NUMBER',
-        category: 'HABITS',
-        questionText: 'Duração do pod?',
+        type: "NUMBER",
+        category: "HABITS",
+        questionText: "Duração do pod?",
         required: true,
-        dependsOnQuestionKey: 'addiction_type',
-        dependsOnValue: 'Vape',
+        dependsOnQuestionKey: "addiction_type",
+        dependsOnValue: "Vape",
         metadata: {},
         createdAt: new Date(),
       },
       {
         id: 5,
-        key: 'years_smoking',
+        key: "years_smoking",
         order: 5,
-        type: 'NUMBER',
-        category: 'HABITS',
-        questionText: 'Anos fumando?',
+        type: "NUMBER",
+        category: "HABITS",
+        questionText: "Anos fumando?",
         required: true,
         dependsOnQuestionKey: null,
         dependsOnValue: null,
@@ -530,11 +554,11 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
       },
       {
         id: 6,
-        key: 'motivation',
+        key: "motivation",
         order: 6,
-        type: 'TEXT',
-        category: 'MOTIVATION',
-        questionText: 'Motivação?',
+        type: "TEXT",
+        category: "MOTIVATION",
+        questionText: "Motivação?",
         required: true,
         dependsOnQuestionKey: null,
         dependsOnValue: null,
@@ -552,11 +576,11 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
     // Start with user having completed flow with "Vape" path
     mockUseOnboardingAnswers.mockReturnValue({
       data: [
-        { questionKey: 'name', answer: JSON.stringify('João') },
-        { questionKey: 'addiction_type', answer: JSON.stringify('Vape') },
-        { questionKey: 'pod_duration', answer: JSON.stringify(5) },
-        { questionKey: 'years_smoking', answer: JSON.stringify(10) },
-        { questionKey: 'motivation', answer: JSON.stringify('Saúde') },
+        { questionKey: "name", answer: JSON.stringify("João") },
+        { questionKey: "addiction_type", answer: JSON.stringify("Vape") },
+        { questionKey: "pod_duration", answer: JSON.stringify(5) },
+        { questionKey: "years_smoking", answer: JSON.stringify(10) },
+        { questionKey: "motivation", answer: JSON.stringify("Saúde") },
       ],
       isLoading: false,
       isSuccess: true,
@@ -568,17 +592,17 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
     // BUG: Initially shows 6/5 because answeredCount includes all 5 answers in cache
     // plus currentStep adds 1, giving us 6/5
     await waitFor(() => {
-      expect(screen.getByText('Nome?')).toBeDefined();
+      expect(screen.getByText("Nome?")).toBeDefined();
     });
 
     // Navigate to addiction_type question
-    fireEvent.press(screen.getByText('Próxima →'));
+    fireEvent.press(screen.getByText("Próxima →"));
     await waitFor(() => {
-      expect(screen.getByText('Tipo de dependência?')).toBeDefined();
+      expect(screen.getByText("Tipo de dependência?")).toBeDefined();
     });
 
     // User changes addiction_type from Vape to Cigarro
-    fireEvent.press(screen.getByText('Cigarro'));
+    fireEvent.press(screen.getByText("Cigarro"));
 
     // After changing addiction_type:
     // - Applicable questions: name, addiction_type, cigarettes_per_day, years_smoking, motivation = 5 total
@@ -587,21 +611,23 @@ describe('OnboardingContainer - Dependent Answer Deletion', () => {
     // - Only name and addiction_type should remain answered = 2 answered
     // - Current position is question 2 (index 1, addiction_type)
     await waitFor(() => {
-      expect(screen.getByText('Tipo de dependência?')).toBeDefined();
+      expect(screen.getByText("Tipo de dependência?")).toBeDefined();
     });
   });
 });
 
-describe('OnboardingContainer - Infinite Loop Prevention', () => {
+describe("OnboardingContainer - Infinite Loop Prevention", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn().mockResolvedValue(undefined) });
+    mockUseSaveAnswer.mockReturnValue({
+      mutateAsync: jest.fn().mockResolvedValue(undefined),
+    });
     mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
     mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
   });
 
-  it('should not re-initialize answers cache when existingAnswers reference changes after mutation', async () => {
-    const answers = [{ questionKey: 'q1', answer: JSON.stringify('Answer') }];
+  it("should not re-initialize answers cache when existingAnswers reference changes after mutation", async () => {
+    const answers = [{ questionKey: "q1", answer: JSON.stringify("Answer") }];
 
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
@@ -617,21 +643,21 @@ describe('OnboardingContainer - Infinite Loop Prevention', () => {
     const { rerender } = render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('Second?')).toBeDefined();
+      expect(screen.getByText("Second?")).toBeDefined();
     });
 
     // Navigate to second question and answer it
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Answer 2');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Answer 2");
 
     await waitFor(() => {
-      expect(screen.getByText('✓ Concluir')).toBeDefined();
+      expect(screen.getByText("✓ Concluir")).toBeDefined();
     });
 
     // Simulate query refetch returning new array reference (as happens after invalidation)
     const newAnswersRef = [
-      { questionKey: 'q1', answer: JSON.stringify('Answer') },
-      { questionKey: 'q2', answer: JSON.stringify('Answer 2') },
+      { questionKey: "q1", answer: JSON.stringify("Answer") },
+      { questionKey: "q2", answer: JSON.stringify("Answer 2") },
     ];
     mockUseOnboardingAnswers.mockReturnValue({
       data: newAnswersRef,
@@ -643,13 +669,13 @@ describe('OnboardingContainer - Infinite Loop Prevention', () => {
 
     // Should still show the last question, not reset to first unanswered
     await waitFor(() => {
-      expect(screen.getByText('Second?')).toBeDefined();
-      expect(screen.getByText('✓ Concluir')).toBeDefined();
+      expect(screen.getByText("Second?")).toBeDefined();
+      expect(screen.getByText("✓ Concluir")).toBeDefined();
     });
   });
 });
 
-describe('OnboardingContainer - JSON Parse Safety', () => {
+describe("OnboardingContainer - JSON Parse Safety", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn() });
@@ -657,14 +683,14 @@ describe('OnboardingContainer - JSON Parse Safety', () => {
     mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
   });
 
-  it('should handle malformed JSON in existing answers gracefully', async () => {
+  it("should handle malformed JSON in existing answers gracefully", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
       isSuccess: true,
     });
     mockUseOnboardingAnswers.mockReturnValue({
-      data: [{ questionKey: 'name', answer: '{invalid json' }],
+      data: [{ questionKey: "name", answer: "{invalid json" }],
       isLoading: false,
       isSuccess: true,
     });
@@ -673,12 +699,12 @@ describe('OnboardingContainer - JSON Parse Safety', () => {
 
     // Should not crash — should render the question
     await waitFor(() => {
-      expect(screen.getByText('Qual é o seu nome?')).toBeDefined();
+      expect(screen.getByText("Qual é o seu nome?")).toBeDefined();
     });
   });
 });
 
-describe('OnboardingContainer - Completion', () => {
+describe("OnboardingContainer - Completion", () => {
   const mockCompleteMutateAsync = jest.fn().mockResolvedValue(undefined);
   const mockSaveMutateAsync = jest.fn().mockResolvedValue(undefined);
 
@@ -686,10 +712,12 @@ describe('OnboardingContainer - Completion', () => {
     jest.clearAllMocks();
     mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockSaveMutateAsync });
     mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
-    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: mockCompleteMutateAsync });
+    mockUseCompleteOnboarding.mockReturnValue({
+      mutateAsync: mockCompleteMutateAsync,
+    });
   });
 
-  it('should show finish button on last question when answered', async () => {
+  it("should show finish button on last question when answered", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: [mockQuestions[0]],
       isLoading: false,
@@ -704,18 +732,18 @@ describe('OnboardingContainer - Completion', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('Qual é o seu nome?')).toBeDefined();
+      expect(screen.getByText("Qual é o seu nome?")).toBeDefined();
     });
 
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'João');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "João");
 
     await waitFor(() => {
-      expect(screen.getByText('✓ Concluir')).toBeDefined();
+      expect(screen.getByText("✓ Concluir")).toBeDefined();
     });
   });
 
-  it('should complete onboarding when finish is pressed', async () => {
+  it("should complete onboarding when finish is pressed", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: [mockQuestions[0]],
       isLoading: false,
@@ -730,26 +758,26 @@ describe('OnboardingContainer - Completion', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('Qual é o seu nome?')).toBeDefined();
+      expect(screen.getByText("Qual é o seu nome?")).toBeDefined();
     });
 
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'João');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "João");
 
     await waitFor(() => {
-      expect(screen.getByText('✓ Concluir')).toBeDefined();
+      expect(screen.getByText("✓ Concluir")).toBeDefined();
     });
 
-    fireEvent.press(screen.getByText('✓ Concluir'));
+    fireEvent.press(screen.getByText("✓ Concluir"));
 
     await waitFor(() => {
       expect(mockCompleteMutateAsync).toHaveBeenCalled();
-      expect(mockRouterReplace).toHaveBeenCalledWith('/(tabs)/');
+      expect(mockRouterReplace).toHaveBeenCalledWith("/(tabs)/");
     });
   });
 });
 
-describe('OnboardingContainer - New Layout Structure', () => {
+describe("OnboardingContainer - New Layout Structure", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn() });
@@ -757,7 +785,7 @@ describe('OnboardingContainer - New Layout Structure', () => {
     mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
   });
 
-  it('should render SafeAreaView wrapper', async () => {
+  it("should render SafeAreaView wrapper", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -770,11 +798,11 @@ describe('OnboardingContainer - New Layout Structure', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('safe-area-container')).toBeDefined();
+      expect(screen.getByTestId("safe-area-container")).toBeDefined();
     });
   });
 
-  it('should render KeyboardAvoidingView with correct behavior', async () => {
+  it("should render KeyboardAvoidingView with correct behavior", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -787,12 +815,12 @@ describe('OnboardingContainer - New Layout Structure', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      const keyboardView = screen.getByTestId('keyboard-avoiding-view');
+      const keyboardView = screen.getByTestId("keyboard-avoiding-view");
       expect(keyboardView).toBeDefined();
     });
   });
 
-  it('should render header with progress bar', async () => {
+  it("should render header with progress bar", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -805,18 +833,24 @@ describe('OnboardingContainer - New Layout Structure', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('onboarding-header')).toBeDefined();
+      expect(screen.getByTestId("onboarding-header")).toBeDefined();
     });
   });
 
-  it('should render back button in header when currentIndex > 0', async () => {
+  it("should render back button in header when currentIndex > 0", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
     });
     mockUseOnboardingAnswers.mockReturnValue({
       data: [
-        { id: 1, userId: 1, questionKey: 'q1', answer: '"answered"', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          questionKey: "q1",
+          answer: '"answered"',
+          createdAt: new Date(),
+        },
       ],
       isLoading: false,
     });
@@ -824,11 +858,11 @@ describe('OnboardingContainer - New Layout Structure', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('← Voltar')).toBeDefined();
+      expect(screen.getByText("← Voltar")).toBeDefined();
     });
   });
 
-  it('should hide back button when currentIndex = 0', async () => {
+  it("should hide back button when currentIndex = 0", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -841,7 +875,7 @@ describe('OnboardingContainer - New Layout Structure', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      const backButton = screen.getByTestId('back-button');
+      const backButton = screen.getByTestId("back-button");
       // Walk up to the wrapper View that has the hidden style
       let node = backButton.parent;
       let foundOpacity = false;
@@ -860,7 +894,7 @@ describe('OnboardingContainer - New Layout Structure', () => {
     });
   });
 
-  it('should render scrollable content area', async () => {
+  it("should render scrollable content area", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -873,18 +907,24 @@ describe('OnboardingContainer - New Layout Structure', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('content-scroll-view')).toBeDefined();
+      expect(screen.getByTestId("content-scroll-view")).toBeDefined();
     });
   });
 
-  it('should render footer with action button', async () => {
+  it("should render footer with action button", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
     });
     mockUseOnboardingAnswers.mockReturnValue({
       data: [
-        { id: 1, userId: 1, questionKey: 'name', answer: '"John"', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          questionKey: "name",
+          answer: '"John"',
+          createdAt: new Date(),
+        },
       ],
       isLoading: false,
     });
@@ -892,11 +932,11 @@ describe('OnboardingContainer - New Layout Structure', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('onboarding-footer')).toBeDefined();
+      expect(screen.getByTestId("onboarding-footer")).toBeDefined();
     });
   });
 
-  it('should keep question text fixed outside ScrollView', async () => {
+  it("should keep question text fixed outside ScrollView", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -909,8 +949,8 @@ describe('OnboardingContainer - New Layout Structure', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      const questionText = screen.getByText('Qual é o seu nome?');
-      const scrollView = screen.getByTestId('content-scroll-view');
+      const questionText = screen.getByText("Qual é o seu nome?");
+      const scrollView = screen.getByTestId("content-scroll-view");
 
       // Question text should not be inside the ScrollView
       expect(questionText).toBeDefined();
@@ -919,8 +959,8 @@ describe('OnboardingContainer - New Layout Structure', () => {
   });
 });
 
-describe('Integration: Complete onboarding flow', () => {
-  it('should navigate through questions with auto-focus and keyboard', async () => {
+describe("Integration: Complete onboarding flow", () => {
+  it("should navigate through questions with auto-focus and keyboard", async () => {
     const mockSaveAnswer = jest.fn().mockResolvedValue(undefined);
     const mockDeleteDependentAnswers = jest.fn().mockResolvedValue(undefined);
     const mockCompleteOnboarding = jest.fn().mockResolvedValue(undefined);
@@ -947,50 +987,50 @@ describe('Integration: Complete onboarding flow', () => {
 
     // Wait for first question to render
     await waitFor(() => {
-      expect(screen.getByText('First?')).toBeDefined();
+      expect(screen.getByText("First?")).toBeDefined();
     });
 
     // Verify SafeAreaView and KeyboardAvoidingView are present
-    expect(screen.getByTestId('safe-area-container')).toBeDefined();
-    expect(screen.getByTestId('keyboard-avoiding-view')).toBeDefined();
+    expect(screen.getByTestId("safe-area-container")).toBeDefined();
+    expect(screen.getByTestId("keyboard-avoiding-view")).toBeDefined();
 
     // Answer first question
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Answer 1');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Answer 1");
 
     await waitFor(() => {
       expect(mockSaveAnswer).toHaveBeenCalledWith({
-        questionKey: 'q1',
+        questionKey: "q1",
         answer: '"Answer 1"',
         isFirstTime: true,
       });
     });
 
     // Navigate to second question
-    const nextButton = screen.getByText('Próxima →');
+    const nextButton = screen.getByText("Próxima →");
     fireEvent.press(nextButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Second?')).toBeDefined();
+      expect(screen.getByText("Second?")).toBeDefined();
     });
 
     // Verify back button appears
-    expect(screen.getByText('← Voltar')).toBeDefined();
+    expect(screen.getByText("← Voltar")).toBeDefined();
 
     // Answer second question
-    const input2 = screen.getByDisplayValue('');
-    fireEvent.changeText(input2, 'Answer 2');
+    const input2 = screen.getByDisplayValue("");
+    fireEvent.changeText(input2, "Answer 2");
 
     await waitFor(() => {
       expect(mockSaveAnswer).toHaveBeenCalledWith({
-        questionKey: 'q2',
+        questionKey: "q2",
         answer: '"Answer 2"',
         isFirstTime: true,
       });
     });
 
     // Finish onboarding
-    const finishButton = screen.getByText('✓ Concluir');
+    const finishButton = screen.getByText("✓ Concluir");
     fireEvent.press(finishButton);
 
     await waitFor(() => {
@@ -998,7 +1038,7 @@ describe('Integration: Complete onboarding flow', () => {
     });
   });
 
-  it('should handle back navigation with preserved answers', async () => {
+  it("should handle back navigation with preserved answers", async () => {
     const mockSaveAnswer = jest.fn().mockResolvedValue(undefined);
 
     mockUseOnboardingQuestions.mockReturnValue({
@@ -1007,7 +1047,13 @@ describe('Integration: Complete onboarding flow', () => {
     });
     mockUseOnboardingAnswers.mockReturnValue({
       data: [
-        { id: 1, userId: 1, questionKey: 'q1', answer: '"Saved Answer"', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          questionKey: "q1",
+          answer: '"Saved Answer"',
+          createdAt: new Date(),
+        },
       ],
       isLoading: false,
     });
@@ -1019,25 +1065,25 @@ describe('Integration: Complete onboarding flow', () => {
 
     // Should start at second question (first is answered)
     await waitFor(() => {
-      expect(screen.getByText('Second?')).toBeDefined();
+      expect(screen.getByText("Second?")).toBeDefined();
     });
 
     // Back button should be visible
-    expect(screen.getByText('← Voltar')).toBeDefined();
+    expect(screen.getByText("← Voltar")).toBeDefined();
 
     // Navigate back
-    const backButton = screen.getByText('← Voltar');
+    const backButton = screen.getByText("← Voltar");
     fireEvent.press(backButton);
 
     await waitFor(() => {
-      expect(screen.getByText('First?')).toBeDefined();
+      expect(screen.getByText("First?")).toBeDefined();
     });
 
     // Verify the saved answer is displayed
-    expect(screen.getByDisplayValue('Saved Answer')).toBeDefined();
+    expect(screen.getByDisplayValue("Saved Answer")).toBeDefined();
 
     // Back button should be hidden on first question
-    const hiddenBackButton = screen.getByTestId('back-button');
+    const hiddenBackButton = screen.getByTestId("back-button");
     let node = hiddenBackButton.parent;
     let foundOpacity = false;
     while (node) {
@@ -1055,7 +1101,7 @@ describe('Integration: Complete onboarding flow', () => {
   });
 });
 
-describe('OnboardingContainer - Idle Animations', () => {
+describe("OnboardingContainer - Idle Animations", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
@@ -1068,7 +1114,7 @@ describe('OnboardingContainer - Idle Animations', () => {
     jest.useRealTimers();
   });
 
-  it('should trigger idle animation after 3 seconds when question is answered', async () => {
+  it("should trigger idle animation after 3 seconds when question is answered", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
@@ -1081,25 +1127,25 @@ describe('OnboardingContainer - Idle Animations', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('First?')).toBeDefined();
+      expect(screen.getByText("First?")).toBeDefined();
     });
 
     // Answer the question
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Answer');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Answer");
 
     await waitFor(() => {
-      expect(screen.getByText('Próxima →')).toBeDefined();
+      expect(screen.getByText("Próxima →")).toBeDefined();
     });
 
     // Fast-forward time by 3 seconds to trigger idle animation
     jest.advanceTimersByTime(3000);
 
     // Button should still be visible (animation is visual, component structure unchanged)
-    expect(screen.getByText('Próxima →')).toBeDefined();
+    expect(screen.getByText("Próxima →")).toBeDefined();
   });
 
-  it('should reset idle timer when user navigates to next question', async () => {
+  it("should reset idle timer when user navigates to next question", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
@@ -1112,37 +1158,43 @@ describe('OnboardingContainer - Idle Animations', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('First?')).toBeDefined();
+      expect(screen.getByText("First?")).toBeDefined();
     });
 
     // Answer first question
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Answer');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Answer");
 
     await waitFor(() => {
-      expect(screen.getByText('Próxima →')).toBeDefined();
+      expect(screen.getByText("Próxima →")).toBeDefined();
     });
 
     // Navigate to next question before idle timer triggers
-    const nextButton = screen.getByText('Próxima →');
+    const nextButton = screen.getByText("Próxima →");
     fireEvent.press(nextButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Second?')).toBeDefined();
+      expect(screen.getByText("Second?")).toBeDefined();
     });
 
     // Idle timer should be reset (no way to directly test animation state, but component should be stable)
-    expect(screen.getByText('Second?')).toBeDefined();
+    expect(screen.getByText("Second?")).toBeDefined();
   });
 
-  it('should reset idle timer when user navigates back', async () => {
+  it("should reset idle timer when user navigates back", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
     });
     mockUseOnboardingAnswers.mockReturnValue({
       data: [
-        { id: 1, userId: 1, questionKey: 'q1', answer: '"Answer"', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          questionKey: "q1",
+          answer: '"Answer"',
+          createdAt: new Date(),
+        },
       ],
       isLoading: false,
     });
@@ -1151,22 +1203,22 @@ describe('OnboardingContainer - Idle Animations', () => {
 
     // Start at second question
     await waitFor(() => {
-      expect(screen.getByText('Second?')).toBeDefined();
+      expect(screen.getByText("Second?")).toBeDefined();
     });
 
     // Navigate back
-    const backButton = screen.getByText('← Voltar');
+    const backButton = screen.getByText("← Voltar");
     fireEvent.press(backButton);
 
     await waitFor(() => {
-      expect(screen.getByText('First?')).toBeDefined();
+      expect(screen.getByText("First?")).toBeDefined();
     });
 
     // Timer should be reset (component should be stable)
-    expect(screen.getByText('First?')).toBeDefined();
+    expect(screen.getByText("First?")).toBeDefined();
   });
 
-  it('should clear active idle timer when navigating back', async () => {
+  it("should clear active idle timer when navigating back", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockTwoQuestions,
       isLoading: false,
@@ -1179,30 +1231,30 @@ describe('OnboardingContainer - Idle Animations', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('First?')).toBeDefined();
+      expect(screen.getByText("First?")).toBeDefined();
     });
 
     // Answer first question to start idle timer
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Answer');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Answer");
 
     await waitFor(() => {
-      expect(screen.getByText('Próxima →')).toBeDefined();
+      expect(screen.getByText("Próxima →")).toBeDefined();
     });
 
     // Navigate to second question
-    fireEvent.press(screen.getByText('Próxima →'));
+    fireEvent.press(screen.getByText("Próxima →"));
 
     await waitFor(() => {
-      expect(screen.getByText('Second?')).toBeDefined();
+      expect(screen.getByText("Second?")).toBeDefined();
     });
 
     // Answer second question to start an idle timer
-    const input2 = screen.getByDisplayValue('');
-    fireEvent.changeText(input2, 'Answer 2');
+    const input2 = screen.getByDisplayValue("");
+    fireEvent.changeText(input2, "Answer 2");
 
     await waitFor(() => {
-      expect(screen.getByText('✓ Concluir')).toBeDefined();
+      expect(screen.getByText("✓ Concluir")).toBeDefined();
     });
 
     // Advance time partially so idle timer is pending
@@ -1211,20 +1263,20 @@ describe('OnboardingContainer - Idle Animations', () => {
     });
 
     // Navigate back — this should clear the active idle timer
-    fireEvent.press(screen.getByText('← Voltar'));
+    fireEvent.press(screen.getByText("← Voltar"));
 
     await waitFor(() => {
-      expect(screen.getByText('First?')).toBeDefined();
+      expect(screen.getByText("First?")).toBeDefined();
     });
 
     // Advance past the 3s threshold — no crash or unexpected behavior
     await act(async () => {
       jest.advanceTimersByTime(5000);
     });
-    expect(screen.getByText('First?')).toBeDefined();
+    expect(screen.getByText("First?")).toBeDefined();
   });
 
-  it('should not trigger idle animation when question is not answered', async () => {
+  it("should not trigger idle animation when question is not answered", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -1237,32 +1289,40 @@ describe('OnboardingContainer - Idle Animations', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByText('Qual é o seu nome?')).toBeDefined();
+      expect(screen.getByText("Qual é o seu nome?")).toBeDefined();
     });
 
     // No next button should be visible
-    expect(screen.queryByText('Próxima →')).toBeNull();
-    expect(screen.queryByText('✓ Concluir')).toBeNull();
+    expect(screen.queryByText("Próxima →")).toBeNull();
+    expect(screen.queryByText("✓ Concluir")).toBeNull();
 
     // Fast-forward time
     jest.advanceTimersByTime(5000);
 
     // Still no button (nothing to animate)
-    expect(screen.queryByText('Próxima →')).toBeNull();
+    expect(screen.queryByText("Próxima →")).toBeNull();
   });
 });
 
-describe('OnboardingContainer gamification', () => {
+describe("OnboardingContainer gamification", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn().mockResolvedValue(undefined) });
+    mockUseSaveAnswer.mockReturnValue({
+      mutateAsync: jest.fn().mockResolvedValue(undefined),
+    });
     mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
     mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
-    mockUseUserCoins.mockReturnValue({ data: 0, isLoading: false, isSuccess: true });
-    mockUseIncrementCoins.mockReturnValue({ mutateAsync: jest.fn().mockResolvedValue(undefined) });
+    mockUseUserCoins.mockReturnValue({
+      data: 0,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseIncrementCoins.mockReturnValue({
+      mutateAsync: jest.fn().mockResolvedValue(undefined),
+    });
   });
 
-  it('should render CoinCounter in header', async () => {
+  it("should render CoinCounter in header", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -1277,11 +1337,11 @@ describe('OnboardingContainer gamification', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('coin-counter')).toBeDefined();
+      expect(screen.getByTestId("coin-counter")).toBeDefined();
     });
   });
 
-  it('should render CoinTrail instead of ProgressBar', async () => {
+  it("should render CoinTrail instead of ProgressBar", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -1296,13 +1356,13 @@ describe('OnboardingContainer gamification', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('coin-trail')).toBeDefined();
-      expect(screen.queryByTestId('progress-bar')).toBeNull();
+      expect(screen.getByTestId("coin-trail")).toBeDefined();
+      expect(screen.queryByTestId("progress-bar")).toBeNull();
     });
   });
 });
 
-describe('coin award logic', () => {
+describe("coin award logic", () => {
   const mockSaveMutateAsync = jest.fn().mockResolvedValue(undefined);
   const mockIncrementMutateAsync = jest.fn().mockResolvedValue(undefined);
 
@@ -1311,11 +1371,17 @@ describe('coin award logic', () => {
     mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockSaveMutateAsync });
     mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
     mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
-    mockUseUserCoins.mockReturnValue({ data: 0, isLoading: false, isSuccess: true });
-    mockUseIncrementCoins.mockReturnValue({ mutateAsync: mockIncrementMutateAsync });
+    mockUseUserCoins.mockReturnValue({
+      data: 0,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseIncrementCoins.mockReturnValue({
+      mutateAsync: mockIncrementMutateAsync,
+    });
   });
 
-  it('should award coin on first answer', async () => {
+  it("should award coin on first answer", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -1330,18 +1396,18 @@ describe('coin award logic', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('')).toBeDefined();
+      expect(screen.getByDisplayValue("")).toBeDefined();
     });
 
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Test answer');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Test answer");
 
     await waitFor(() => {
       expect(mockIncrementMutateAsync).toHaveBeenCalledWith(1);
     });
   });
 
-  it('should pass isFirstTime true for new answers', async () => {
+  it("should pass isFirstTime true for new answers", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -1356,29 +1422,35 @@ describe('coin award logic', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('')).toBeDefined();
+      expect(screen.getByDisplayValue("")).toBeDefined();
     });
 
-    const input = screen.getByDisplayValue('');
-    fireEvent.changeText(input, 'Test answer');
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Test answer");
 
     await waitFor(() => {
       expect(mockSaveMutateAsync).toHaveBeenCalledWith({
-        questionKey: 'name',
-        answer: JSON.stringify('Test answer'),
+        questionKey: "name",
+        answer: JSON.stringify("Test answer"),
         isFirstTime: true,
       });
     });
   });
 
-  it('should not award coin on answer update', async () => {
+  it("should not award coin on answer update", async () => {
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
       isSuccess: true,
     });
     mockUseOnboardingAnswers.mockReturnValue({
-      data: [{ questionKey: 'name', answer: JSON.stringify('First answer'), coinAwarded: true }],
+      data: [
+        {
+          questionKey: "name",
+          answer: JSON.stringify("First answer"),
+          coinAwarded: true,
+        },
+      ],
       isLoading: false,
       isSuccess: true,
     });
@@ -1386,16 +1458,16 @@ describe('coin award logic', () => {
     render(<OnboardingContainer />);
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('First answer')).toBeDefined();
+      expect(screen.getByDisplayValue("First answer")).toBeDefined();
     });
 
-    const input = screen.getByDisplayValue('First answer');
-    fireEvent.changeText(input, 'Updated answer');
+    const input = screen.getByDisplayValue("First answer");
+    fireEvent.changeText(input, "Updated answer");
 
     await waitFor(() => {
       expect(mockSaveMutateAsync).toHaveBeenCalledWith({
-        questionKey: 'name',
-        answer: JSON.stringify('Updated answer'),
+        questionKey: "name",
+        answer: JSON.stringify("Updated answer"),
         isFirstTime: false,
       });
     });
@@ -1404,4 +1476,3 @@ describe('coin award logic', () => {
     expect(mockIncrementMutateAsync).not.toHaveBeenCalled();
   });
 });
-

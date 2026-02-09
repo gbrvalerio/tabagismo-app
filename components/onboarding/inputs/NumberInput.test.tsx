@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { OnboardingNumberInput } from './NumberInput';
 
 // Mock expo-haptics
-jest.mock('expo-haptics', () => ({
+jest.mock('@/lib/haptics', () => ({
   impactAsync: jest.fn(),
   ImpactFeedbackStyle: {
     Light: 'light',
@@ -126,7 +126,7 @@ describe('OnboardingNumberInput', () => {
   });
 
   it('should trigger haptic feedback on focus', () => {
-    const Haptics = require('expo-haptics');
+    const Haptics = require('@/lib/haptics');
     render(<OnboardingNumberInput value={null} onChange={() => {}} placeholder="Idade" />);
 
     const input = screen.getByDisplayValue('');

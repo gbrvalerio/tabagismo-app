@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { OnboardingTextInput } from './TextInput';
 
 // Mock expo-haptics
-jest.mock('expo-haptics', () => ({
+jest.mock('@/lib/haptics', () => ({
   impactAsync: jest.fn(),
   ImpactFeedbackStyle: {
     Light: 'light',
@@ -110,7 +110,7 @@ describe('OnboardingTextInput', () => {
   });
 
   it('should trigger haptic feedback on focus', () => {
-    const Haptics = require('expo-haptics');
+    const Haptics = require('@/lib/haptics');
     render(<OnboardingTextInput value="" onChange={() => {}} placeholder="Nome" />);
 
     const input = screen.getByDisplayValue('');

@@ -7,7 +7,7 @@ jest.mock('expo-linear-gradient', () => ({
   LinearGradient: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-jest.mock('expo-haptics', () => ({
+jest.mock('@/lib/haptics', () => ({
   ImpactFeedbackStyle: {
     Light: 'Light',
     Medium: 'Medium',
@@ -66,7 +66,7 @@ describe('MultipleChoiceCards', () => {
 
   it('should trigger haptic feedback on press', () => {
     const onChange = jest.fn();
-    const { impactAsync, ImpactFeedbackStyle } = jest.requireMock('expo-haptics');
+    const { impactAsync, ImpactFeedbackStyle } = jest.requireMock('@/lib/haptics');
     render(<MultipleChoiceCards choices={choices} value={[]} onChange={onChange} />);
 
     fireEvent.press(screen.getByText('Ansiedade'));

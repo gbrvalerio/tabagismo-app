@@ -5,7 +5,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '@/lib/haptics';
 import { colors, spacing, borderRadius, typography } from '@/lib/theme/tokens';
 import { useEffect } from 'react';
 

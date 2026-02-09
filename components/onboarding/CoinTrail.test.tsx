@@ -33,7 +33,7 @@ jest.mock('react-native-svg', () => {
 });
 
 // Mock expo-haptics
-jest.mock('expo-haptics', () => ({
+jest.mock('@/lib/haptics', () => ({
   NotificationFeedbackType: { Success: 'Success' },
   notificationAsync: jest.fn(),
 }));

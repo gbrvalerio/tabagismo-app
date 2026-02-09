@@ -33,7 +33,7 @@ jest.mock('react-native-reanimated', () => {
 });
 
 // Mock expo-haptics
-jest.mock('expo-haptics', () => ({
+jest.mock('@/lib/haptics', () => ({
   ImpactFeedbackStyle: { Light: 'Light' },
   impactAsync: jest.fn(),
 }));

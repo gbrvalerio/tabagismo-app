@@ -33,7 +33,7 @@ jest.mock('react-native-reanimated', () => {
 });
 
 // Mock expo-haptics
-jest.mock('expo-haptics', () => ({
+jest.mock('@/lib/haptics', () => ({
   NotificationFeedbackType: { Success: 'Success' },
   notificationAsync: jest.fn(),
 }));
@@ -109,7 +109,7 @@ describe('AnimatedCoin', () => {
   });
 
   it('should trigger haptic feedback when animation starts', () => {
-    const Haptics = require('expo-haptics');
+    const Haptics = require('@/lib/haptics');
     const { rerender } = render(
       <AnimatedCoin size={16} variant="outlined" animate={false} />
     );
@@ -124,7 +124,7 @@ describe('AnimatedCoin', () => {
   });
 
   it('should not trigger haptic when animate is false', () => {
-    const Haptics = require('expo-haptics');
+    const Haptics = require('@/lib/haptics');
     render(
       <AnimatedCoin size={16} variant="outlined" animate={false} />
     );

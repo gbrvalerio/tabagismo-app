@@ -6,7 +6,7 @@ import { HapticTab } from './haptic-tab';
 // Unmock HapticTab so we test the real component
 jest.unmock('@/components/haptic-tab');
 
-jest.mock('expo-haptics', () => ({
+jest.mock('@/lib/haptics', () => ({
   ImpactFeedbackStyle: {
     Light: 'Light',
     Medium: 'Medium',

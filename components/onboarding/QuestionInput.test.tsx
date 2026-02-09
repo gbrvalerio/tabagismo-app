@@ -8,7 +8,7 @@ jest.mock('@/hooks/use-theme-color', () => ({
   useThemeColor: () => '#000000',
 }));
 
-jest.mock('expo-haptics', () => ({
+jest.mock('@/lib/haptics', () => ({
   ImpactFeedbackStyle: {
     Light: 'Light',
     Medium: 'Medium',
