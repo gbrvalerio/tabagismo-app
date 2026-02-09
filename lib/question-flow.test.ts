@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { computeApplicableQuestions, calculateProgress } from './onboarding-flow';
+import { computeApplicableQuestions, calculateProgress } from './question-flow';
 
 // Define the type inline since the schema may not exist yet
 type MockQuestion = {
