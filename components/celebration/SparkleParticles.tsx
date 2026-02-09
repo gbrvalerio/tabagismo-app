@@ -56,7 +56,7 @@ export function SparkleParticles({ testID = 'sparkles' }: SparkleParticlesProps)
   return (
     <View style={styles.container} pointerEvents="none">
       {particles.map((particle, index) => (
-        <Particle
+        <ParticleComponent
           key={index}
           particle={particle}
           testID={`${testID}-particle-${index}`}
@@ -71,7 +71,7 @@ interface ParticleProps {
   testID: string;
 }
 
-function Particle({ particle, testID }: ParticleProps) {
+function ParticleComponent({ particle, testID }: ParticleProps) {
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0);
   const rotation = useSharedValue(0);

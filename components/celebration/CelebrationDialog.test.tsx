@@ -233,7 +233,7 @@ describe('CelebrationDialog', () => {
     jest.useFakeTimers();
     const onDismiss = jest.fn();
 
-    const { getByTestId } = render(
+    render(
       <CelebrationDialog
         visible={true}
         onDismiss={onDismiss}
