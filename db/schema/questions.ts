@@ -1,10 +1,11 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const getDefaultCreatedAt = () => new Date();
 
 export const questions = sqliteTable('questions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  key: text('key').notNull().unique(),
+  context: text('context').notNull().default('onboarding'),
+  key: text('key').notNull(),
   order: integer('order').notNull(),
   type: text('type').notNull(),
   category: text('category').notNull(),
@@ -16,7 +17,9 @@ export const questions = sqliteTable('questions', {
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .$defaultFn(getDefaultCreatedAt),
-});
+}, (table) => ({
+  contextKeyIdx: uniqueIndex('questions_context_key_unique').on(table.context, table.key),
+}));
 
 export type Question = typeof questions.$inferSelect;
 export type NewQuestion = typeof questions.$inferInsert;

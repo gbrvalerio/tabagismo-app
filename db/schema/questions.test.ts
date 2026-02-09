@@ -19,6 +19,7 @@ describe('questions schema', () => {
 
   it('should have all required columns defined', () => {
     expect(questions.id).toBeDefined();
+    expect(questions.context).toBeDefined();
     expect(questions.key).toBeDefined();
     expect(questions.order).toBeDefined();
     expect(questions.type).toBeDefined();
@@ -38,6 +39,7 @@ describe('questions schema', () => {
 
   it('should have correct column names', () => {
     expect(questions.id.name).toBe('id');
+    expect(questions.context.name).toBe('context');
     expect(questions.key.name).toBe('key');
     expect(questions.order.name).toBe('order');
     expect(questions.type.name).toBe('type');
@@ -48,5 +50,24 @@ describe('questions schema', () => {
     expect(questions.dependsOnValue.name).toBe('depends_on_value');
     expect(questions.metadata.name).toBe('metadata');
     expect(questions.createdAt.name).toBe('created_at');
+  });
+
+  describe('context field', () => {
+    it('should have context column defined', () => {
+      expect(questions.context).toBeDefined();
+      expect(questions.context.name).toBe('context');
+    });
+
+    it('should have context column as notNull with default onboarding', () => {
+      expect(questions.context.notNull).toBe(true);
+      expect(questions.context.hasDefault).toBe(true);
+      expect(questions.context.default).toBe('onboarding');
+    });
+
+    it('should no longer have unique constraint on key alone', () => {
+      // key column should not be individually unique since uniqueness
+      // is now enforced by the composite (context, key) index
+      expect(questions.key.isUnique).toBe(false);
+    });
   });
 });
