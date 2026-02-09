@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { createTestQueryClient } from '@/lib/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { useOnboardingSlides, useMarkSlidesCompleted } from './onboarding-slides.repository';
+import { useOnboardingSlides, useMarkSlidesCompleted, useSlidesStatus } from './onboarding-slides.repository';
 import { db } from '../client';
 
 const mockSlides = [
@@ -37,10 +37,13 @@ const mockSlides = [
 
 jest.mock('../client', () => {
   const mockAll = jest.fn().mockResolvedValue([]);
+  const mockGet = jest.fn().mockResolvedValue(undefined);
   const mockOrderBy = jest.fn(() => ({ all: mockAll }));
+  const mockWhere = jest.fn(() => ({ get: mockGet }));
   const mockFrom = jest.fn(() => ({
     all: mockAll,
     orderBy: mockOrderBy,
+    where: mockWhere,
   }));
 
   const mockOnConflictDoUpdate = jest.fn().mockResolvedValue(undefined);
@@ -53,6 +56,7 @@ jest.mock('../client', () => {
       insert: mockInsert,
     },
     __mockAll: mockAll,
+    __mockGet: mockGet,
     __mockInsert: mockInsert,
     __mockValues: mockValues,
     __mockOnConflictDoUpdate: mockOnConflictDoUpdate,
@@ -61,11 +65,13 @@ jest.mock('../client', () => {
 
 const {
   __mockAll,
+  __mockGet,
   __mockInsert,
   __mockValues,
   __mockOnConflictDoUpdate,
 } = jest.requireMock('../client') as {
   __mockAll: jest.Mock;
+  __mockGet: jest.Mock;
   __mockInsert: jest.Mock;
   __mockValues: jest.Mock;
   __mockOnConflictDoUpdate: jest.Mock;
@@ -82,6 +88,7 @@ describe('onboarding-slides.repository', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __mockAll.mockResolvedValue(mockSlides);
+    __mockGet.mockResolvedValue(undefined);
     __mockOnConflictDoUpdate.mockResolvedValue(undefined);
   });
 
@@ -323,6 +330,117 @@ describe('onboarding-slides.repository', () => {
 
       expect(result.current.reset).toBeDefined();
       expect(typeof result.current.reset).toBe('function');
+    });
+  });
+
+  describe('useSlidesStatus', () => {
+    it('should return false when no setting exists', async () => {
+      __mockGet.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useSlidesStatus(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(result.current.data).toBe(false);
+    });
+
+    it('should return false when value is not true', async () => {
+      __mockGet.mockResolvedValue({ key: 'slidesCompleted', value: 'false' });
+
+      const { result } = renderHook(() => useSlidesStatus(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(result.current.data).toBe(false);
+    });
+
+    it('should return true when slides are completed', async () => {
+      __mockGet.mockResolvedValue({ key: 'slidesCompleted', value: 'true' });
+
+      const { result } = renderHook(() => useSlidesStatus(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(result.current.data).toBe(true);
+    });
+
+    it('should use correct query key', async () => {
+      const queryClient = createTestQueryClient();
+      const wrapper = function Wrapper({ children }: { children: React.ReactNode }) {
+        return React.createElement(QueryClientProvider, { client: queryClient }, children);
+      };
+
+      renderHook(() => useSlidesStatus(), { wrapper });
+
+      await waitFor(() => {
+        const cache = queryClient.getQueryCache().findAll();
+        const statusQuery = cache.find(q =>
+          JSON.stringify(q.queryKey) === JSON.stringify(['settings', 'slidesCompleted'])
+        );
+        expect(statusQuery).toBeDefined();
+      });
+    });
+
+    it('should call db.select to query settings', async () => {
+      const { result } = renderHook(() => useSlidesStatus(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(db.select).toHaveBeenCalled();
+    });
+
+    it('should provide standard TanStack Query states', async () => {
+      const { result } = renderHook(() => useSlidesStatus(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current).toHaveProperty('data');
+      expect(result.current).toHaveProperty('isLoading');
+      expect(result.current).toHaveProperty('isError');
+      expect(result.current).toHaveProperty('isSuccess');
+      expect(result.current).toHaveProperty('refetch');
+    });
+
+    it('should finish loading without error', async () => {
+      const { result } = renderHook(() => useSlidesStatus(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(!result.current.isLoading).toBe(true);
+      });
+
+      expect(result.current.isError).toBe(false);
+    });
+
+    it('should return boolean type', async () => {
+      __mockGet.mockResolvedValue({ key: 'slidesCompleted', value: 'true' });
+
+      const { result } = renderHook(() => useSlidesStatus(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(typeof result.current.data).toBe('boolean');
     });
   });
 });

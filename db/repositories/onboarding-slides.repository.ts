@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { asc } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import { db } from '../client';
 import { onboardingSlides } from '../schema/onboarding-slides';
 import { settings } from '../schema';
@@ -37,6 +37,21 @@ export function useMarkSlidesCompleted() {
       queryClient.invalidateQueries({
         queryKey: ['settings', 'slidesCompleted'],
       });
+    },
+  });
+}
+
+export function useSlidesStatus() {
+  return useQuery({
+    queryKey: ['settings', 'slidesCompleted'],
+    queryFn: async () => {
+      const result = await db
+        .select()
+        .from(settings)
+        .where(eq(settings.key, 'slidesCompleted'))
+        .get();
+
+      return result?.value === 'true';
     },
   });
 }
