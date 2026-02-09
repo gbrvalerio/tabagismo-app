@@ -99,25 +99,15 @@ Wraps the app's `Stack` in `_layout.tsx`. Checks `useOnboardingStatus()` and red
 
 Main orchestrator wrapped in LinearGradient (#FFFFFF → #F8F9FB), SafeAreaView, and KeyboardAvoidingView. Manages current question index, answers cache, and applicable questions via `computeApplicableQuestions()` from `@/lib/onboarding-flow`. Handles answer saving, navigation (Voltar/Próxima/Concluir), completion, and coin awards.
 
-**Layout Structure:**
-- Gradient background: LinearGradient wrapper (#FFFFFF → #F8F9FB)
-- Header: Back button (Poppins, when currentIndex > 0) + CoinCounter (pill, top-right) + CoinTrail (progress line with coins)
-- Content: Fixed QuestionText (Poppins Bold 30px) + ScrollView for inputs/options
-- Footer: Next/Finish button (Poppins SemiBold 18px, rounded pill, with idle shake animation)
-
 **Gamification:**
-- Awards 1 coin per first-time answer via `useIncrementCoins`
+- Awards 1 coin per question via `useAwardCoins` (creates transaction record)
+- Checks `coin_transactions` table (not `onboardingAnswers`) to prevent duplicate rewards
 - Triggers 3D flip animation on CoinTrail coin via `animatingCoinIndex` state
 - Triggers haptic feedback (success notification) on coin award
-- Tracks `isFirstTime` flag to prevent duplicate coin awards on answer updates
+- **Transaction-based:** Coins persist across onboarding resets, only awarded once per question
 - Idle button shake/pulse animation after 3 seconds if user hasn't progressed
 
-**Safe Area & Keyboard:**
-- Uses `SafeAreaView` with `edges={['top', 'bottom']}` for notch/home indicator support
-- Uses `KeyboardAvoidingView` with platform-specific behavior (iOS: padding, Android: height)
-- ScrollView enables scrolling for long option lists
-
-**Hooks used:** `useOnboardingQuestions`, `useOnboardingAnswers`, `useSaveAnswer`, `useDeleteDependentAnswers`, `useCompleteOnboarding`, `useIncrementCoins`
+**Hooks used:** `useOnboardingQuestions`, `useOnboardingAnswers`, `useSaveAnswer`, `useDeleteDependentAnswers`, `useCompleteOnboarding`, `useAwardCoins`
 
 ### QuestionText
 
