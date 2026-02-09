@@ -1,4 +1,5 @@
 import CoinIcon from "@/assets/images/coin.svg";
+import GrayscaleCoinIcon from "@/components/onboarding/GrayscaleCoinIcon";
 import { StyleSheet, View } from "react-native";
 
 interface CoinSvgProps {
@@ -14,7 +15,7 @@ export function CoinSvg({
   showGlow = false,
   testID = "coin-svg",
 }: CoinSvgProps) {
-  const isOutlined = variant === "outlined";
+  const CoinComponent = variant === "outlined" ? GrayscaleCoinIcon : CoinIcon;
 
   const containerStyle = [
     { width: size, height: size },
@@ -23,11 +24,10 @@ export function CoinSvg({
 
   return (
     <View testID={`${testID}-container`} style={containerStyle}>
-      <CoinIcon
+      <CoinComponent
         testID={testID}
         width={size}
         height={size}
-        style={isOutlined ? styles.coinOutlined : undefined}
       />
     </View>
   );
@@ -40,8 +40,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 4,
     elevation: 4,
-  },
-  coinOutlined: {
-    opacity: 0.35,
   },
 });
