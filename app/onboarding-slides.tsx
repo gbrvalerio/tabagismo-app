@@ -1,13 +1,29 @@
-import React from 'react';
-import { ActivityIndicator, StyleSheet, FlatList } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  ActivityIndicator,
+  StyleSheet,
+  FlatList,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboardingSlides } from '@/db/repositories/onboarding-slides.repository';
-import { SlideItem } from '@/components/onboarding-slides';
+import { SlideItem, PaginationDots } from '@/components/onboarding-slides';
 import { colors } from '@/lib/theme/tokens';
 
 export default function OnboardingSlidesScreen() {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const { data: slides, isLoading } = useOnboardingSlides();
+
+  const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / event.nativeEvent.layoutMeasurement.width);
+    setCurrentIndex(index);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
 
   const parseMetadata = (metadataString: string | null) => {
     if (!metadataString) return null;
@@ -39,6 +55,7 @@ export default function OnboardingSlidesScreen() {
           showsHorizontalScrollIndicator={false}
           initialNumToRender={1}
           maxToRenderPerBatch={1}
+          onMomentumScrollEnd={handleScrollEnd}
           renderItem={({ item }) => {
             const metadata = parseMetadata(item.metadata);
             return (
@@ -53,6 +70,10 @@ export default function OnboardingSlidesScreen() {
           }}
           keyExtractor={(item) => item.id.toString()}
         />
+
+        <View style={styles.paginationContainer}>
+          <PaginationDots total={slides?.length ?? 0} activeIndex={currentIndex} />
+        </View>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -64,5 +85,12 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  paginationContainer: {
+    position: 'absolute',
+    bottom: 120,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
   },
 });

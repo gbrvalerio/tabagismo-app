@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import OnboardingSlidesScreen from './onboarding-slides';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as repository from '@/db/repositories/onboarding-slides.repository';
@@ -55,6 +55,7 @@ const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+  // eslint-disable-next-line react/display-name
   return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
@@ -302,5 +303,147 @@ describe('OnboardingSlidesScreen', () => {
       expect(flatlist.props.pagingEnabled).toBe(true);
       expect(flatlist.props.showsHorizontalScrollIndicator).toBe(false);
     });
+  });
+
+  it('should render pagination dots', async () => {
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+      { id: 3, order: 3, icon: 'icon3', title: 'S3', description: 'D3', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getAllByTestId } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      const dots = getAllByTestId('pagination-dot');
+      expect(dots).toHaveLength(3);
+    });
+  });
+
+  it('should highlight first dot by default', async () => {
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getAllByTestId } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      const dots = getAllByTestId('pagination-dot');
+      expect(dots[0].props.style).toContainEqual(
+        expect.objectContaining({ backgroundColor: '#FF6B35' })
+      );
+      expect(dots[1].props.style).toContainEqual(
+        expect.objectContaining({ backgroundColor: '#D1D1D1' })
+      );
+    });
+  });
+
+  it('should update pagination on scroll', async () => {
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getByTestId, getAllByTestId } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('slides-flatlist')).toBeTruthy();
+    });
+
+    // Simulate scroll to second slide
+    const flatlist = getByTestId('slides-flatlist');
+    fireEvent(flatlist, 'onMomentumScrollEnd', {
+      nativeEvent: {
+        contentOffset: { x: 400 },
+        layoutMeasurement: { width: 400 },
+      },
+    });
+
+    await waitFor(() => {
+      const dots = getAllByTestId('pagination-dot');
+      expect(dots[1].props.style).toContainEqual(
+        expect.objectContaining({ backgroundColor: '#FF6B35' })
+      );
+    });
+  });
+
+  it('should have onMomentumScrollEnd handler on FlatList', async () => {
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getByTestId } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      const flatlist = getByTestId('slides-flatlist');
+      expect(flatlist.props.onMomentumScrollEnd).toBeDefined();
+    });
+  });
+
+  it('should trigger haptic feedback on scroll', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Haptics = require('expo-haptics');
+
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getByTestId } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('slides-flatlist')).toBeTruthy();
+    });
+
+    const flatlist = getByTestId('slides-flatlist');
+    fireEvent(flatlist, 'onMomentumScrollEnd', {
+      nativeEvent: {
+        contentOffset: { x: 400 },
+        layoutMeasurement: { width: 400 },
+      },
+    });
+
+    expect(Haptics.impactAsync).toHaveBeenCalledWith(Haptics.ImpactFeedbackStyle.Light);
   });
 });
