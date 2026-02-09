@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { getTableConfig } from 'drizzle-orm/sqlite-core';
-import { questionAnswers, getDefaultAnsweredAt, getDefaultAnswerUpdatedAt } from './question-answers';
+import { questionAnswers, getDefaultQAAnsweredAt, getDefaultQAUpdatedAt } from './question-answers';
 
 describe('questionAnswers schema', () => {
   it('should have all required columns defined', () => {
@@ -13,13 +13,13 @@ describe('questionAnswers schema', () => {
     expect(questionAnswers.updatedAt).toBeDefined();
   });
 
-  it('should have getDefaultAnsweredAt return a Date', () => {
-    const result = getDefaultAnsweredAt();
+  it('should have getDefaultQAAnsweredAt return a Date', () => {
+    const result = getDefaultQAAnsweredAt();
     expect(result).toBeInstanceOf(Date);
   });
 
-  it('should have getDefaultAnswerUpdatedAt return a Date', () => {
-    const result = getDefaultAnswerUpdatedAt();
+  it('should have getDefaultQAUpdatedAt return a Date', () => {
+    const result = getDefaultQAUpdatedAt();
     expect(result).toBeInstanceOf(Date);
   });
 

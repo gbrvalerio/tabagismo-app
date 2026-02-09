@@ -107,8 +107,6 @@ describe('db/index.ts', () => {
         expect(typeof indexModule.NewSetting).toBe('undefined');
         expect(typeof indexModule.Question).toBe('undefined');
         expect(typeof indexModule.NewQuestion).toBe('undefined');
-        expect(typeof indexModule.OnboardingAnswer).toBe('undefined');
-        expect(typeof indexModule.NewOnboardingAnswer).toBe('undefined');
       });
     });
 
