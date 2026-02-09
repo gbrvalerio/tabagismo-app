@@ -1,8 +1,8 @@
 import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { createTestQueryClient } from '@/lib/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { useOnboardingSlides } from './onboarding-slides.repository';
+import { useOnboardingSlides, useMarkSlidesCompleted } from './onboarding-slides.repository';
 import { db } from '../client';
 
 const mockSlides = [
@@ -43,15 +43,33 @@ jest.mock('../client', () => {
     orderBy: mockOrderBy,
   }));
 
+  const mockOnConflictDoUpdate = jest.fn().mockResolvedValue(undefined);
+  const mockValues = jest.fn(() => ({ onConflictDoUpdate: mockOnConflictDoUpdate }));
+  const mockInsert = jest.fn(() => ({ values: mockValues }));
+
   return {
     db: {
       select: jest.fn(() => ({ from: mockFrom })),
+      insert: mockInsert,
     },
     __mockAll: mockAll,
+    __mockInsert: mockInsert,
+    __mockValues: mockValues,
+    __mockOnConflictDoUpdate: mockOnConflictDoUpdate,
   };
 });
 
-const { __mockAll } = jest.requireMock('../client') as { __mockAll: jest.Mock };
+const {
+  __mockAll,
+  __mockInsert,
+  __mockValues,
+  __mockOnConflictDoUpdate,
+} = jest.requireMock('../client') as {
+  __mockAll: jest.Mock;
+  __mockInsert: jest.Mock;
+  __mockValues: jest.Mock;
+  __mockOnConflictDoUpdate: jest.Mock;
+};
 
 const createWrapper = () => {
   const queryClient = createTestQueryClient();
@@ -64,6 +82,7 @@ describe('onboarding-slides.repository', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __mockAll.mockResolvedValue(mockSlides);
+    __mockOnConflictDoUpdate.mockResolvedValue(undefined);
   });
 
   describe('useOnboardingSlides', () => {
@@ -176,6 +195,134 @@ describe('onboarding-slides.repository', () => {
       });
 
       expect(result.current.data).toEqual([]);
+    });
+  });
+
+  describe('useMarkSlidesCompleted', () => {
+    it('should provide a working mutate function', () => {
+      const { result } = renderHook(() => useMarkSlidesCompleted(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.mutate).toBeDefined();
+      expect(typeof result.current.mutate).toBe('function');
+    });
+
+    it('should provide mutateAsync', () => {
+      const { result } = renderHook(() => useMarkSlidesCompleted(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.mutateAsync).toBeDefined();
+    });
+
+    it('should call db.insert when mutated', async () => {
+      const { result } = renderHook(() => useMarkSlidesCompleted(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        result.current.mutate(undefined);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(__mockInsert).toHaveBeenCalled();
+    });
+
+    it('should insert slidesCompleted key with value true', async () => {
+      const { result } = renderHook(() => useMarkSlidesCompleted(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        result.current.mutate(undefined);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(__mockValues).toHaveBeenCalledWith({
+        key: 'slidesCompleted',
+        value: 'true',
+      });
+    });
+
+    it('should use onConflictDoUpdate for upsert behavior', async () => {
+      const { result } = renderHook(() => useMarkSlidesCompleted(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        result.current.mutate(undefined);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(__mockOnConflictDoUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          target: expect.anything(),
+          set: expect.objectContaining({ value: 'true' }),
+        })
+      );
+    });
+
+    it('should invalidate slidesCompleted query on success', async () => {
+      const queryClient = createTestQueryClient();
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+
+      const wrapper = function Wrapper({ children }: { children: React.ReactNode }) {
+        return React.createElement(QueryClientProvider, { client: queryClient }, children);
+      };
+
+      const { result } = renderHook(() => useMarkSlidesCompleted(), {
+        wrapper,
+      });
+
+      await act(async () => {
+        result.current.mutate(undefined);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ['settings', 'slidesCompleted'],
+      });
+    });
+
+    it('should track mutation states through lifecycle', async () => {
+      const { result } = renderHook(() => useMarkSlidesCompleted(), {
+        wrapper: createWrapper(),
+      });
+
+      // Initial state
+      expect(result.current.isPending).toBe(false);
+      expect(result.current.isSuccess).toBe(false);
+      expect(result.current.isError).toBe(false);
+
+      await act(async () => {
+        result.current.mutate(undefined);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess || result.current.isError).toBe(true);
+      });
+    });
+
+    it('should have reset capability', () => {
+      const { result } = renderHook(() => useMarkSlidesCompleted(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.reset).toBeDefined();
+      expect(typeof result.current.reset).toBe('function');
     });
   });
 });
