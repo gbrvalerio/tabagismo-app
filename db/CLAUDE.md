@@ -423,8 +423,20 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 
 - **settings:** Key-value store (`key`, `value`, `updatedAt`)
 - **questions:** Onboarding questions (`id`, `key`, `order`, `type`, `category`, `questionText`, `required`, `dependsOnQuestionKey`, `dependsOnValue`, `metadata`, `createdAt`)
-- **onboarding_answers:** User answers (`id`, `questionKey`, `userId`, `answer`, `coinAwarded`, `answeredAt`, `updatedAt`)
-- **users:** User profiles (`id`, `coins`, `createdAt`)
+- **onboarding_answers:** User answers (`id`, `questionKey`, `userId`, `answer`, `coinAwarded` (deprecated), `answeredAt`, `updatedAt`)
+- **users:** User profiles (`id`, `coins` (deprecated), `createdAt`)
+- **coin_transactions:** Coin transaction ledger (`id`, `amount`, `type`, `metadata`, `createdAt`)
+
+### Transaction Types
+
+```typescript
+enum TransactionType {
+  ONBOARDING_ANSWER = 'onboarding_answer',
+  DAILY_REWARD = 'daily_reward',
+  PURCHASE = 'purchase',
+  BONUS = 'bonus',
+}
+```
 
 ### Question Types & Categories
 
@@ -443,8 +455,22 @@ enum QuestionCategory { PROFILE, ADDICTION, HABITS, MOTIVATION, GOALS }
 | `useDeleteDependentAnswers()` | Mutation | Invalidates answers | Deletes answers for questions that depend on a parent |
 | `useOnboardingStatus()` | Query | `['settings', 'onboardingCompleted']` | Returns `boolean` — whether onboarding is done |
 | `useCompleteOnboarding()` | Mutation | Invalidates status | Sets `onboardingCompleted` to `true` |
-| `useUserCoins()` | Query | `['users', 'coins']` | Current coin balance (returns 0 if no user) |
-| `useIncrementCoins()` | Mutation | Invalidates coins | Increments user coins by amount, creates user if none exists |
+
+### Coin Transaction Repository Hooks
+
+| Hook | Type | Query Key | Description |
+|------|------|-----------|-------------|
+| `useUserCoins()` | Query | `['users', 'coins']` | Current coin balance (SUM of all transactions) |
+| `useAwardCoins()` | Mutation | Invalidates coins | Creates transaction and awards coins |
+| `useHasQuestionReward()` | Query | `['transactions', 'question', questionKey]` | Returns boolean - whether question has been rewarded |
+| `useResetUserCoins()` | Mutation | Invalidates coins & transactions | Deletes all transactions (used on onboarding reset) |
+
+### Deprecated Hooks
+
+| Hook | Status | Replacement |
+|------|--------|-------------|
+| `useIncrementCoins()` (users.repository) | Deprecated | Use `useAwardCoins()` from coin-transactions.repository |
+| `useUserCoins()` (users.repository) | Deprecated | Use `useUserCoins()` from coin-transactions.repository |
 
 ### Conditional Questions
 
@@ -453,6 +479,14 @@ Questions can depend on a parent question's answer via `dependsOnQuestionKey` an
 ### Auto-Seeding
 
 On first launch, `_layout.tsx` checks if questions table is empty and runs `seedOnboardingQuestions()` from `db/seed/seed-questions.ts`.
+
+### Migration 0006 Cleanup
+
+Migration 0006 removes deprecated fields:
+- `users.coins` - Use `coin_transactions` table instead
+- `onboarding_answers.coinAwarded` - Use `coin_transactions` table instead
+
+Balance is now derived: `SUM(coin_transactions.amount)`
 
 ---
 

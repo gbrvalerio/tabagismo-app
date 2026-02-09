@@ -8,6 +8,7 @@ export const onboardingAnswers = sqliteTable('onboarding_answers', {
   questionKey: text('question_key').notNull().unique(),
   userId: integer('user_id'),
   answer: text('answer').notNull(),
+  // @deprecated - Use coin_transactions table instead. Will be removed in migration 0006.
   coinAwarded: integer('coin_awarded', { mode: 'boolean' }).notNull().default(false),
   answeredAt: integer('answered_at', { mode: 'timestamp' })
     .notNull()
