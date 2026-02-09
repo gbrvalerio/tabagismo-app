@@ -4,12 +4,19 @@ import { render } from '@testing-library/react-native';
 
 import { CoinSvg } from './CoinSvg';
 
-// Mock the SVG import
+// Mock the SVG imports
 jest.mock('@/assets/images/coin.svg', () => {
   const { View } = require('react-native');
   const MockCoinIcon = (props: any) => <View {...props} testID={props.testID || 'coin-icon'} />;
   MockCoinIcon.displayName = 'MockCoinIcon';
   return MockCoinIcon;
+});
+
+jest.mock('../GrayscaleCoinIcon', () => {
+  const { View } = require('react-native');
+  const MockGrayscaleCoinIcon = (props: any) => <View {...props} testID={props.testID || 'grayscale-coin-icon'} />;
+  MockGrayscaleCoinIcon.displayName = 'MockGrayscaleCoinIcon';
+  return MockGrayscaleCoinIcon;
 });
 
 describe('CoinSvg', () => {
@@ -39,25 +46,22 @@ describe('CoinSvg', () => {
     expect(svg.props.height).toBe(24);
   });
 
-  it('should render outlined variant with reduced opacity', () => {
+  it('should render outlined variant with grayscale coin', () => {
     const { getByTestId } = render(<CoinSvg variant="outlined" />);
-    const svg = getByTestId('coin-svg');
-    const svgStyle = svg.props.style;
-    expect(svgStyle.opacity).toBe(0.35);
+    const grayscaleCoin = getByTestId('grayscale-coin-icon');
+    expect(grayscaleCoin).toBeTruthy();
   });
 
-  it('should render filled variant with full opacity', () => {
+  it('should render filled variant with color coin', () => {
     const { getByTestId } = render(<CoinSvg variant="filled" />);
-    const svg = getByTestId('coin-svg');
-    const svgStyle = svg.props.style;
-    expect(svgStyle).toBeUndefined();
+    const colorCoin = getByTestId('coin-icon');
+    expect(colorCoin).toBeTruthy();
   });
 
-  it('should default to filled variant with full opacity', () => {
+  it('should default to filled variant with color coin', () => {
     const { getByTestId } = render(<CoinSvg />);
-    const svg = getByTestId('coin-svg');
-    const svgStyle = svg.props.style;
-    expect(svgStyle).toBeUndefined();
+    const colorCoin = getByTestId('coin-icon');
+    expect(colorCoin).toBeTruthy();
   });
 
   it('should apply glow shadow when showGlow is true', () => {

@@ -4,12 +4,19 @@ import { render } from '@testing-library/react-native';
 
 import { CoinTrail } from './CoinTrail';
 
-// Mock the SVG import
+// Mock the SVG imports
 jest.mock('@/assets/images/coin.svg', () => {
   const { View } = require('react-native');
   const MockCoinIcon = (props: any) => <View {...props} testID={props.testID || 'coin-icon'} />;
   MockCoinIcon.displayName = 'MockCoinIcon';
   return MockCoinIcon;
+});
+
+jest.mock('./GrayscaleCoinIcon', () => {
+  const { View } = require('react-native');
+  const MockGrayscaleCoinIcon = (props: any) => <View {...props} testID={props.testID || 'grayscale-coin-icon'} />;
+  MockGrayscaleCoinIcon.displayName = 'MockGrayscaleCoinIcon';
+  return MockGrayscaleCoinIcon;
 });
 
 // Mock react-native-reanimated
