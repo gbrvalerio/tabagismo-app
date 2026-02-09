@@ -57,6 +57,12 @@ export const typography = {
   fontFamily: {
     primary: 'System',
     display: 'System',
+    poppins: {
+      regular: 'Poppins_400Regular',
+      medium: 'Poppins_500Medium',
+      semibold: 'Poppins_600SemiBold',
+      bold: 'Poppins_700Bold',
+    },
   },
   fontSize: {
     xs: 12,
@@ -76,6 +82,40 @@ export const typography = {
     tight: 1.2,
     normal: 1.5,
     relaxed: 1.75,
+  },
+} as const;
+
+export const typographyPresets = {
+  hero: {
+    fontFamily: typography.fontFamily.poppins.bold,
+    fontSize: 30,
+    lineHeight: 38,
+    letterSpacing: -0.3,
+  },
+  subhead: {
+    fontFamily: typography.fontFamily.poppins.medium,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  body: {
+    fontFamily: typography.fontFamily.poppins.regular,
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  button: {
+    fontFamily: typography.fontFamily.poppins.semibold,
+    fontSize: 18,
+    lineHeight: 24,
+  },
+  coinCounter: {
+    fontFamily: typography.fontFamily.poppins.bold,
+    fontSize: 18,
+    lineHeight: 24,
+  },
+  small: {
+    fontFamily: typography.fontFamily.poppins.regular,
+    fontSize: 14,
+    lineHeight: 20,
   },
 } as const;
 
@@ -122,5 +162,6 @@ export const borderRadius = {
 export type Colors = typeof colors;
 export type Spacing = typeof spacing;
 export type Typography = typeof typography;
+export type TypographyPresets = typeof typographyPresets;
 export type Shadows = typeof shadows;
 export type BorderRadius = typeof borderRadius;

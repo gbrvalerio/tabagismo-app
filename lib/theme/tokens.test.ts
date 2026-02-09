@@ -1,5 +1,5 @@
 // lib/theme/tokens.test.ts
-import { colors, spacing, typography, shadows, borderRadius } from './tokens';
+import { colors, spacing, typography, typographyPresets, shadows, borderRadius } from './tokens';
 
 describe('Design Tokens', () => {
   describe('colors', () => {
@@ -59,8 +59,15 @@ describe('Design Tokens', () => {
 
   describe('typography', () => {
     it('should define font families', () => {
-      expect(typography.fontFamily.primary).toBe('System'); // Will use SF Pro on iOS, Roboto on Android
-      expect(typography.fontFamily.display).toBe('System'); // Rounded variant for headings
+      expect(typography.fontFamily.primary).toBe('System');
+      expect(typography.fontFamily.display).toBe('System');
+    });
+
+    it('should define Poppins font families', () => {
+      expect(typography.fontFamily.poppins.regular).toBe('Poppins_400Regular');
+      expect(typography.fontFamily.poppins.medium).toBe('Poppins_500Medium');
+      expect(typography.fontFamily.poppins.semibold).toBe('Poppins_600SemiBold');
+      expect(typography.fontFamily.poppins.bold).toBe('Poppins_700Bold');
     });
 
     it('should define font sizes', () => {
@@ -83,6 +90,57 @@ describe('Design Tokens', () => {
       expect(typography.lineHeight.tight).toBe(1.2);
       expect(typography.lineHeight.normal).toBe(1.5);
       expect(typography.lineHeight.relaxed).toBe(1.75);
+    });
+  });
+
+  describe('typographyPresets', () => {
+    it('should define hero preset for questions', () => {
+      expect(typographyPresets.hero).toEqual({
+        fontFamily: 'Poppins_700Bold',
+        fontSize: 30,
+        lineHeight: 38,
+        letterSpacing: -0.3,
+      });
+    });
+
+    it('should define subhead preset for input labels', () => {
+      expect(typographyPresets.subhead).toEqual({
+        fontFamily: 'Poppins_500Medium',
+        fontSize: 14,
+        lineHeight: 20,
+      });
+    });
+
+    it('should define body preset for choice text', () => {
+      expect(typographyPresets.body).toEqual({
+        fontFamily: 'Poppins_400Regular',
+        fontSize: 16,
+        lineHeight: 24,
+      });
+    });
+
+    it('should define button preset', () => {
+      expect(typographyPresets.button).toEqual({
+        fontFamily: 'Poppins_600SemiBold',
+        fontSize: 18,
+        lineHeight: 24,
+      });
+    });
+
+    it('should define coinCounter preset', () => {
+      expect(typographyPresets.coinCounter).toEqual({
+        fontFamily: 'Poppins_700Bold',
+        fontSize: 18,
+        lineHeight: 24,
+      });
+    });
+
+    it('should define small preset for secondary labels', () => {
+      expect(typographyPresets.small).toEqual({
+        fontFamily: 'Poppins_400Regular',
+        fontSize: 14,
+        lineHeight: 20,
+      });
     });
   });
 

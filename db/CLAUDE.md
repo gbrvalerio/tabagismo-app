@@ -40,9 +40,13 @@ npm run db:generate
 
 Drizzle generates `.sql` files that Metro bundler cannot import.
 
+**⚠️ CRITICAL: Preserve `--> statement-breakpoint` markers!**
+
+Expo-sqlite can only execute one SQL statement at a time. Drizzle uses `--> statement-breakpoint` to split multi-statement migrations. **If you remove these breakpoints, only the first statement will execute!**
+
 **Steps:**
 1. Find new file: `/db/migrations/0001_name.sql`
-2. Copy SQL content
+2. Copy SQL content **EXACTLY** (including statement breakpoints)
 3. Create `/db/migrations/0001_name.ts`:
    ```typescript
    export default `CREATE TABLE \`users\` (
@@ -51,8 +55,11 @@ Drizzle generates `.sql` files that Metro bundler cannot import.
      \`email\` text NOT NULL,
      \`created_at\` integer NOT NULL
    );
+   --> statement-breakpoint
+   CREATE UNIQUE INDEX \`users_email_unique\` ON \`users\` (\`email\`);
    `;
    ```
+   **Note:** Keep the `--> statement-breakpoint` markers between statements!
 4. Update `/db/migrations/migrations.ts`:
    ```typescript
    import m0001 from './0001_name'; // Remove .sql extension
@@ -205,10 +212,13 @@ export default function UsersScreen() {
 ## Query Keys Pattern
 
 ```typescript
-['users']              // List all users
-['users', userId]      // Single user
-['users', 'search']    // Search results
-['settings', 'theme']  // Specific setting
+['users']                             // List all users
+['users', userId]                     // Single user
+['users', 'search']                   // Search results
+['settings', 'theme']                 // Specific setting
+['settings', 'onboardingCompleted']   // Onboarding status
+['questions', context]                // Questions by context (e.g., 'onboarding')
+['answers', context]                  // Answers by context
 ```
 
 **Why scoped?** TanStack Query uses keys for caching and invalidation.
@@ -385,14 +395,23 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 ```
 /db
   /schema
-    /settings.ts      # Settings table schema
-    /index.ts         # Export all schemas
+    /settings.ts              # Settings table schema
+    /questions.ts             # Questions table + QuestionType/QuestionCategory enums (has context field)
+    /question-answers.ts      # Question answers table (context-aware, replaces onboarding-answers)
+    /onboarding-answers.ts    # @deprecated - Use question-answers.ts instead
+    /users.ts                 # Users table (id, coins, createdAt)
+    /index.ts                 # Export all schemas
   /repositories
-    /settings.repository.ts   # Settings hooks
+    /settings.repository.ts   # Settings hooks (useOnboardingStatus, useCompleteOnboarding)
+    /questions.repository.ts  # Generic question hooks (useQuestions, useAnswers, useSaveAnswer, useDeleteDependentAnswers, useDeleteAllAnswers) - context-aware
+    /users.repository.ts      # User hooks (useUserCoins, useIncrementCoins)
     /index.ts                 # Export all repositories
+  /seed
+    /seed-questions.ts        # Seeds initial questions (with context field)
   /migrations
-    /0000_name.ts     # Migration as TS module
-    /migrations.ts    # Migration registry
+    /0000_name.ts                   # Migration as TS module
+    /0001_add_onboarding_tables.ts  # Onboarding tables migration
+    /migrations.ts                  # Migration registry
     /meta/            # Drizzle metadata
   /client.ts          # Drizzle instance
   /migrate.ts         # Migration runner
@@ -404,6 +423,83 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 ## Current Tables
 
 - **settings:** Key-value store (`key`, `value`, `updatedAt`)
+- **questions:** Questions with context support (`id`, `context`, `key`, `order`, `type`, `category`, `questionText`, `required`, `dependsOnQuestionKey`, `dependsOnValue`, `metadata`, `createdAt`). Unique constraint on (`context`, `key`).
+- **question_answers:** Context-aware answers (`id`, `context`, `questionKey`, `userId`, `answer`, `answeredAt`, `updatedAt`). Unique constraint on (`context`, `questionKey`, `userId`).
+- **onboarding_answers:** @deprecated — Use `question_answers` table instead. (`id`, `questionKey`, `userId`, `answer`, `coinAwarded` (deprecated), `answeredAt`, `updatedAt`)
+- **users:** User profiles (`id`, `coins` (deprecated), `createdAt`)
+- **coin_transactions:** Coin transaction ledger (`id`, `amount`, `type`, `metadata`, `createdAt`)
+
+### Transaction Types
+
+```typescript
+enum TransactionType {
+  ONBOARDING_ANSWER = 'onboarding_answer', // @deprecated - Use QUESTION_ANSWER
+  QUESTION_ANSWER = 'question_answer',
+  DAILY_REWARD = 'daily_reward',
+  PURCHASE = 'purchase',
+  BONUS = 'bonus',
+}
+```
+
+### Question Types & Categories
+
+```typescript
+enum QuestionType { TEXT, NUMBER, SINGLE_CHOICE, MULTIPLE_CHOICE }
+enum QuestionCategory { PROFILE, ADDICTION, HABITS, MOTIVATION, GOALS }
+```
+
+### Questions Repository Hooks (Generic, Context-Aware)
+
+All hooks take a `context` string parameter (e.g., `'onboarding'`).
+
+| Hook | Type | Query Key | Description |
+|------|------|-----------|-------------|
+| `useQuestions(context)` | Query | `['questions', context]` | All questions for context, ordered by `order` |
+| `useAnswers(context)` | Query | `['answers', context]` | All saved answers for context |
+| `useSaveAnswer(context)` | Mutation | Invalidates answers | Upserts answer by `questionKey` with context |
+| `useDeleteDependentAnswers(context)` | Mutation | Invalidates answers | Deletes answers for questions that depend on a parent |
+| `useDeleteAllAnswers(context)` | Mutation | Invalidates answers | Deletes all answers for context |
+
+### Settings Repository Hooks
+
+| Hook | Type | Query Key | Description |
+|------|------|-----------|-------------|
+| `useOnboardingStatus()` | Query | `['settings', 'onboardingCompleted']` | Returns `boolean` — whether onboarding is done |
+| `useCompleteOnboarding()` | Mutation | Invalidates status | Sets `onboardingCompleted` to `true` |
+
+### Coin Transaction Repository Hooks
+
+| Hook | Type | Query Key | Description |
+|------|------|-----------|-------------|
+| `useUserCoins()` | Query | `['users', 'coins']` | Current coin balance (SUM of all transactions) |
+| `useAwardCoins()` | Mutation | Invalidates coins | Creates transaction and awards coins |
+| `useHasQuestionReward()` | Query | `['transactions', 'question', questionKey]` | Returns boolean - whether question has been rewarded |
+| `useResetUserCoins()` | Mutation | Invalidates coins & transactions | Deletes all transactions (used on onboarding reset) |
+
+### Deprecated Hooks
+
+| Hook | Status | Replacement |
+|------|--------|-------------|
+| `useIncrementCoins()` (users.repository) | Deprecated | Use `useAwardCoins()` from coin-transactions.repository |
+| `useUserCoins()` (users.repository) | Deprecated | Use `useUserCoins()` from coin-transactions.repository |
+| `useOnboardingQuestions()` (onboarding.repository) | Deprecated | Use `useQuestions('onboarding')` from questions.repository |
+| `useOnboardingAnswers()` (onboarding.repository) | Deprecated | Use `useAnswers('onboarding')` from questions.repository |
+
+### Conditional Questions
+
+Questions can depend on a parent question's answer via `dependsOnQuestionKey` and `dependsOnValue`. The flow engine (`lib/question-flow.ts`) filters applicable questions at runtime.
+
+### Auto-Seeding
+
+On first launch, `_layout.tsx` checks if questions table is empty and runs `seedOnboardingQuestions()` from `db/seed/seed-questions.ts`.
+
+### Migration 0006 Cleanup
+
+Migration 0006 removes deprecated fields:
+- `users.coins` - Use `coin_transactions` table instead
+- `onboarding_answers.coinAwarded` - Use `coin_transactions` table instead
+
+Balance is now derived: `SUM(coin_transactions.amount)`
 
 ---
 
@@ -417,3 +513,15 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 
 ### Type errors in repository
 **Fix:** Ensure schema types are exported: `export type User = typeof users.$inferSelect`
+
+### Jest fails with "Unexpected identifier TABLE" from migrations.js
+**Cause:** `drizzle-kit generate` auto-creates a `migrations.js` file that imports `.sql` files, which Jest can't parse.
+**Fix:** The `db:generate` script auto-removes `migrations.js` after generation. If it reappears, delete it manually (`rm db/migrations/migrations.js`) and clear Jest cache (`npx jest --clearCache`). The file is in `.gitignore`. We use `migrations.ts` instead.
+
+### Migration creates some tables but not others (e.g., "no such table: onboarding_answers")
+**Cause:** Missing `--> statement-breakpoint` markers in the `.ts` migration file. Expo-sqlite can only execute one SQL statement at a time, and Drizzle uses these markers to split multi-statement migrations. If the markers are missing, only the first CREATE TABLE executes.
+**Fix:**
+1. Check the original `.sql` file for `--> statement-breakpoint` markers
+2. Ensure ALL breakpoints are preserved when copying to `.ts` file
+3. Drop all tables and re-run migrations, or create a new migration to add missing tables
+**Example:** See section 3 "Convert Migration (CRITICAL)" for correct format with breakpoints.

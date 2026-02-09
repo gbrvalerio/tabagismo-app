@@ -1,5 +1,7 @@
 import * as repositoriesExports from './index';
 import * as settingsRepositoryExports from './settings.repository';
+import * as questionsRepositoryExports from './questions.repository';
+import * as coinTransactionsRepositoryExports from './coin-transactions.repository';
 
 describe('db/repositories/index.ts', () => {
   describe('exports', () => {
@@ -15,6 +17,22 @@ describe('db/repositories/index.ts', () => {
       expect(repositoriesExports.useCompleteOnboarding).toBe(settingsRepositoryExports.useCompleteOnboarding);
     });
 
+    it('should export questions repository hooks', () => {
+      expect(repositoriesExports.useQuestions).toBeDefined();
+      expect(repositoriesExports.useAnswers).toBeDefined();
+      expect(repositoriesExports.useSaveAnswer).toBeDefined();
+      expect(repositoriesExports.useDeleteDependentAnswers).toBeDefined();
+      expect(repositoriesExports.useDeleteAllAnswers).toBeDefined();
+    });
+
+    it('should export coin-transactions repository hooks', () => {
+      expect(repositoriesExports.useUserCoins).toBeDefined();
+      expect(repositoriesExports.useAwardCoins).toBeDefined();
+      expect(repositoriesExports.useHasQuestionReward).toBeDefined();
+      expect(repositoriesExports.useResetUserCoins).toBeDefined();
+      expect(repositoriesExports.useUserCoinsFromTransactions).toBeDefined();
+    });
+
     it('should have all exported functions from settings.repository', () => {
       const settingsExports = Object.keys(settingsRepositoryExports);
       const indexExports = Object.keys(repositoriesExports);
@@ -25,7 +43,11 @@ describe('db/repositories/index.ts', () => {
     });
 
     it('should not export anything unexpected', () => {
-      const expectedExports = ['useOnboardingStatus', 'useCompleteOnboarding'];
+      const expectedExports = [
+        ...Object.keys(settingsRepositoryExports),
+        ...Object.keys(questionsRepositoryExports),
+        ...Object.keys(coinTransactionsRepositoryExports),
+      ];
       const actualExports = Object.keys(repositoriesExports);
 
       actualExports.forEach(exportName => {

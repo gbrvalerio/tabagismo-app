@@ -62,11 +62,17 @@ describe('db/index.ts', () => {
     });
 
     describe('repositories', () => {
-      it('should export repository hooks', () => {
-        // All repositories are exported via export * from './repositories'
-        // Check that common repository hooks exist
+      it('should export settings repository hooks', () => {
         expect(indexModule.useOnboardingStatus).toBeDefined();
         expect(indexModule.useCompleteOnboarding).toBeDefined();
+      });
+
+      it('should export questions repository hooks', () => {
+        expect(indexModule.useQuestions).toBeDefined();
+        expect(indexModule.useAnswers).toBeDefined();
+        expect(indexModule.useSaveAnswer).toBeDefined();
+        expect(indexModule.useDeleteDependentAnswers).toBeDefined();
+        expect(indexModule.useDeleteAllAnswers).toBeDefined();
       });
 
       it('should export useOnboardingStatus as a function', () => {
@@ -78,37 +84,54 @@ describe('db/index.ts', () => {
       });
     });
 
-    describe('schema types', () => {
-      it('should export Setting type', () => {
-        // Types are not exported as values, but we can verify the export was attempted
-        // This is a compile-time check, so we verify the module doesn't throw on import
-        expect(indexModule).toBeDefined();
+    describe('schema types and enums', () => {
+      it('should export QuestionType enum', () => {
+        expect(indexModule.QuestionType).toBeDefined();
+        expect(indexModule.QuestionType.TEXT).toBe('TEXT');
+        expect(indexModule.QuestionType.NUMBER).toBe('NUMBER');
+        expect(indexModule.QuestionType.SINGLE_CHOICE).toBe('SINGLE_CHOICE');
+        expect(indexModule.QuestionType.MULTIPLE_CHOICE).toBe('MULTIPLE_CHOICE');
       });
 
-      it('should export NewSetting type', () => {
-        // Types are not exported as values, but we can verify the export was attempted
-        // This is a compile-time check, so we verify the module doesn't throw on import
-        expect(indexModule).toBeDefined();
+      it('should export QuestionCategory enum', () => {
+        expect(indexModule.QuestionCategory).toBeDefined();
+        expect(indexModule.QuestionCategory.PROFILE).toBe('PROFILE');
+        expect(indexModule.QuestionCategory.ADDICTION).toBe('ADDICTION');
+        expect(indexModule.QuestionCategory.HABITS).toBe('HABITS');
+        expect(indexModule.QuestionCategory.MOTIVATION).toBe('MOTIVATION');
+        expect(indexModule.QuestionCategory.GOALS).toBe('GOALS');
       });
 
-      it('should not have runtime Setting/NewSetting exports (type-only)', () => {
+      it('should not have runtime type-only exports', () => {
         // Type exports don't appear as properties in the runtime object
-        // Setting and NewSetting are type-only exports, so they won't be in the module object
         expect(typeof indexModule.Setting).toBe('undefined');
         expect(typeof indexModule.NewSetting).toBe('undefined');
+        expect(typeof indexModule.Question).toBe('undefined');
+        expect(typeof indexModule.NewQuestion).toBe('undefined');
       });
     });
 
     describe('module accessibility', () => {
       it('should be able to access all main exports', () => {
-        const requiredExports = ['db', 'runMigrations', 'useOnboardingStatus', 'useCompleteOnboarding'];
+        const requiredExports = [
+          'db',
+          'runMigrations',
+          'useOnboardingStatus',
+          'useCompleteOnboarding',
+          'useQuestions',
+          'useAnswers',
+          'useSaveAnswer',
+          'useDeleteDependentAnswers',
+          'useDeleteAllAnswers',
+          'QuestionType',
+          'QuestionCategory',
+        ];
         requiredExports.forEach((exportName) => {
           expect(indexModule[exportName]).toBeDefined();
         });
       });
 
       it('should have no undefined primary exports', () => {
-        // Ensure db and runMigrations are defined (the most critical exports)
         expect(indexModule.db).not.toBeUndefined();
         expect(indexModule.runMigrations).not.toBeUndefined();
       });
@@ -117,7 +140,6 @@ describe('db/index.ts', () => {
 
   describe('import compatibility', () => {
     it('should be importable as ES module syntax', async () => {
-      // This tests that the module structure supports both CJS and ES import
       const module = require('./index');
       expect(module).toBeDefined();
       expect(Object.keys(module).length).toBeGreaterThan(0);
@@ -125,7 +147,19 @@ describe('db/index.ts', () => {
 
     it('should have all expected named exports', () => {
       const indexModule = require('./index');
-      const expectedExports = ['db', 'runMigrations', 'useOnboardingStatus', 'useCompleteOnboarding'];
+      const expectedExports = [
+        'db',
+        'runMigrations',
+        'useOnboardingStatus',
+        'useCompleteOnboarding',
+        'useQuestions',
+        'useAnswers',
+        'useSaveAnswer',
+        'useDeleteDependentAnswers',
+        'useDeleteAllAnswers',
+        'QuestionType',
+        'QuestionCategory',
+      ];
 
       expectedExports.forEach((exportName) => {
         expect(indexModule).toHaveProperty(exportName);

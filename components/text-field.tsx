@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -6,8 +5,6 @@ import {
   View,
   Text,
   type TextInputProps,
-  type NativeSyntheticEvent,
-  type TextInputFocusEventData,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -40,7 +37,6 @@ export function TextField({
   testID,
   ...rest
 }: TextFieldProps) {
-  const [isFocused, setIsFocused] = useState(false);
   const textColor = useThemeColor({}, 'text');
   const iconColor = useThemeColor({}, 'icon');
 
@@ -65,7 +61,6 @@ export function TextField({
   });
 
   const handleFocus = (e: any) => {
-    setIsFocused(true);
     focusAnimation.value = withTiming(1, {
       duration: timing.fast,
       easing: animations.easing.easeOut,
@@ -74,7 +69,6 @@ export function TextField({
   };
 
   const handleBlur = (e: any) => {
-    setIsFocused(false);
     focusAnimation.value = withTiming(0, {
       duration: timing.fast,
       easing: animations.easing.easeOut,

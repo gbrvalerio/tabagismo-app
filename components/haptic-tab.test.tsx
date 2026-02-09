@@ -1,12 +1,12 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { Text, View } from 'react-native';
 import { HapticTab } from './haptic-tab';
 
 // Unmock HapticTab so we test the real component
 jest.unmock('@/components/haptic-tab');
 
-jest.mock('expo-haptics', () => ({
+jest.mock('@/lib/haptics', () => ({
   ImpactFeedbackStyle: {
     Light: 'Light',
     Medium: 'Medium',
@@ -640,7 +640,7 @@ describe('HapticTab', () => {
     });
 
     it('should handle multiple tab instances', () => {
-      const { rerender } = render(
+      render(
         <View>
           <HapticTab accessibilityLabel="Tab 1" accessibilityRole="tab">
             <Text testID="tab1">Tab 1</Text>

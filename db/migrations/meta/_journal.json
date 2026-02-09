@@ -8,6 +8,55 @@
       "when": 1770501389878,
       "tag": "0000_true_gideon",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1770519891786,
+      "tag": "0001_add_onboarding_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1770573947246,
+      "tag": "0002_add_coins",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1770573950000,
+      "tag": "0003_backfill_coins",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1770597047170,
+      "tag": "0004_wealthy_gertrude_yorkes",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1770597050000,
+      "tag": "0005_backfill_transactions",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1770597053000,
+      "tag": "0006_cleanup_old_coin_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1770601361035,
+      "tag": "0007_genericize_questions",
+      "breakpoints": true
     }
   ]
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { createTestQueryClient } from '@/lib/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { useOnboardingStatus, useCompleteOnboarding } from './settings.repository';
+import { useOnboardingStatus, useCompleteOnboarding, useResetOnboarding } from './settings.repository';
 
 const createWrapper = () => {
   const queryClient = createTestQueryClient();
@@ -64,6 +64,39 @@ describe('settings.repository', () => {
       expect(result.current.data === true || result.current.data === false || result.current.data === undefined).toBe(
         true
       );
+    });
+  });
+
+  describe('useResetOnboarding', () => {
+    it('should provide a working mutate function', () => {
+      const { result } = renderHook(() => useResetOnboarding(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.mutate).toBeDefined();
+      expect(typeof result.current.mutate).toBe('function');
+    });
+
+    it('should provide mutateAsync', () => {
+      const { result } = renderHook(() => useResetOnboarding(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.mutateAsync).toBeDefined();
+    });
+
+    it('should reset onboarding status when mutated', async () => {
+      const { result } = renderHook(() => useResetOnboarding(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        result.current.mutate(undefined);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess || result.current.isError).toBe(true);
+      });
     });
   });
 

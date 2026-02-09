@@ -19,6 +19,25 @@ export function useOnboardingStatus() {
   });
 }
 
+// Mutation: Reset onboarding status
+export function useResetOnboarding() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      await db
+        .update(settings)
+        .set({ value: 'false', updatedAt: new Date() })
+        .where(eq(settings.key, 'onboardingCompleted'));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['settings', 'onboardingCompleted']
+      });
+    },
+  });
+}
+
 // Mutation: Mark onboarding as completed
 export function useCompleteOnboarding() {
   const queryClient = useQueryClient();

@@ -1,6 +1,6 @@
 // app/(tabs)/design-demo.test.tsx
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import DesignDemo from './design-demo';
 
 describe('DesignDemo Screen', () => {
@@ -48,7 +48,9 @@ describe('DesignDemo Screen', () => {
     expect(consoleSpy).toHaveBeenCalledWith('Primary button pressed');
 
     // Fast-forward time to complete loading
-    jest.advanceTimersByTime(2000);
+    await act(() => {
+      jest.advanceTimersByTime(2000);
+    });
 
     consoleSpy.mockRestore();
   });

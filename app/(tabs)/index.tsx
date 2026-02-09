@@ -1,9 +1,40 @@
-import { View, Text, Button, StyleSheet } from 'react-native';
-import { useOnboardingStatus, useCompleteOnboarding } from '@/db';
+import { View, Text, Button, Alert, TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
+import {
+  useOnboardingStatus,
+  useCompleteOnboarding,
+  useResetOnboarding,
+  useDeleteAllAnswers,
+  useResetUserCoins,
+} from '@/db';
 
 export default function HomeScreen() {
   const { data: onboardingCompleted, isLoading } = useOnboardingStatus();
   const completeMutation = useCompleteOnboarding();
+  const resetMutation = useResetOnboarding();
+  const deleteAllAnswersMutation = useDeleteAllAnswers('onboarding');
+  const resetCoinsMutation = useResetUserCoins();
+  const router = useRouter();
+
+  const handleResetOnboarding = () => {
+    Alert.alert(
+      'Refazer Onboarding',
+      'Deseja refazer o onboarding? Todas as suas respostas e moedas serão apagadas.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Refazer',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteAllAnswersMutation.mutateAsync();
+            await resetCoinsMutation.mutateAsync();
+            await resetMutation.mutateAsync();
+            router.replace('/onboarding');
+          },
+        },
+      ],
+    );
+  };
 
   if (isLoading) {
     return (
@@ -30,6 +61,27 @@ export default function HomeScreen() {
           onPress={() => completeMutation.mutate()}
           disabled={completeMutation.isPending}
         />
+      )}
+
+      {onboardingCompleted && (
+        <TouchableOpacity
+          style={styles.resetButton}
+          onPress={handleResetOnboarding}
+          disabled={
+            resetMutation.isPending ||
+            deleteAllAnswersMutation.isPending ||
+            resetCoinsMutation.isPending
+          }
+          testID="reset-onboarding-button"
+        >
+          <Text style={styles.resetButtonText}>
+            {resetMutation.isPending ||
+            deleteAllAnswersMutation.isPending ||
+            resetCoinsMutation.isPending
+              ? 'Resetando...'
+              : 'Refazer Onboarding'}
+          </Text>
+        </TouchableOpacity>
       )}
 
       {completeMutation.isPending && (
@@ -64,6 +116,19 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 20,
     fontWeight: '600',
+  },
+  resetButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderWidth: 1,
+    borderColor: '#666',
+    borderRadius: 8,
+  },
+  resetButtonText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
   saving: {
     marginTop: 10,
