@@ -19,7 +19,7 @@ import {
   useMarkSlidesCompleted,
 } from '@/db/repositories/onboarding-slides.repository';
 import { SlideItem, PaginationDots } from '@/components/onboarding-slides';
-import { colors, spacing, typographyPresets } from '@/lib/theme/tokens';
+import { colors, spacing, borderRadius, typographyPresets } from '@/lib/theme/tokens';
 
 export default function OnboardingSlidesScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -36,6 +36,12 @@ export default function OnboardingSlidesScreen() {
 
   const handleSkip = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await markCompleted.mutateAsync();
+    router.push('/onboarding' as never);
+  };
+
+  const handleComplete = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     await markCompleted.mutateAsync();
     router.push('/onboarding' as never);
   };
@@ -59,10 +65,12 @@ export default function OnboardingSlidesScreen() {
     );
   }
 
+  const isLastSlide = slides ? currentIndex === slides.length - 1 : false;
+
   return (
     <LinearGradient colors={['#FFFFFF', '#F8F9FB']} style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-        {currentIndex >= 1 && (
+        {currentIndex >= 1 && !isLastSlide && (
           <Animated.View
             entering={FadeInDown.springify()}
             style={styles.skipContainer}
@@ -100,6 +108,28 @@ export default function OnboardingSlidesScreen() {
         <View style={styles.paginationContainer}>
           <PaginationDots total={slides?.length ?? 0} activeIndex={currentIndex} />
         </View>
+
+        {isLastSlide && (
+          <Animated.View
+            entering={FadeInDown.springify().damping(12).stiffness(200)}
+            style={styles.ctaContainer}
+          >
+            <Pressable
+              onPress={handleComplete}
+              style={({ pressed }) => [
+                styles.ctaButton,
+                pressed && styles.ctaButtonPressed,
+              ]}
+            >
+              <LinearGradient
+                colors={['#F7A531', '#F39119']}
+                style={styles.ctaGradient}
+              >
+                <Text style={styles.ctaText}>Vamos Lá!</Text>
+              </LinearGradient>
+            </Pressable>
+          </Animated.View>
+        )}
       </SafeAreaView>
     </LinearGradient>
   );
@@ -133,5 +163,28 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
+  },
+  ctaContainer: {
+    position: 'absolute',
+    bottom: spacing.xl,
+    left: spacing.xl,
+    right: spacing.xl,
+  },
+  ctaButton: {
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  ctaButtonPressed: {
+    transform: [{ scale: 0.97 }],
+    opacity: 0.9,
+  },
+  ctaGradient: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    alignItems: 'center',
+  },
+  ctaText: {
+    ...typographyPresets.button,
+    color: colors.neutral.white,
   },
 });

@@ -481,6 +481,7 @@ describe('OnboardingSlidesScreen', () => {
     const mockSlides = [
       { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
       { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+      { id: 3, order: 3, icon: 'icon3', title: 'S3', description: 'D3', metadata: null, createdAt: new Date() },
     ];
 
     (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
@@ -493,7 +494,7 @@ describe('OnboardingSlidesScreen', () => {
       wrapper: createWrapper(),
     });
 
-    // Scroll to slide 2
+    // Scroll to slide 2 (not last)
     const flatlist = getByTestId('slides-flatlist');
     fireEvent(flatlist, 'onMomentumScrollEnd', {
       nativeEvent: {
@@ -516,6 +517,7 @@ describe('OnboardingSlidesScreen', () => {
     const mockSlides = [
       { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
       { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+      { id: 3, order: 3, icon: 'icon3', title: 'S3', description: 'D3', metadata: null, createdAt: new Date() },
     ];
 
     (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
@@ -544,5 +546,216 @@ describe('OnboardingSlidesScreen', () => {
       expect(mockMutateAsync).toHaveBeenCalled();
       expect(mockPush).toHaveBeenCalledWith('/onboarding');
     });
+  });
+
+  it('should NOT show CTA button on slides 1-2', async () => {
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+      { id: 3, order: 3, icon: 'icon3', title: 'S3', description: 'D3', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { queryByText } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => {
+      expect(queryByText('Vamos Lá!')).toBeNull();
+    });
+  });
+
+  it('should show CTA button on last slide', async () => {
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+      { id: 3, order: 3, icon: 'icon3', title: 'S3', description: 'D3', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getByTestId, findByText } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    // Scroll to slide 3 (last slide)
+    const flatlist = getByTestId('slides-flatlist');
+    fireEvent(flatlist, 'onMomentumScrollEnd', {
+      nativeEvent: {
+        contentOffset: { x: 800 },
+        layoutMeasurement: { width: 400 },
+      },
+    });
+
+    const ctaButton = await findByText('Vamos Lá!');
+    expect(ctaButton).toBeTruthy();
+  });
+
+  it('should NOT show CTA button on slide 2 of 3', async () => {
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+      { id: 3, order: 3, icon: 'icon3', title: 'S3', description: 'D3', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getByTestId, queryByText } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    // Scroll to slide 2 (not last)
+    const flatlist = getByTestId('slides-flatlist');
+    fireEvent(flatlist, 'onMomentumScrollEnd', {
+      nativeEvent: {
+        contentOffset: { x: 400 },
+        layoutMeasurement: { width: 400 },
+      },
+    });
+
+    await waitFor(() => {
+      expect(queryByText('Vamos Lá!')).toBeNull();
+    });
+  });
+
+  it('should call markCompleted and navigate on CTA press', async () => {
+    const mockMutateAsync = jest.fn().mockResolvedValue(undefined);
+    (repository.useMarkSlidesCompleted as jest.Mock).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+      isPending: false,
+    });
+
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+      { id: 3, order: 3, icon: 'icon3', title: 'S3', description: 'D3', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getByTestId, findByText } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    // Scroll to last slide
+    const flatlist = getByTestId('slides-flatlist');
+    fireEvent(flatlist, 'onMomentumScrollEnd', {
+      nativeEvent: {
+        contentOffset: { x: 800 },
+        layoutMeasurement: { width: 400 },
+      },
+    });
+
+    const ctaButton = await findByText('Vamos Lá!');
+    fireEvent.press(ctaButton);
+
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith('/onboarding');
+    });
+  });
+
+  it('should trigger medium haptic feedback on CTA press', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Haptics = require('expo-haptics');
+
+    const mockMutateAsync = jest.fn().mockResolvedValue(undefined);
+    (repository.useMarkSlidesCompleted as jest.Mock).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+      isPending: false,
+    });
+
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+      { id: 3, order: 3, icon: 'icon3', title: 'S3', description: 'D3', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getByTestId, findByText } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    // Scroll to last slide
+    const flatlist = getByTestId('slides-flatlist');
+    fireEvent(flatlist, 'onMomentumScrollEnd', {
+      nativeEvent: {
+        contentOffset: { x: 800 },
+        layoutMeasurement: { width: 400 },
+      },
+    });
+
+    const ctaButton = await findByText('Vamos Lá!');
+    fireEvent.press(ctaButton);
+
+    expect(Haptics.impactAsync).toHaveBeenCalledWith(Haptics.ImpactFeedbackStyle.Medium);
+  });
+
+  it('should handle undefined slides gracefully for pagination dots', () => {
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { queryByTestId } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    // Should render without crashing when slides is undefined but not loading
+    expect(queryByTestId('slides-flatlist')).toBeTruthy();
+  });
+
+  it('should hide skip button on last slide when CTA is shown', async () => {
+    const mockSlides = [
+      { id: 1, order: 1, icon: 'icon1', title: 'S1', description: 'D1', metadata: null, createdAt: new Date() },
+      { id: 2, order: 2, icon: 'icon2', title: 'S2', description: 'D2', metadata: null, createdAt: new Date() },
+      { id: 3, order: 3, icon: 'icon3', title: 'S3', description: 'D3', metadata: null, createdAt: new Date() },
+    ];
+
+    (repository.useOnboardingSlides as jest.Mock).mockReturnValue({
+      data: mockSlides,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const { getByTestId, queryByText, findByText } = render(<OnboardingSlidesScreen />, {
+      wrapper: createWrapper(),
+    });
+
+    // Scroll to last slide
+    const flatlist = getByTestId('slides-flatlist');
+    fireEvent(flatlist, 'onMomentumScrollEnd', {
+      nativeEvent: {
+        contentOffset: { x: 800 },
+        layoutMeasurement: { width: 400 },
+      },
+    });
+
+    // CTA should show, skip should hide
+    await findByText('Vamos Lá!');
+    expect(queryByText('Pular')).toBeNull();
   });
 });
