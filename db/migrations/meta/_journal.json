@@ -29,6 +29,13 @@
       "when": 1770573950000,
       "tag": "0003_backfill_coins",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1770597047170,
+      "tag": "0004_wealthy_gertrude_yorkes",
+      "breakpoints": true
     }
   ]
 }

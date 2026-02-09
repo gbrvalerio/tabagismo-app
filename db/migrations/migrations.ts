@@ -5,6 +5,7 @@ import m0000 from './0000_true_gideon';
 import m0001 from './0001_add_onboarding_tables';
 import m0002 from './0002_add_coins';
 import m0003 from './0003_backfill_coins';
+import m0004 from './0004_add_coin_transactions';
 
 export default {
   journal,
@@ -13,5 +14,6 @@ export default {
     m0001,
     m0002,
     m0003,
+    m0004,
   }
 };
