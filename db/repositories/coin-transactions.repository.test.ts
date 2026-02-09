@@ -8,31 +8,86 @@ import { act } from '@testing-library/react-native';
 import { db } from '../client';
 import { coinTransactions, TransactionType } from '../schema';
 
+// Shared state for the mock database
+const mockDbState = {
+  transactions: [] as Array<{
+    id: number;
+    amount: number;
+    type: string;
+    metadata: string | null;
+  }>,
+  nextId: 1,
+  selectColumns: null as any,
+};
+
 jest.mock('../client', () => {
-  const mockGet = jest.fn().mockResolvedValue({ total: 0 });
-  const mockExecute = jest.fn().mockResolvedValue(undefined);
-  const mockReturning = jest.fn().mockResolvedValue([{ id: 1 }]);
+  const mockExecuteDelete = jest.fn().mockImplementation(() => {
+    mockDbState.transactions = [];
+    mockDbState.nextId = 1;
+    return Promise.resolve(undefined);
+  });
+
+  const mockExecuteGeneric = jest.fn().mockResolvedValue(undefined);
+
+  const mockGet = jest.fn().mockImplementation(() => {
+    // If we selected aggregate columns (like { total: ... }), return total
+    if (mockDbState.selectColumns?.total !== undefined) {
+      const total = mockDbState.transactions.reduce((sum, t) => sum + t.amount, 0);
+      return Promise.resolve({ total });
+    }
+    // Otherwise, return the first transaction
+    return Promise.resolve(mockDbState.transactions[0] || undefined);
+  });
+
+  let pendingInsertValues: any = null;
+
+  const mockReturning = jest.fn().mockImplementation(() => {
+    if (pendingInsertValues) {
+      const newTx = {
+        id: mockDbState.nextId++,
+        ...pendingInsertValues,
+      };
+      mockDbState.transactions.push(newTx);
+      pendingInsertValues = null;
+      return Promise.resolve([newTx]);
+    }
+    return Promise.resolve([]);
+  });
+
+  const mockValues = jest.fn().mockImplementation((values: any) => {
+    pendingInsertValues = values;
+    return {
+      returning: mockReturning,
+      execute: mockExecuteGeneric,
+    };
+  });
+
   const mockWhere = jest.fn(() => ({
     get: mockGet,
-    execute: mockExecute,
+    execute: mockExecuteGeneric,
     returning: mockReturning,
   }));
-  const mockValues = jest.fn(() => ({
-    returning: mockReturning,
-    execute: mockExecute,
-  }));
+
+  const mockAll = jest.fn().mockImplementation(() =>
+    Promise.resolve([...mockDbState.transactions])
+  );
+
   const mockFrom = jest.fn(() => ({
     get: mockGet,
-    all: jest.fn().mockResolvedValue([]),
+    all: mockAll,
     where: mockWhere,
   }));
+
   const mockDeleteResult = jest.fn(() => ({
-    execute: mockExecute,
+    execute: mockExecuteDelete,
   }));
 
   return {
     db: {
-      select: jest.fn(() => ({ from: mockFrom })),
+      select: jest.fn().mockImplementation((columns?: any) => {
+        mockDbState.selectColumns = columns;
+        return { from: mockFrom };
+      }),
       insert: jest.fn(() => ({ values: mockValues })),
       update: jest.fn(() => ({ set: mockWhere })),
       delete: jest.fn(() => mockDeleteResult()),
@@ -46,6 +101,13 @@ const createWrapper = () => {
     return React.createElement(QueryClientProvider, { client: queryClient }, children);
   };
 };
+
+// Reset mock database state before each test
+beforeEach(() => {
+  mockDbState.transactions = [];
+  mockDbState.nextId = 1;
+  mockDbState.selectColumns = null;
+});
 
 describe('useUserCoins', () => {
   beforeEach(() => {
