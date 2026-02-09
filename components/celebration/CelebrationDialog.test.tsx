@@ -206,4 +206,51 @@ describe('CelebrationDialog', () => {
     );
     expect(getByTestId('dialog-counter')).toBeTruthy();
   });
+
+  it('handles visibility change from true to false', () => {
+    const { rerender, queryByText } = render(
+      <CelebrationDialog
+        visible={true}
+        onDismiss={() => {}}
+        title="Title"
+        coinsEarned={10}
+      />
+    );
+    expect(queryByText('Title')).toBeTruthy();
+
+    rerender(
+      <CelebrationDialog
+        visible={false}
+        onDismiss={() => {}}
+        title="Title"
+        coinsEarned={10}
+      />
+    );
+    expect(queryByText('Title')).toBeNull();
+  });
+
+  it('auto-dismisses only when not interacted with', async () => {
+    jest.useFakeTimers();
+    const onDismiss = jest.fn();
+
+    const { getByTestId } = render(
+      <CelebrationDialog
+        visible={true}
+        onDismiss={onDismiss}
+        title="Title"
+        coinsEarned={10}
+        autoDismissDelay={1000}
+        testID="dialog"
+      />
+    );
+
+    // Don't interact, let timer run
+    jest.advanceTimersByTime(1000);
+
+    await waitFor(() => {
+      expect(onDismiss).toHaveBeenCalled();
+    });
+
+    jest.useRealTimers();
+  });
 });
