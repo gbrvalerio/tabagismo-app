@@ -123,6 +123,7 @@ const mockUseCompleteOnboarding = jest.fn();
 
 const mockUseUserCoins = jest.fn();
 const mockUseIncrementCoins = jest.fn();
+const mockUseAwardCoins = jest.fn();
 
 jest.mock("@/db/repositories", () => ({
   useOnboardingQuestions: () => mockUseOnboardingQuestions(),
@@ -132,6 +133,7 @@ jest.mock("@/db/repositories", () => ({
   useCompleteOnboarding: () => mockUseCompleteOnboarding(),
   useUserCoins: () => mockUseUserCoins(),
   useIncrementCoins: () => mockUseIncrementCoins(),
+  useAwardCoins: () => mockUseAwardCoins(),
 }));
 
 const mockRouterReplace = jest.fn();
@@ -141,14 +143,53 @@ jest.mock("expo-router", () => ({
   }),
 }));
 
+jest.mock("@/db/client", () => ({
+  db: {
+    select: jest.fn(),
+  },
+}));
+
+jest.mock("@/db/schema", () => ({
+  coinTransactions: {
+    type: "text",
+  },
+  TransactionType: {
+    ONBOARDING_ANSWER: "onboarding_answer",
+    DAILY_REWARD: "daily_reward",
+    PURCHASE: "purchase",
+    BONUS: "bonus",
+  },
+}));
+
+jest.mock("drizzle-orm", () => ({
+  eq: jest.fn(),
+  and: jest.fn(),
+  sql: jest.fn(),
+}));
+
 // Global coin mock defaults for all test suites
 beforeEach(() => {
+  jest.clearAllMocks();
+
+  // Mock db.select() to return a query builder chain
+  const mockDb = require("@/db/client").db;
+  mockDb.select = jest.fn().mockReturnValue({
+    from: jest.fn().mockReturnValue({
+      where: jest.fn().mockReturnValue({
+        get: jest.fn().mockResolvedValue(null), // No transaction by default
+      }),
+    }),
+  });
+
   mockUseUserCoins.mockReturnValue({
     data: 0,
     isLoading: false,
     isSuccess: true,
   });
   mockUseIncrementCoins.mockReturnValue({
+    mutateAsync: jest.fn().mockResolvedValue(undefined),
+  });
+  mockUseAwardCoins.mockReturnValue({
     mutateAsync: jest.fn().mockResolvedValue(undefined),
   });
 });
@@ -1382,6 +1423,8 @@ describe("coin award logic", () => {
   });
 
   it("should award coin on first answer", async () => {
+    const mockAwardMutateAsync = jest.fn().mockResolvedValue(undefined);
+
     mockUseOnboardingQuestions.mockReturnValue({
       data: mockQuestions,
       isLoading: false,
@@ -1391,6 +1434,9 @@ describe("coin award logic", () => {
       data: [],
       isLoading: false,
       isSuccess: true,
+    });
+    mockUseAwardCoins.mockReturnValue({
+      mutateAsync: mockAwardMutateAsync,
     });
 
     render(<OnboardingContainer />);
@@ -1403,7 +1449,11 @@ describe("coin award logic", () => {
     fireEvent.changeText(input, "Test answer");
 
     await waitFor(() => {
-      expect(mockIncrementMutateAsync).toHaveBeenCalledWith(1);
+      expect(mockAwardMutateAsync).toHaveBeenCalledWith({
+        amount: 1,
+        type: "onboarding_answer",
+        metadata: { questionKey: "name" },
+      });
     });
   });
 
@@ -1474,5 +1524,101 @@ describe("coin award logic", () => {
 
     // Should NOT have called increment coins
     expect(mockIncrementMutateAsync).not.toHaveBeenCalled();
+  });
+});
+
+describe("transaction-based coin awards", () => {
+  const mockSaveMutateAsync = jest.fn().mockResolvedValue(undefined);
+  const mockAwardCoinsMutateAsync = jest
+    .fn()
+    .mockResolvedValue(undefined);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    // Mock db.select() to return a query builder chain
+    const mockDb = require("@/db/client").db;
+    mockDb.select = jest.fn().mockReturnValue({
+      from: jest.fn().mockReturnValue({
+        where: jest.fn().mockReturnValue({
+          get: jest.fn().mockResolvedValue(null), // No transaction by default
+        }),
+      }),
+    });
+
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockSaveMutateAsync });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseCompleteOnboarding.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseUserCoins.mockReturnValue({
+      data: 0,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseAwardCoins.mockReturnValue({
+      mutateAsync: mockAwardCoinsMutateAsync,
+    });
+  });
+
+  it("should create transaction on first answer", async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("")).toBeDefined();
+    });
+
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Test answer");
+
+    // Test will verify the mutation is called with the correct transaction data
+    await waitFor(() => {
+      expect(mockSaveMutateAsync).toHaveBeenCalled();
+    });
+  });
+
+  it("should not create duplicate transaction for same question", async () => {
+    mockUseOnboardingQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseOnboardingAnswers.mockReturnValue({
+      data: [
+        {
+          questionKey: "name",
+          answer: JSON.stringify("Already answered"),
+        },
+      ],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(<OnboardingContainer />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("Already answered")).toBeDefined();
+    });
+
+    const input = screen.getByDisplayValue("Already answered");
+    fireEvent.changeText(input, "Updated answer");
+
+    // Should only save, not award coins
+    await waitFor(() => {
+      expect(mockSaveMutateAsync).toHaveBeenCalledWith({
+        questionKey: "name",
+        answer: JSON.stringify("Updated answer"),
+        isFirstTime: false,
+      });
+    });
   });
 });

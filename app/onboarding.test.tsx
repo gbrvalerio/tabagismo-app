@@ -46,7 +46,34 @@ jest.mock('@/db/repositories', () => ({
   useDeleteDependentAnswers: () => ({ mutateAsync: jest.fn() }),
   useCompleteOnboarding: () => ({ mutateAsync: jest.fn() }),
   useIncrementCoins: () => ({ mutateAsync: jest.fn() }),
+  useAwardCoins: () => ({ mutateAsync: jest.fn() }),
   useUserCoins: () => ({ data: 0, isLoading: false }),
+}));
+
+// Mock database client and schema
+jest.mock('@/db/client', () => ({
+  db: {
+    select: jest.fn().mockReturnValue({
+      from: jest.fn().mockReturnValue({
+        where: jest.fn().mockReturnValue({
+          get: jest.fn().mockResolvedValue(null),
+        }),
+      }),
+    }),
+  },
+}));
+
+jest.mock('@/db/schema', () => ({
+  coinTransactions: {},
+  TransactionType: {
+    ONBOARDING_ANSWER: 'onboarding_answer',
+  },
+}));
+
+jest.mock('drizzle-orm', () => ({
+  eq: jest.fn(),
+  and: jest.fn(),
+  sql: jest.fn(),
 }));
 
 describe('OnboardingScreen', () => {

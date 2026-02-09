@@ -1,13 +1,16 @@
 import {
   useCompleteOnboarding,
   useDeleteDependentAnswers,
-  useIncrementCoins,
+  useAwardCoins,
   useOnboardingAnswers,
   useOnboardingQuestions,
   useSaveAnswer,
 } from "@/db/repositories";
+import { TransactionType , coinTransactions } from "@/db/schema";
 import { computeApplicableQuestions } from "@/lib/onboarding-flow";
 import * as Haptics from "@/lib/haptics";
+import { db } from "@/db/client";
+import { eq, and, sql } from "drizzle-orm";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -58,7 +61,7 @@ export function OnboardingContainer() {
     useOnboardingAnswers();
   const saveAnswerMutation = useSaveAnswer();
   const deleteDependentAnswersMutation = useDeleteDependentAnswers();
-  const incrementCoinsMutation = useIncrementCoins();
+  const awardCoinsMutation = useAwardCoins();
   const completeOnboardingMutation = useCompleteOnboarding();
   const router = useRouter();
 
@@ -164,6 +167,20 @@ export function OnboardingContainer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAnswered, currentIndex, isLoading]);
 
+  const checkQuestionReward = async (questionKey: string): Promise<boolean> => {
+    const transaction = await db
+      .select()
+      .from(coinTransactions)
+      .where(
+        and(
+          eq(coinTransactions.type, TransactionType.ONBOARDING_ANSWER),
+          sql`json_extract(${coinTransactions.metadata}, '$.questionKey') = ${questionKey}`
+        )
+      )
+      .get();
+    return !!transaction;
+  };
+
   const handleAnswer = async (questionKey: string, value: unknown) => {
     // Check if answer already exists
     const existingAnswer = existingAnswers?.find(
@@ -182,10 +199,16 @@ export function OnboardingContainer() {
       isFirstTime,
     });
 
-    // Award coin only for new answers
-    if (isFirstTime) {
+    // Award coin based on transaction history
+    const hasReward = await checkQuestionReward(questionKey);
+
+    if (!hasReward) {
+      await awardCoinsMutation.mutateAsync({
+        amount: 1,
+        type: TransactionType.ONBOARDING_ANSWER,
+        metadata: { questionKey },
+      });
       setAnimatingCoinIndex(currentIndex);
-      await incrementCoinsMutation.mutateAsync(1);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
 
