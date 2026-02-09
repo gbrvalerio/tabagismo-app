@@ -1,6 +1,5 @@
 import * as repositoriesExports from './index';
 import * as settingsRepositoryExports from './settings.repository';
-import * as onboardingRepositoryExports from './onboarding.repository';
 import * as usersRepositoryExports from './users.repository';
 import * as coinTransactionsRepositoryExports from './coin-transactions.repository';
 
@@ -16,13 +15,6 @@ describe('db/repositories/index.ts', () => {
       expect(repositoriesExports.useCompleteOnboarding).toBeDefined();
       expect(typeof repositoriesExports.useCompleteOnboarding).toBe('function');
       expect(repositoriesExports.useCompleteOnboarding).toBe(settingsRepositoryExports.useCompleteOnboarding);
-    });
-
-    it('should export onboarding repository hooks', () => {
-      expect(repositoriesExports.useOnboardingQuestions).toBeDefined();
-      expect(repositoriesExports.useOnboardingAnswers).toBeDefined();
-      expect(repositoriesExports.useSaveAnswer).toBeDefined();
-      expect(repositoriesExports.useDeleteDependentAnswers).toBeDefined();
     });
 
     it('should export users repository hooks', () => {
@@ -46,15 +38,6 @@ describe('db/repositories/index.ts', () => {
       });
     });
 
-    it('should have all exported functions from onboarding.repository', () => {
-      const onboardingExports = Object.keys(onboardingRepositoryExports);
-      const indexExports = Object.keys(repositoriesExports);
-
-      onboardingExports.forEach(exportName => {
-        expect(indexExports).toContain(exportName);
-      });
-    });
-
     it('should have all exported functions from users.repository', () => {
       const usersExports = Object.keys(usersRepositoryExports);
       const indexExports = Object.keys(repositoriesExports);
@@ -67,7 +50,6 @@ describe('db/repositories/index.ts', () => {
     it('should not export anything unexpected', () => {
       const expectedExports = [
         ...Object.keys(settingsRepositoryExports),
-        ...Object.keys(onboardingRepositoryExports),
         ...Object.keys(usersRepositoryExports),
         ...Object.keys(coinTransactionsRepositoryExports),
       ];
