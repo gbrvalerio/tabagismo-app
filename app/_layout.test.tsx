@@ -3,7 +3,7 @@ import React from 'react';
 import RootLayout from './_layout';
 
 // Track registered screens
-const registeredScreens: Array<{ name: string; options?: any }> = [];
+const registeredScreens: { name: string; options?: any }[] = [];
 
 // Mock expo-router
 jest.mock('expo-router', () => {
@@ -91,6 +91,23 @@ describe('RootLayout - Screen Registration', () => {
     registeredScreens.length = 0;
     jest.clearAllMocks();
     mockCelebrationDialog.mockClear();
+  });
+
+  it('should register onboarding-slides screen with correct options', async () => {
+    render(<RootLayout />);
+
+    // Wait for component to be fully rendered
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const onboardingSlidesScreen = registeredScreens.find(
+      (screen) => screen.name === 'onboarding-slides'
+    );
+
+    expect(onboardingSlidesScreen).toBeDefined();
+    expect(onboardingSlidesScreen?.options).toEqual({
+      headerShown: false,
+      gestureEnabled: false,
+    });
   });
 
   it('should register notification-permission screen with correct options', async () => {
