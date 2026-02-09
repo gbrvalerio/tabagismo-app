@@ -117,4 +117,26 @@ describe('MultipleChoiceCards', () => {
       : styles;
     expect(flatStyle.fontSize).toBe(16);
   });
+
+  it('should handle press in event', () => {
+    render(<MultipleChoiceCards choices={choices} value={[]} onChange={() => {}} />);
+    const card = screen.getByTestId('choice-Ansiedade');
+
+    // Trigger pressIn event
+    fireEvent(card, 'pressIn');
+
+    // Should not crash
+    expect(card).toBeDefined();
+  });
+
+  it('should handle press out event', () => {
+    render(<MultipleChoiceCards choices={choices} value={[]} onChange={() => {}} />);
+    const card = screen.getByTestId('choice-Ansiedade');
+
+    // Trigger pressOut event
+    fireEvent(card, 'pressOut');
+
+    // Should not crash
+    expect(card).toBeDefined();
+  });
 });

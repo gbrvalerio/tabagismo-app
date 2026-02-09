@@ -123,4 +123,26 @@ describe('SingleChoiceCards', () => {
     fireEvent.press(screen.getByText('Masculino'));
     expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Medium);
   });
+
+  it('should handle press in event', () => {
+    render(<SingleChoiceCards choices={choices} value={null} onChange={() => {}} />);
+    const card = screen.getByTestId('choice-Masculino');
+
+    // Trigger pressIn event
+    fireEvent(card, 'pressIn');
+
+    // Should not crash
+    expect(card).toBeDefined();
+  });
+
+  it('should handle press out event', () => {
+    render(<SingleChoiceCards choices={choices} value={null} onChange={() => {}} />);
+    const card = screen.getByTestId('choice-Masculino');
+
+    // Trigger pressOut event
+    fireEvent(card, 'pressOut');
+
+    // Should not crash
+    expect(card).toBeDefined();
+  });
 });

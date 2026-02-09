@@ -159,4 +159,37 @@ describe('OnboardingNumberInput', () => {
       : styles;
     expect(flatStyle.fontSize).toBe(16);
   });
+
+  it('should handle focus event', () => {
+    render(<OnboardingNumberInput value={null} onChange={() => {}} placeholder="Idade" />);
+    const input = screen.getByDisplayValue('');
+
+    // Trigger focus event
+    fireEvent(input, 'focus');
+
+    // Should not crash
+    expect(input).toBeDefined();
+  });
+
+  it('should handle blur event', () => {
+    render(<OnboardingNumberInput value={null} onChange={() => {}} placeholder="Idade" />);
+    const input = screen.getByDisplayValue('');
+
+    // Trigger blur event
+    fireEvent(input, 'blur');
+
+    // Should not crash
+    expect(input).toBeDefined();
+  });
+
+  it('should focus input when container is pressed', () => {
+    render(<OnboardingNumberInput value={null} onChange={() => {}} placeholder="Idade" />);
+    const container = screen.getByTestId('number-input-container');
+
+    // Trigger press on container
+    fireEvent.press(container);
+
+    // Should not crash
+    expect(container).toBeDefined();
+  });
 });

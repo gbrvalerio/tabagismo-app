@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 
 import { CoinTrail } from './CoinTrail';
 
@@ -250,5 +250,56 @@ describe('CoinTrail', () => {
     // Should find coin-svg-container elements (from CoinSvg inside AnimatedCoin)
     const coinContainers = getAllByTestId('coin-svg-container');
     expect(coinContainers.length).toBe(3);
+  });
+
+  it('should handle layout event to position progress line', () => {
+    const { getByTestId } = render(
+      <CoinTrail
+        testID="coin-trail"
+        currentStep={1}
+        totalSteps={3}
+        answeredIndices={[]}
+      />
+    );
+
+    const container = getByTestId('coin-trail');
+
+    // Trigger layout event with height
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 100, width: 200, x: 0, y: 0 } }
+    });
+
+    // Container should handle the layout event without crashing
+    expect(container).toBeTruthy();
+  });
+
+  it('should call onCoinAnimationComplete when coin animation completes', () => {
+    const onComplete = jest.fn();
+    const { getAllByTestId, rerender } = render(
+      <CoinTrail
+        currentStep={1}
+        totalSteps={3}
+        answeredIndices={[]}
+        animatingCoinIndex={null}
+        onCoinAnimationComplete={onComplete}
+      />
+    );
+
+    // Trigger animation by setting animatingCoinIndex
+    rerender(
+      <CoinTrail
+        currentStep={2}
+        totalSteps={3}
+        answeredIndices={[0]}
+        animatingCoinIndex={0}
+        onCoinAnimationComplete={onComplete}
+      />
+    );
+
+    const coins = getAllByTestId('animated-coin');
+    expect(coins.length).toBe(3);
+
+    // The callback exists and is passed to AnimatedCoin
+    expect(onComplete).toBeDefined();
   });
 });

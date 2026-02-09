@@ -141,7 +141,7 @@ export function OnboardingNumberInput({ value, onChange, placeholder }: Onboardi
 
   return (
     <View style={styles.wrapper}>
-      <Pressable onPress={handlePressContainer} accessible={false}>
+      <Pressable onPress={handlePressContainer} accessible={false} testID="number-input-container">
         <View style={styles.container}>
           {/* Main input container */}
           <Animated.View style={[styles.inputContainer, borderStyle]}>

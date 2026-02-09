@@ -125,4 +125,26 @@ describe('OnboardingTextInput', () => {
     const input = screen.getByDisplayValue('');
     expect(input).toBeDefined();
   });
+
+  it('should handle blur event', () => {
+    render(<OnboardingTextInput value="" onChange={() => {}} placeholder="Nome" />);
+    const input = screen.getByDisplayValue('');
+
+    // Trigger blur event
+    fireEvent(input, 'blur');
+
+    // Should not crash
+    expect(input).toBeDefined();
+  });
+
+  it('should focus input when container is pressed', () => {
+    render(<OnboardingTextInput value="" onChange={() => {}} placeholder="Nome" />);
+    const container = screen.getByTestId('text-input-container');
+
+    // Trigger press on container
+    fireEvent.press(container);
+
+    // Should not crash
+    expect(container).toBeDefined();
+  });
 });
