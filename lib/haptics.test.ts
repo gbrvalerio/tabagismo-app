@@ -1,4 +1,5 @@
 import * as Haptics from './haptics';
+import * as ExpoHaptics from 'expo-haptics';
 
 // Simple integration tests - verify the module exports what we need
 describe('haptics utility', () => {
@@ -60,6 +61,57 @@ describe('haptics utility', () => {
     it('should return undefined from selectionAsync', async () => {
       const result = await Haptics.selectionAsync();
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('error handling and recovery', () => {
+    it('should disable haptics after impactAsync error', async () => {
+      // Mock expo-haptics to throw error
+      const impactSpy = jest.spyOn(ExpoHaptics, 'impactAsync').mockRejectedValueOnce(new Error('Haptics not available'));
+
+      // First call should trigger error and disable haptics
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      expect(impactSpy).toHaveBeenCalledTimes(1);
+
+      // Second call should return early without calling expo-haptics again
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      expect(impactSpy).toHaveBeenCalledTimes(1); // Still 1, not called again
+    });
+
+    it('should disable haptics after notificationAsync error', async () => {
+      await jest.isolateModulesAsync(async () => {
+        const ExpoHapticsModule = require('expo-haptics');
+        const HapticsModule = require('./haptics');
+
+        // Mock expo-haptics to throw error
+        const notificationSpy = jest.spyOn(ExpoHapticsModule, 'notificationAsync').mockRejectedValueOnce(new Error('Haptics not available'));
+
+        // First call should trigger error and disable haptics
+        await HapticsModule.notificationAsync(HapticsModule.NotificationFeedbackType.Success);
+        expect(notificationSpy).toHaveBeenCalledTimes(1);
+
+        // Second call should return early without calling expo-haptics again
+        await HapticsModule.notificationAsync(HapticsModule.NotificationFeedbackType.Warning);
+        expect(notificationSpy).toHaveBeenCalledTimes(1); // Still 1, not called again
+      });
+    });
+
+    it('should disable haptics after selectionAsync error', async () => {
+      await jest.isolateModulesAsync(async () => {
+        const ExpoHapticsModule = require('expo-haptics');
+        const HapticsModule = require('./haptics');
+
+        // Mock expo-haptics to throw error
+        const selectionSpy = jest.spyOn(ExpoHapticsModule, 'selectionAsync').mockRejectedValueOnce(new Error('Haptics not available'));
+
+        // First call should trigger error and disable haptics
+        await HapticsModule.selectionAsync();
+        expect(selectionSpy).toHaveBeenCalledTimes(1);
+
+        // Second call should return early without calling expo-haptics again
+        await HapticsModule.selectionAsync();
+        expect(selectionSpy).toHaveBeenCalledTimes(1); // Still 1, not called again
+      });
     });
   });
 });
