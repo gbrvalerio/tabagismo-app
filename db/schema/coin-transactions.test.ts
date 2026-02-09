@@ -28,8 +28,27 @@ describe('coinTransactions schema', () => {
 
   it('should have TransactionType enum', () => {
     expect(TransactionType.ONBOARDING_ANSWER).toBe('onboarding_answer');
+    expect(TransactionType.QUESTION_ANSWER).toBe('question_answer');
     expect(TransactionType.DAILY_REWARD).toBe('daily_reward');
     expect(TransactionType.PURCHASE).toBe('purchase');
     expect(TransactionType.BONUS).toBe('bonus');
+  });
+
+  it('should use QUESTION_ANSWER type in transaction objects', () => {
+    type CoinTransaction = typeof coinTransactions.$inferSelect;
+
+    const transaction: CoinTransaction = {
+      id: 1,
+      amount: 1,
+      type: TransactionType.QUESTION_ANSWER,
+      metadata: JSON.stringify({
+        context: 'onboarding',
+        questionKey: 'name',
+      }),
+      createdAt: new Date(),
+    };
+
+    expect(transaction.type).toBe('question_answer');
+    expect(JSON.parse(transaction.metadata!).context).toBe('onboarding');
   });
 });

@@ -16,7 +16,8 @@ export type CoinTransaction = typeof coinTransactions.$inferSelect;
 export type NewCoinTransaction = typeof coinTransactions.$inferInsert;
 
 export enum TransactionType {
-  ONBOARDING_ANSWER = 'onboarding_answer',
+  ONBOARDING_ANSWER = 'onboarding_answer', // @deprecated - Use QUESTION_ANSWER instead
+  QUESTION_ANSWER = 'question_answer',
   DAILY_REWARD = 'daily_reward',
   PURCHASE = 'purchase',
   BONUS = 'bonus',
