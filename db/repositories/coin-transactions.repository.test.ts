@@ -356,7 +356,7 @@ describe('useHasQuestionReward', () => {
   // State is already reset in the global beforeEach
 
   it('should return false when no transaction exists', async () => {
-    const { result } = renderHook(() => useHasQuestionReward('q1'), {
+    const { result } = renderHook(() => useHasQuestionReward('onboarding', 'q1'), {
       wrapper: createWrapper(),
     });
 
@@ -367,11 +367,11 @@ describe('useHasQuestionReward', () => {
   it('should return true when transaction exists for question', async () => {
     await db.insert(coinTransactions).values({
       amount: 1,
-      type: TransactionType.ONBOARDING_ANSWER,
-      metadata: JSON.stringify({ questionKey: 'q1' }),
+      type: TransactionType.QUESTION_ANSWER,
+      metadata: JSON.stringify({ context: 'onboarding', questionKey: 'q1' }),
     }).returning();
 
-    const { result } = renderHook(() => useHasQuestionReward('q1'), {
+    const { result } = renderHook(() => useHasQuestionReward('onboarding', 'q1'), {
       wrapper: createWrapper(),
     });
 
@@ -382,11 +382,11 @@ describe('useHasQuestionReward', () => {
   it('should return false for different question key', async () => {
     await db.insert(coinTransactions).values({
       amount: 1,
-      type: TransactionType.ONBOARDING_ANSWER,
-      metadata: JSON.stringify({ questionKey: 'q1' }),
+      type: TransactionType.QUESTION_ANSWER,
+      metadata: JSON.stringify({ context: 'onboarding', questionKey: 'q1' }),
     });
 
-    const { result } = renderHook(() => useHasQuestionReward('q2'), {
+    const { result } = renderHook(() => useHasQuestionReward('onboarding', 'q2'), {
       wrapper: createWrapper(),
     });
 
@@ -394,14 +394,14 @@ describe('useHasQuestionReward', () => {
     expect(result.current.data).toBe(false);
   });
 
-  it('should ignore non-onboarding transactions', async () => {
+  it('should ignore non-question-answer transactions', async () => {
     await db.insert(coinTransactions).values({
       amount: 5,
       type: TransactionType.BONUS,
-      metadata: JSON.stringify({ questionKey: 'q1' }),
+      metadata: JSON.stringify({ context: 'onboarding', questionKey: 'q1' }),
     });
 
-    const { result } = renderHook(() => useHasQuestionReward('q1'), {
+    const { result } = renderHook(() => useHasQuestionReward('onboarding', 'q1'), {
       wrapper: createWrapper(),
     });
 
@@ -414,17 +414,17 @@ describe('useHasQuestionReward', () => {
     await db.insert(coinTransactions).values([
       {
         amount: 1,
-        type: TransactionType.ONBOARDING_ANSWER,
-        metadata: JSON.stringify({ questionKey: 'q1' }),
+        type: TransactionType.QUESTION_ANSWER,
+        metadata: JSON.stringify({ context: 'onboarding', questionKey: 'q1' }),
       },
       {
         amount: 1,
-        type: TransactionType.ONBOARDING_ANSWER,
-        metadata: JSON.stringify({ questionKey: 'q1' }),
+        type: TransactionType.QUESTION_ANSWER,
+        metadata: JSON.stringify({ context: 'onboarding', questionKey: 'q1' }),
       },
     ]).returning();
 
-    const { result } = renderHook(() => useHasQuestionReward('q1'), {
+    const { result } = renderHook(() => useHasQuestionReward('onboarding', 'q1'), {
       wrapper: createWrapper(),
     });
 
