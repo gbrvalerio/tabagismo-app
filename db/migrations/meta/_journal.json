@@ -57,6 +57,13 @@
       "when": 1770601361035,
       "tag": "0007_genericize_questions",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1770679468436,
+      "tag": "0008_add_onboarding_slides",
+      "breakpoints": true
     }
   ]
 }

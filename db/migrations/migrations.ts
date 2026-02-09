@@ -9,6 +9,7 @@ import m0004 from './0004_add_coin_transactions';
 import m0005 from './0005_backfill_transactions';
 import m0006 from './0006_cleanup_old_coin_fields';
 import m0007 from './0007_genericize_questions';
+import m0008 from './0008_add_onboarding_slides';
 
 export default {
   journal,
@@ -21,5 +22,6 @@ export default {
     m0005,
     m0006,
     m0007,
+    m0008,
   }
 };
