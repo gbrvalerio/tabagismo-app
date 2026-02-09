@@ -2,6 +2,7 @@ import * as repositoriesExports from './index';
 import * as settingsRepositoryExports from './settings.repository';
 import * as onboardingRepositoryExports from './onboarding.repository';
 import * as usersRepositoryExports from './users.repository';
+import * as coinTransactionsRepositoryExports from './coin-transactions.repository';
 
 describe('db/repositories/index.ts', () => {
   describe('exports', () => {
@@ -27,6 +28,13 @@ describe('db/repositories/index.ts', () => {
     it('should export users repository hooks', () => {
       expect(repositoriesExports.useUserCoins).toBeDefined();
       expect(repositoriesExports.useIncrementCoins).toBeDefined();
+    });
+
+    it('should export coin-transactions repository hooks', () => {
+      expect(repositoriesExports.useAwardCoins).toBeDefined();
+      expect(repositoriesExports.useHasQuestionReward).toBeDefined();
+      expect(repositoriesExports.useResetUserCoins).toBeDefined();
+      expect(repositoriesExports.useUserCoinsFromTransactions).toBeDefined();
     });
 
     it('should have all exported functions from settings.repository', () => {
@@ -61,6 +69,7 @@ describe('db/repositories/index.ts', () => {
         ...Object.keys(settingsRepositoryExports),
         ...Object.keys(onboardingRepositoryExports),
         ...Object.keys(usersRepositoryExports),
+        ...Object.keys(coinTransactionsRepositoryExports),
       ];
       const actualExports = Object.keys(repositoriesExports);
 
