@@ -51,6 +51,10 @@ jest.mock('@/db/seed/seed-questions', () => ({
   seedOnboardingQuestions: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('@/db/seed/onboarding-slides.seed', () => ({
+  seedOnboardingSlides: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('@/components/question-flow/OnboardingGuard', () => ({
   OnboardingGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));

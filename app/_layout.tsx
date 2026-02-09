@@ -22,8 +22,9 @@ import { NotificationPermissionListener } from "@/components/NotificationPermiss
 import { OnboardingGuard } from "@/components/question-flow/OnboardingGuard";
 import { runMigrations } from "@/db";
 import { db } from "@/db/client";
-import { questions } from "@/db/schema";
+import { onboardingSlides, questions } from "@/db/schema";
 import { seedOnboardingQuestions } from "@/db/seed/seed-questions";
+import { seedOnboardingSlides } from "@/db/seed/onboarding-slides.seed";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { queryClient } from "@/lib/query-client";
 
@@ -98,6 +99,10 @@ export default function RootLayout() {
       const existingQuestions = await db.select().from(questions).all();
       if (existingQuestions.length === 0 || __DEV__) {
         await seedOnboardingQuestions();
+      }
+      const existingSlides = await db.select().from(onboardingSlides).all();
+      if (existingSlides.length === 0 || __DEV__) {
+        await seedOnboardingSlides();
       }
     }
 
