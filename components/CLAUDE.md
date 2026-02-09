@@ -246,7 +246,7 @@ import { CelebrationDialog } from '@/components/celebration';
 | `title` | `string` | — | Main celebration text (required) |
 | `subtitle` | `string` | — | Optional secondary text |
 | `coinsEarned` | `number` | — | Number of coins to display in counter (required) |
-| `autoDismissDelay` | `number` | `5000` | Auto-dismiss delay in milliseconds |
+| `autoDismissDelay` | `number` | `0` | Auto-dismiss delay in milliseconds (0 = no auto-dismiss) |
 | `testID` | `string` | `'celebration-dialog'` | Test identifier |
 
 **Animations:**

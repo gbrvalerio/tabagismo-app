@@ -435,6 +435,7 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 enum TransactionType {
   ONBOARDING_ANSWER = 'onboarding_answer', // @deprecated - Use QUESTION_ANSWER
   QUESTION_ANSWER = 'question_answer',
+  NOTIFICATION_PERMISSION = 'notification_permission',
   DAILY_REWARD = 'daily_reward',
   PURCHASE = 'purchase',
   BONUS = 'bonus',
@@ -474,6 +475,7 @@ All hooks take a `context` string parameter (e.g., `'onboarding'`).
 | `useUserCoins()` | Query | `['users', 'coins']` | Current coin balance (SUM of all transactions) |
 | `useAwardCoins()` | Mutation | Invalidates coins | Creates transaction and awards coins |
 | `useHasQuestionReward()` | Query | `['transactions', 'question', questionKey]` | Returns boolean - whether question has been rewarded |
+| `useHasNotificationReward()` | Query | `['transactions', 'notification_permission']` | Returns boolean - whether notification permission reward exists |
 | `useResetUserCoins()` | Mutation | Invalidates coins & transactions | Deletes all transactions (used on onboarding reset) |
 
 ### Deprecated Hooks
