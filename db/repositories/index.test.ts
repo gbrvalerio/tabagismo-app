@@ -1,5 +1,6 @@
 import * as repositoriesExports from './index';
 import * as settingsRepositoryExports from './settings.repository';
+import * as questionsRepositoryExports from './questions.repository';
 import * as usersRepositoryExports from './users.repository';
 import * as coinTransactionsRepositoryExports from './coin-transactions.repository';
 
@@ -15,6 +16,14 @@ describe('db/repositories/index.ts', () => {
       expect(repositoriesExports.useCompleteOnboarding).toBeDefined();
       expect(typeof repositoriesExports.useCompleteOnboarding).toBe('function');
       expect(repositoriesExports.useCompleteOnboarding).toBe(settingsRepositoryExports.useCompleteOnboarding);
+    });
+
+    it('should export questions repository hooks', () => {
+      expect(repositoriesExports.useQuestions).toBeDefined();
+      expect(repositoriesExports.useAnswers).toBeDefined();
+      expect(repositoriesExports.useSaveAnswer).toBeDefined();
+      expect(repositoriesExports.useDeleteDependentAnswers).toBeDefined();
+      expect(repositoriesExports.useDeleteAllAnswers).toBeDefined();
     });
 
     it('should export users repository hooks', () => {
@@ -50,6 +59,7 @@ describe('db/repositories/index.ts', () => {
     it('should not export anything unexpected', () => {
       const expectedExports = [
         ...Object.keys(settingsRepositoryExports),
+        ...Object.keys(questionsRepositoryExports),
         ...Object.keys(usersRepositoryExports),
         ...Object.keys(coinTransactionsRepositoryExports),
       ];

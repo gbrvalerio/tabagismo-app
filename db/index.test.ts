@@ -67,11 +67,12 @@ describe('db/index.ts', () => {
         expect(indexModule.useCompleteOnboarding).toBeDefined();
       });
 
-      it('should export onboarding repository hooks', () => {
-        expect(indexModule.useOnboardingQuestions).toBeDefined();
-        expect(indexModule.useOnboardingAnswers).toBeDefined();
+      it('should export questions repository hooks', () => {
+        expect(indexModule.useQuestions).toBeDefined();
+        expect(indexModule.useAnswers).toBeDefined();
         expect(indexModule.useSaveAnswer).toBeDefined();
         expect(indexModule.useDeleteDependentAnswers).toBeDefined();
+        expect(indexModule.useDeleteAllAnswers).toBeDefined();
       });
 
       it('should export useOnboardingStatus as a function', () => {
@@ -117,10 +118,11 @@ describe('db/index.ts', () => {
           'runMigrations',
           'useOnboardingStatus',
           'useCompleteOnboarding',
-          'useOnboardingQuestions',
-          'useOnboardingAnswers',
+          'useQuestions',
+          'useAnswers',
           'useSaveAnswer',
           'useDeleteDependentAnswers',
+          'useDeleteAllAnswers',
           'QuestionType',
           'QuestionCategory',
         ];
@@ -150,10 +152,11 @@ describe('db/index.ts', () => {
         'runMigrations',
         'useOnboardingStatus',
         'useCompleteOnboarding',
-        'useOnboardingQuestions',
-        'useOnboardingAnswers',
+        'useQuestions',
+        'useAnswers',
         'useSaveAnswer',
         'useDeleteDependentAnswers',
+        'useDeleteAllAnswers',
         'QuestionType',
         'QuestionCategory',
       ];
