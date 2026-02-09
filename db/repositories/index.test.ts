@@ -1,7 +1,6 @@
 import * as repositoriesExports from './index';
 import * as settingsRepositoryExports from './settings.repository';
 import * as questionsRepositoryExports from './questions.repository';
-import * as usersRepositoryExports from './users.repository';
 import * as coinTransactionsRepositoryExports from './coin-transactions.repository';
 
 describe('db/repositories/index.ts', () => {
@@ -26,12 +25,8 @@ describe('db/repositories/index.ts', () => {
       expect(repositoriesExports.useDeleteAllAnswers).toBeDefined();
     });
 
-    it('should export users repository hooks', () => {
-      expect(repositoriesExports.useUserCoins).toBeDefined();
-      expect(repositoriesExports.useIncrementCoins).toBeDefined();
-    });
-
     it('should export coin-transactions repository hooks', () => {
+      expect(repositoriesExports.useUserCoins).toBeDefined();
       expect(repositoriesExports.useAwardCoins).toBeDefined();
       expect(repositoriesExports.useHasQuestionReward).toBeDefined();
       expect(repositoriesExports.useResetUserCoins).toBeDefined();
@@ -47,20 +42,10 @@ describe('db/repositories/index.ts', () => {
       });
     });
 
-    it('should have all exported functions from users.repository', () => {
-      const usersExports = Object.keys(usersRepositoryExports);
-      const indexExports = Object.keys(repositoriesExports);
-
-      usersExports.forEach(exportName => {
-        expect(indexExports).toContain(exportName);
-      });
-    });
-
     it('should not export anything unexpected', () => {
       const expectedExports = [
         ...Object.keys(settingsRepositoryExports),
         ...Object.keys(questionsRepositoryExports),
-        ...Object.keys(usersRepositoryExports),
         ...Object.keys(coinTransactionsRepositoryExports),
       ];
       const actualExports = Object.keys(repositoriesExports);

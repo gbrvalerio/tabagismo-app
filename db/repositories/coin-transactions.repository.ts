@@ -1,20 +1,19 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { sql, eq, and } from 'drizzle-orm';
-import { db } from '../client';
-import { coinTransactions, TransactionType } from '../schema/coin-transactions';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { and, eq, sql } from "drizzle-orm";
+import { db } from "../client";
+import { coinTransactions, TransactionType } from "../schema/coin-transactions";
 
 /**
  * Get user's total coins from transaction ledger
  * This is the new implementation that sums from coin_transactions table
- * @deprecated For now, export as separate function to avoid naming conflict with users.repository
  */
 export function useUserCoinsFromTransactions() {
   return useQuery({
-    queryKey: ['users', 'coins'],
+    queryKey: ["users", "coins"],
     queryFn: async () => {
       const result = await db
         .select({
-          total: sql<number>`COALESCE(SUM(${coinTransactions.amount}), 0)`
+          total: sql<number>`COALESCE(SUM(${coinTransactions.amount}), 0)`,
         })
         .from(coinTransactions)
         .get();
@@ -55,14 +54,14 @@ export function useAwardCoins() {
       return result[0];
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', 'coins'] });
+      queryClient.invalidateQueries({ queryKey: ["users", "coins"] });
     },
   });
 }
 
 export function useHasQuestionReward(context: string, questionKey: string) {
   return useQuery({
-    queryKey: ['transactions', 'question', context, questionKey],
+    queryKey: ["transactions", "question", context, questionKey],
     queryFn: async () => {
       const transaction = await db
         .select()
@@ -71,8 +70,8 @@ export function useHasQuestionReward(context: string, questionKey: string) {
           and(
             eq(coinTransactions.type, TransactionType.QUESTION_ANSWER),
             sql`json_extract(${coinTransactions.metadata}, '$.context') = ${context}`,
-            sql`json_extract(${coinTransactions.metadata}, '$.questionKey') = ${questionKey}`
-          )
+            sql`json_extract(${coinTransactions.metadata}, '$.questionKey') = ${questionKey}`,
+          ),
         )
         .get();
       return !!transaction;
@@ -88,8 +87,8 @@ export function useResetUserCoins() {
       await db.delete(coinTransactions).execute();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users', 'coins'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ["users", "coins"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
   });
 }
