@@ -56,7 +56,7 @@ describe('questionAnswers schema', () => {
     );
     expect(uniqueIdx).toBeDefined();
     expect(uniqueIdx!.config.unique).toBe(true);
-    const columnNames = uniqueIdx!.config.columns.map((c) => c.name);
+    const columnNames = uniqueIdx!.config.columns.map((c: any) => c.name);
     expect(columnNames).toEqual(['context', 'question_key', 'user_id']);
   });
 });
