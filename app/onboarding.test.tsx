@@ -44,7 +44,7 @@ jest.mock("@/components/celebration/CelebrationDialog", () => {
   const React = require("react");
   const { TouchableOpacity, View, Text } = require("react-native");
   return {
-    CelebrationDialog: ({ visible, onDismiss }: any) => {
+    CelebrationDialog: ({ visible, onDismiss, coinsEarned }: any) => {
       if (!visible) return null;
       return React.createElement(
         TouchableOpacity,
@@ -52,7 +52,7 @@ jest.mock("@/components/celebration/CelebrationDialog", () => {
           testID: "celebration-dialog",
           onPress: onDismiss,
         },
-        React.createElement(Text, null, "Celebration")
+        React.createElement(Text, { testID: "coins-earned" }, String(coinsEarned))
       );
     },
   };
@@ -276,6 +276,45 @@ describe("OnboardingScreen", () => {
         replace: mockRouterReplace,
         push: mockRouterPush,
       });
+    });
+
+    it("should show correct coin count in celebration dialog", async () => {
+      const mockCompleteMutateAsync = jest.fn().mockResolvedValue(undefined);
+      mockUseCompleteOnboarding.mockReturnValue({
+        mutateAsync: mockCompleteMutateAsync,
+      });
+      mockUseQuestions.mockReturnValue({
+        data: mockQuestions,
+        isLoading: false,
+        isSuccess: true,
+      });
+      mockUseAnswers.mockReturnValue({
+        data: [],
+        isLoading: false,
+        isSuccess: true,
+      });
+
+      render(<OnboardingScreen />);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("")).toBeDefined();
+      });
+
+      const input = screen.getByDisplayValue("");
+      fireEvent.changeText(input, "João");
+
+      await waitFor(() => {
+        expect(screen.getByText("✓ Concluir")).toBeDefined();
+      });
+
+      fireEvent.press(screen.getByText("✓ Concluir"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("celebration-dialog")).toBeDefined();
+      });
+
+      // Should show 1 coin (1 question * 1 coin per question)
+      expect(screen.getByTestId("coins-earned").props.children).toBe("1");
     });
 
     it("should show celebration dialog after onboarding completion", async () => {

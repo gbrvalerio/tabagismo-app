@@ -9,9 +9,11 @@ export default function OnboardingScreen() {
   const completeOnboardingMutation = useCompleteOnboarding();
   const router = useRouter();
   const [showCelebration, setShowCelebration] = useState(false);
+  const [coinsEarned, setCoinsEarned] = useState(0);
 
-  const handleComplete = async () => {
+  const handleComplete = async (totalCoinsEarned: number) => {
     await completeOnboardingMutation.mutateAsync();
+    setCoinsEarned(totalCoinsEarned);
     setShowCelebration(true);
   };
 
@@ -33,7 +35,7 @@ export default function OnboardingScreen() {
         onDismiss={handleCelebrationDismiss}
         title="Parabéns!"
         subtitle="Você completou seu perfil!"
-        coinsEarned={0}
+        coinsEarned={coinsEarned}
       />
     </View>
   );
