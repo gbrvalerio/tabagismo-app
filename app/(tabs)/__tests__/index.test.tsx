@@ -10,11 +10,12 @@ jest.mock('expo-router', () => ({
 }));
 
 // Mock haptics
-const mockImpactAsync = jest.fn();
 jest.mock('@/lib/haptics', () => ({
-  impactAsync: mockImpactAsync,
+  impactAsync: jest.fn(),
   ImpactFeedbackStyle: { Light: 'Light', Medium: 'Medium', Heavy: 'Heavy' },
 }));
+import * as haptics from '@/lib/haptics';
+const mockImpactAsync = haptics.impactAsync as jest.Mock;
 
 // Mock db repositories
 jest.mock('@/db', () => ({

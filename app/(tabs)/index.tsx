@@ -1,4 +1,4 @@
-import { View, Text, Button, Alert, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Button, Alert, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
 import { useRouter, Href } from 'expo-router';
 import {
   useOnboardingStatus,
@@ -8,6 +8,8 @@ import {
   useResetUserCoins,
 } from '@/db';
 import { useResetSlidesCompleted } from '@/db/repositories/onboarding-slides.repository';
+import { impactAsync, ImpactFeedbackStyle } from '@/lib/haptics';
+import { colors, spacing } from '@/lib/theme/tokens';
 
 export default function HomeScreen() {
   const { data: onboardingCompleted, isLoading } = useOnboardingStatus();
@@ -47,8 +49,21 @@ export default function HomeScreen() {
     );
   }
 
+  const handleGearPress = () => {
+    impactAsync(ImpactFeedbackStyle.Light);
+    router.push('/settings');
+  };
+
   return (
     <View style={styles.container}>
+      <Pressable
+        style={styles.gearButton}
+        onPress={handleGearPress}
+        hitSlop={8}
+        testID="gear-button"
+      >
+        <Text style={styles.gearIcon}>⚙️</Text>
+      </Pressable>
       <Text style={styles.title}>Database Test</Text>
 
       <View style={styles.statusContainer}>
@@ -103,6 +118,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#fff',
+  },
+  gearButton: {
+    position: 'absolute',
+    top: 0,
+    right: spacing.md,
+    zIndex: 1,
+    padding: 10,
+  },
+  gearIcon: {
+    fontSize: 24,
+    color: colors.neutral.gray[600],
   },
   title: {
     fontSize: 24,

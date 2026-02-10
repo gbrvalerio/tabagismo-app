@@ -96,8 +96,9 @@ describe('ProfileEditModal', () => {
   });
 
   it('shows question text in header', () => {
-    const { getByText } = render(<ProfileEditModal {...defaultProps} />);
-    expect(getByText('Há quantos anos você fuma?')).toBeTruthy();
+    const { getByTestId } = render(<ProfileEditModal {...defaultProps} />);
+    const header = getByTestId('profile-edit-modal-header-title');
+    expect(header.props.children).toBe('Há quantos anos você fuma?');
   });
 
   it('shows close button that calls onClose', () => {
