@@ -9,6 +9,7 @@ import {
   Pressable,
   Text,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { impactAsync, ImpactFeedbackStyle } from '@/lib/haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -58,6 +59,7 @@ export default function OnboardingSlidesScreen() {
   if (isLoading) {
     return (
       <LinearGradient colors={['#FFFFFF', '#F8F9FB']} style={styles.container}>
+        <StatusBar style="dark" />
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
           <ActivityIndicator testID="loading-indicator" color={colors.primary.base} />
         </SafeAreaView>
@@ -69,6 +71,7 @@ export default function OnboardingSlidesScreen() {
 
   return (
     <LinearGradient colors={['#FFFFFF', '#F8F9FB']} style={styles.container}>
+      <StatusBar style="dark" />
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         {currentIndex >= 1 && !isLastSlide && (
           <Animated.View
