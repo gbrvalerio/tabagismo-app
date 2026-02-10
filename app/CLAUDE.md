@@ -333,8 +333,13 @@ import { useUsers, useCreateUser } from '@/db';
 /app
   /(tabs)
     /_layout.tsx              # Tab navigator config
-    /index.tsx                # Home tab
+    /index.tsx                # Home tab (gear icon navigates to /settings)
     /explore.tsx              # Explore tab
+  /settings
+    /_layout.tsx              # Settings stack navigator
+    /index.tsx                # Settings Hub (menu)
+    /profile.tsx              # Profile editing (onboarding answers)
+    /notifications.tsx        # Notification toggle
   /_layout.tsx                # Root layout (providers, OnboardingGuard, AppState listener)
   /onboarding.tsx             # Onboarding screen (modal, no header, no gesture dismiss)
   /notification-permission.tsx # Notification permission screen (no header, no gesture dismiss)
@@ -402,6 +407,53 @@ The onboarding screen is a full-screen modal (`gestureEnabled: false`) that appe
 **Reward Prevention:** Uses `useHasNotificationReward()` to check if reward already given.
 
 **Background Detection:** AppState listener in `_layout.tsx` detects permission changes from Settings.
+
+---
+
+## Settings Screens
+
+Stack-based settings flow accessible from the Home screen via a gear icon (top-right header).
+
+### Navigation Flow
+
+```
+Home (gear icon top-right)
+  └─ Settings Hub (/settings)
+       ├─ Perfil → Profile Edit (/settings/profile)
+       └─ Notificações → Notification Settings (/settings/notifications)
+```
+
+### File Structure
+
+```
+/app/settings
+  /_layout.tsx          # Stack navigator for settings screens
+  /index.tsx            # Settings Hub — menu with navigation links
+  /profile.tsx          # Profile editing (tap-to-edit onboarding answers)
+  /notifications.tsx    # Notification toggle with smart permission handling
+```
+
+### Settings Hub (`/settings/index.tsx`)
+
+Menu screen using `SettingsMenuItem` components. Links to Profile and Notifications sub-screens.
+
+### Profile Screen (`/settings/profile.tsx`)
+
+Displays the user's onboarding answers with tap-to-edit functionality. Uses `ProfileEditModal` which reuses the `QuestionInput` component from the onboarding flow for consistent input rendering.
+
+### Notifications Screen (`/settings/notifications.tsx`)
+
+Toggle for notification permissions with smart handling:
+- If permission undetermined → requests permission inline
+- If permission denied → guides user to open system Settings via `Linking.openSettings()`
+- If permission granted → shows enabled toggle
+
+### Route Registration
+
+Settings stack is registered in `/app/_layout.tsx` as a stack screen:
+```typescript
+<Stack.Screen name="settings" options={{ headerShown: false }} />
+```
 
 ---
 
