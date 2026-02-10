@@ -7,6 +7,7 @@ import {
   useDeleteAllAnswers,
   useResetUserCoins,
 } from '@/db';
+import { useResetSlidesCompleted } from '@/db/repositories/onboarding-slides.repository';
 
 export default function HomeScreen() {
   const { data: onboardingCompleted, isLoading } = useOnboardingStatus();
@@ -14,6 +15,7 @@ export default function HomeScreen() {
   const resetMutation = useResetOnboarding();
   const deleteAllAnswersMutation = useDeleteAllAnswers('onboarding');
   const resetCoinsMutation = useResetUserCoins();
+  const resetSlidesMutation = useResetSlidesCompleted();
   const router = useRouter();
 
   const handleResetOnboarding = () => {
@@ -28,8 +30,10 @@ export default function HomeScreen() {
           onPress: async () => {
             await deleteAllAnswersMutation.mutateAsync();
             await resetCoinsMutation.mutateAsync();
+            await resetSlidesMutation.mutateAsync();
             await resetMutation.mutateAsync();
-            router.replace('/onboarding');
+            // @ts-expect-error - Route not in typed routes
+            router.replace('/onboarding-slides');
           },
         },
       ],
@@ -70,14 +74,16 @@ export default function HomeScreen() {
           disabled={
             resetMutation.isPending ||
             deleteAllAnswersMutation.isPending ||
-            resetCoinsMutation.isPending
+            resetCoinsMutation.isPending ||
+            resetSlidesMutation.isPending
           }
           testID="reset-onboarding-button"
         >
           <Text style={styles.resetButtonText}>
             {resetMutation.isPending ||
             deleteAllAnswersMutation.isPending ||
-            resetCoinsMutation.isPending
+            resetCoinsMutation.isPending ||
+            resetSlidesMutation.isPending
               ? 'Resetando...'
               : 'Refazer Onboarding'}
           </Text>

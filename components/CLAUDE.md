@@ -89,9 +89,15 @@ Question flow UI lives in `components/onboarding/` (will move to `components/que
 
 ### OnboardingGuard
 
-**File:** `onboarding/OnboardingGuard.tsx`
+**File:** `question-flow/OnboardingGuard.tsx`
 
-Wraps the app's `Stack` in `_layout.tsx`. Checks `useOnboardingStatus()` and redirects to `/onboarding` if not completed.
+Wraps the app's `Stack` in `_layout.tsx`. Manages onboarding flow routing with priority:
+1. If `slidesCompleted = false` → redirect to `/onboarding-slides`
+2. If `onboardingCompleted = false` → redirect to `/onboarding`
+3. If `notificationPermissionGranted = false` → redirect to `/notification-permission`
+4. Otherwise → allow access to `/(tabs)`
+
+**Hooks used:** `useSlidesStatus()`, `useOnboardingStatus()`, `useNotificationPermissionStatus()`
 
 ### QuestionFlowContainer
 
@@ -214,6 +220,73 @@ Located in `onboarding/inputs/`. All use Poppins typography and design tokens fr
 
 ---
 
+## Onboarding Slides Components
+
+Located in `components/onboarding-slides/`. Uses design tokens from `@/lib/theme/tokens`.
+
+### PaginationDots
+
+**File:** `onboarding-slides/PaginationDots.tsx`
+
+Visual indicator for current slide position in swipeable slides.
+
+```typescript
+import { PaginationDots } from '@/components/onboarding-slides';
+
+<PaginationDots total={3} activeIndex={currentIndex} />
+```
+
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `total` | `number` | Total number of slides |
+| `activeIndex` | `number` | Current slide index (0-indexed) |
+
+**Design:** 8px circular dots with 8px gap, active dot uses `colors.primary.base`, inactive uses `colors.neutral.gray[300]`
+
+### SlideItem
+
+**File:** `onboarding-slides/SlideItem.tsx`
+
+Individual slide component that displays icon, title, description, and optional benefits card.
+
+```typescript
+import { SlideItem } from '@/components/onboarding-slides';
+
+<SlideItem
+  icon="@/assets/images/onboarding-2.svg"
+  title="Nós ajudamos você nessa jornada"
+  description="Com ferramentas práticas e suporte personalizado:"
+  showBenefits={true}
+  benefits={['Benefit 1', 'Benefit 2', 'Benefit 3']}
+/>
+```
+
+**Props:**
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `icon` | `string` | Yes | Path to SVG icon (imported as React component via iconMap) |
+| `title` | `string` | Yes | Slide title (Brazilian Portuguese) |
+| `description` | `string` | Yes | Slide description text |
+| `showBenefits` | `boolean` | No | Whether to show benefits card |
+| `benefits` | `string[]` | No | Array of benefit strings to display |
+
+**Design:**
+- Full-width container with vertical padding
+- Icon: 120x120px placeholder (replaced with SVG imports)
+- Title: `typographyPresets.hero` (Poppins Bold 30px)
+- Description: `typographyPresets.body`
+- Benefits card: White background, rounded corners, shadow, checkmark bullets
+
+**Icon Handling:**
+- Uses `iconMap` to match icon path strings to imported SVG components
+- Falls back to placeholder View if icon not found
+- IMPORTANT: Never copy SVG markup inline — always import as React components
+
+---
+
 ## Celebration Components
 
 Gamified celebration dialog for milestone achievements. Located in `components/celebration/`.
@@ -246,7 +319,7 @@ import { CelebrationDialog } from '@/components/celebration';
 | `title` | `string` | — | Main celebration text (required) |
 | `subtitle` | `string` | — | Optional secondary text |
 | `coinsEarned` | `number` | — | Number of coins to display in counter (required) |
-| `autoDismissDelay` | `number` | `5000` | Auto-dismiss delay in milliseconds |
+| `autoDismissDelay` | `number` | `0` | Auto-dismiss delay in milliseconds (0 = no auto-dismiss) |
 | `testID` | `string` | `'celebration-dialog'` | Test identifier |
 
 **Animations:**

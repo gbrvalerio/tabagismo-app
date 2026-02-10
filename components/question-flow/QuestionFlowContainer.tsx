@@ -48,7 +48,7 @@ import {
 
 export interface QuestionFlowProps {
   context: string;
-  onComplete: () => void;
+  onComplete: (coinsEarned: number) => void;
   coinRewardPerQuestion?: number;
 }
 
@@ -232,7 +232,8 @@ export function QuestionFlowContainer({
   };
 
   const handleFinish = async () => {
-    onComplete();
+    const totalCoinsEarned = answeredIndices.length * coinRewardPerQuestion;
+    onComplete(totalCoinsEarned);
   };
 
   const handleNext = () => {

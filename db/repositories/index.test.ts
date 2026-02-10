@@ -2,6 +2,7 @@ import * as repositoriesExports from './index';
 import * as settingsRepositoryExports from './settings.repository';
 import * as questionsRepositoryExports from './questions.repository';
 import * as coinTransactionsRepositoryExports from './coin-transactions.repository';
+import * as onboardingSlidesRepositoryExports from './onboarding-slides.repository';
 
 describe('db/repositories/index.ts', () => {
   describe('exports', () => {
@@ -42,11 +43,17 @@ describe('db/repositories/index.ts', () => {
       });
     });
 
+    it('should export onboarding-slides repository hooks', () => {
+      expect(repositoriesExports.useOnboardingSlides).toBeDefined();
+      expect(typeof repositoriesExports.useOnboardingSlides).toBe('function');
+    });
+
     it('should not export anything unexpected', () => {
       const expectedExports = [
         ...Object.keys(settingsRepositoryExports),
         ...Object.keys(questionsRepositoryExports),
         ...Object.keys(coinTransactionsRepositoryExports),
+        ...Object.keys(onboardingSlidesRepositoryExports),
       ];
       const actualExports = Object.keys(repositoriesExports);
 

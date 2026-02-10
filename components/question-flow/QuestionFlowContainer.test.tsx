@@ -491,6 +491,43 @@ describe("QuestionFlowContainer - Completion", () => {
 
     await waitFor(() => {
       expect(onComplete).toHaveBeenCalledTimes(1);
+      expect(onComplete).toHaveBeenCalledWith(0);
+    });
+  });
+
+  it("should pass coins earned to onComplete based on answered questions", async () => {
+    mockUseQuestions.mockReturnValue({
+      data: [mockQuestions[0]],
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    const onComplete = jest.fn();
+
+    render(
+      <QuestionFlowContainer context="onboarding" onComplete={onComplete} coinRewardPerQuestion={1} />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("")).toBeDefined();
+    });
+
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "John");
+
+    await waitFor(() => {
+      expect(screen.getByText("✓ Concluir")).toBeDefined();
+    });
+
+    fireEvent.press(screen.getByText("✓ Concluir"));
+
+    await waitFor(() => {
+      expect(onComplete).toHaveBeenCalledWith(1);
     });
   });
 

@@ -5,6 +5,7 @@ import { createTestQueryClient } from '@/lib/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
 
 import { useOnboardingStatus, useCompleteOnboarding, useResetOnboarding, useDeleteAllAnswers } from '@/db';
+import { useResetSlidesCompleted } from '@/db/repositories/onboarding-slides.repository';
 import { Alert } from 'react-native';
 
 // Mock expo-router
@@ -22,12 +23,17 @@ jest.mock('@/db', () => ({
   useResetUserCoins: jest.fn(),
 }));
 
+jest.mock('@/db/repositories/onboarding-slides.repository', () => ({
+  useResetSlidesCompleted: jest.fn(),
+}));
+
 const mockUseOnboardingStatus = useOnboardingStatus as jest.MockedFunction<typeof useOnboardingStatus>;
 const mockUseCompleteOnboarding = useCompleteOnboarding as jest.MockedFunction<typeof useCompleteOnboarding>;
 const mockUseResetOnboarding = useResetOnboarding as jest.MockedFunction<typeof useResetOnboarding>;
 const mockUseDeleteAllAnswers = useDeleteAllAnswers as jest.MockedFunction<typeof useDeleteAllAnswers>;
 const { useResetUserCoins } = require('@/db') as any;
 const mockUseResetUserCoins = useResetUserCoins as jest.MockedFunction<typeof useResetUserCoins>;
+const mockUseResetSlidesCompleted = useResetSlidesCompleted as jest.MockedFunction<typeof useResetSlidesCompleted>;
 
 // Helper to render with providers
 const renderHomeScreen = () => {
@@ -67,11 +73,21 @@ describe('HomeScreen', () => {
     status: 'idle',
   } as any;
 
+  const defaultResetSlidesMock = {
+    mutate: jest.fn(),
+    mutateAsync: jest.fn().mockResolvedValue(undefined),
+    isPending: false,
+    isError: false,
+    error: null,
+    status: 'idle',
+  } as any;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseResetOnboarding.mockReturnValue(defaultResetMock);
     mockUseDeleteAllAnswers.mockReturnValue(defaultDeleteAllAnswersMock);
     mockUseResetUserCoins.mockReturnValue(defaultResetCoinsMock);
+    mockUseResetSlidesCompleted.mockReturnValue(defaultResetSlidesMock);
     mockReplace.mockClear();
   });
 
@@ -570,7 +586,50 @@ describe('HomeScreen', () => {
       await refazerButton.onPress();
 
       expect(mutateAsync).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith('/onboarding');
+      expect(mockReplace).toHaveBeenCalledWith('/onboarding-slides');
+
+      alertSpy.mockRestore();
+    });
+
+    it('should call useResetSlidesCompleted when reset is confirmed', async () => {
+      const resetSlidesMutateAsync = jest.fn().mockResolvedValue(undefined);
+      mockUseResetSlidesCompleted.mockReturnValue({
+        mutate: jest.fn(),
+        mutateAsync: resetSlidesMutateAsync,
+        isPending: false,
+        isError: false,
+        error: null,
+        status: 'idle',
+      } as any);
+
+      const alertSpy = jest.spyOn(Alert, 'alert');
+
+      mockUseOnboardingStatus.mockReturnValue({
+        data: true,
+        isLoading: false,
+        error: null,
+        isError: false,
+        status: 'success',
+      } as any);
+
+      mockUseCompleteOnboarding.mockReturnValue({
+        mutate: jest.fn(),
+        isPending: false,
+        isError: false,
+        error: null,
+        status: 'idle',
+      } as any);
+
+      renderHomeScreen();
+
+      fireEvent.press(screen.getByTestId('reset-onboarding-button'));
+
+      const alertButtons = alertSpy.mock.calls[0][2] as any[];
+      const refazerButton = alertButtons.find((b: any) => b.text === 'Refazer');
+
+      await refazerButton.onPress();
+
+      expect(resetSlidesMutateAsync).toHaveBeenCalled();
 
       alertSpy.mockRestore();
     });

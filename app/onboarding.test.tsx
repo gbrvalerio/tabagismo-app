@@ -40,6 +40,24 @@ jest.mock("expo-haptics", () => ({
   notificationAsync: jest.fn(),
 }));
 
+jest.mock("@/components/celebration/CelebrationDialog", () => {
+  const React = require("react");
+  const { TouchableOpacity, View, Text } = require("react-native");
+  return {
+    CelebrationDialog: ({ visible, onDismiss, coinsEarned }: any) => {
+      if (!visible) return null;
+      return React.createElement(
+        TouchableOpacity,
+        {
+          testID: "celebration-dialog",
+          onPress: onDismiss,
+        },
+        React.createElement(Text, { testID: "coins-earned" }, String(coinsEarned))
+      );
+    },
+  };
+});
+
 const mockQuestions = [
   {
     id: 1,
@@ -78,10 +96,11 @@ jest.mock("@/db/repositories", () => ({
 }));
 
 const mockRouterReplace = jest.fn();
+const mockRouterPush = jest.fn();
+const mockUseRouter = jest.fn();
+
 jest.mock("expo-router", () => ({
-  useRouter: () => ({
-    replace: mockRouterReplace,
-  }),
+  useRouter: () => mockUseRouter(),
 }));
 
 jest.mock("@/db/client", () => ({
@@ -120,6 +139,11 @@ beforeEach(() => {
         get: jest.fn().mockResolvedValue(null),
       }),
     }),
+  });
+
+  mockUseRouter.mockReturnValue({
+    replace: mockRouterReplace,
+    push: mockRouterPush,
   });
 
   mockUseUserCoins.mockReturnValue({
@@ -208,7 +232,7 @@ describe("OnboardingScreen", () => {
     });
   });
 
-  it("should complete onboarding and navigate to tabs on finish", async () => {
+  it("should complete onboarding and show celebration dialog", async () => {
     const mockCompleteMutateAsync = jest.fn().mockResolvedValue(undefined);
     mockUseCompleteOnboarding.mockReturnValue({
       mutateAsync: mockCompleteMutateAsync,
@@ -241,7 +265,183 @@ describe("OnboardingScreen", () => {
 
     await waitFor(() => {
       expect(mockCompleteMutateAsync).toHaveBeenCalled();
-      expect(mockRouterReplace).toHaveBeenCalledWith("/(tabs)/");
+      expect(screen.getByTestId("celebration-dialog")).toBeDefined();
+    });
+  });
+
+  describe("Celebration Flow", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockUseRouter.mockReturnValue({
+        replace: mockRouterReplace,
+        push: mockRouterPush,
+      });
+    });
+
+    it("should show correct coin count in celebration dialog", async () => {
+      const mockCompleteMutateAsync = jest.fn().mockResolvedValue(undefined);
+      mockUseCompleteOnboarding.mockReturnValue({
+        mutateAsync: mockCompleteMutateAsync,
+      });
+      mockUseQuestions.mockReturnValue({
+        data: mockQuestions,
+        isLoading: false,
+        isSuccess: true,
+      });
+      mockUseAnswers.mockReturnValue({
+        data: [],
+        isLoading: false,
+        isSuccess: true,
+      });
+
+      render(<OnboardingScreen />);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("")).toBeDefined();
+      });
+
+      const input = screen.getByDisplayValue("");
+      fireEvent.changeText(input, "João");
+
+      await waitFor(() => {
+        expect(screen.getByText("✓ Concluir")).toBeDefined();
+      });
+
+      fireEvent.press(screen.getByText("✓ Concluir"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("celebration-dialog")).toBeDefined();
+      });
+
+      // Should show 1 coin (1 question * 1 coin per question)
+      expect(screen.getByTestId("coins-earned").props.children).toBe("1");
+    });
+
+    it("should show celebration dialog after onboarding completion", async () => {
+      const mockCompleteMutateAsync = jest.fn().mockResolvedValue(undefined);
+      mockUseCompleteOnboarding.mockReturnValue({
+        mutateAsync: mockCompleteMutateAsync,
+      });
+      mockUseQuestions.mockReturnValue({
+        data: mockQuestions,
+        isLoading: false,
+        isSuccess: true,
+      });
+      mockUseAnswers.mockReturnValue({
+        data: [],
+        isLoading: false,
+        isSuccess: true,
+      });
+
+      render(<OnboardingScreen />);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("")).toBeDefined();
+      });
+
+      const input = screen.getByDisplayValue("");
+      fireEvent.changeText(input, "João");
+
+      await waitFor(() => {
+        expect(screen.getByText("✓ Concluir")).toBeDefined();
+      });
+
+      fireEvent.press(screen.getByText("✓ Concluir"));
+
+      await waitFor(() => {
+        expect(mockCompleteMutateAsync).toHaveBeenCalled();
+        expect(screen.getByTestId("celebration-dialog")).toBeDefined();
+      });
+
+      // Should NOT navigate yet
+      expect(mockRouterPush).not.toHaveBeenCalled();
+    });
+
+    it("should navigate to notification permission after celebration completes", async () => {
+      const mockCompleteMutateAsync = jest.fn().mockResolvedValue(undefined);
+      mockUseCompleteOnboarding.mockReturnValue({
+        mutateAsync: mockCompleteMutateAsync,
+      });
+      mockUseQuestions.mockReturnValue({
+        data: mockQuestions,
+        isLoading: false,
+        isSuccess: true,
+      });
+      mockUseAnswers.mockReturnValue({
+        data: [],
+        isLoading: false,
+        isSuccess: true,
+      });
+
+      render(<OnboardingScreen />);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("")).toBeDefined();
+      });
+
+      const input = screen.getByDisplayValue("");
+      fireEvent.changeText(input, "João");
+
+      await waitFor(() => {
+        expect(screen.getByText("✓ Concluir")).toBeDefined();
+      });
+
+      fireEvent.press(screen.getByText("✓ Concluir"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("celebration-dialog")).toBeDefined();
+      });
+
+      // Simulate celebration completion
+      const celebrationDialog = screen.getByTestId("celebration-dialog");
+      fireEvent.press(celebrationDialog);
+
+      await waitFor(() => {
+        expect(mockRouterReplace).toHaveBeenCalledWith("/notification-permission");
+      });
+    });
+
+    it("should hide celebration dialog after completion", async () => {
+      const mockCompleteMutateAsync = jest.fn().mockResolvedValue(undefined);
+      mockUseCompleteOnboarding.mockReturnValue({
+        mutateAsync: mockCompleteMutateAsync,
+      });
+      mockUseQuestions.mockReturnValue({
+        data: mockQuestions,
+        isLoading: false,
+        isSuccess: true,
+      });
+      mockUseAnswers.mockReturnValue({
+        data: [],
+        isLoading: false,
+        isSuccess: true,
+      });
+
+      render(<OnboardingScreen />);
+
+      await waitFor(() => {
+        expect(screen.getByDisplayValue("")).toBeDefined();
+      });
+
+      const input = screen.getByDisplayValue("");
+      fireEvent.changeText(input, "João");
+
+      await waitFor(() => {
+        expect(screen.getByText("✓ Concluir")).toBeDefined();
+      });
+
+      fireEvent.press(screen.getByText("✓ Concluir"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("celebration-dialog")).toBeDefined();
+      });
+
+      // Complete celebration
+      fireEvent.press(screen.getByTestId("celebration-dialog"));
+
+      await waitFor(() => {
+        expect(screen.queryByTestId("celebration-dialog")).toBeNull();
+      });
     });
   });
 });

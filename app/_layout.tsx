@@ -18,11 +18,13 @@ import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import "react-native-reanimated";
 
+import { NotificationPermissionListener } from "@/components/NotificationPermissionListener";
 import { OnboardingGuard } from "@/components/question-flow/OnboardingGuard";
 import { runMigrations } from "@/db";
 import { db } from "@/db/client";
-import { questions } from "@/db/schema";
+import { onboardingSlides, questions } from "@/db/schema";
 import { seedOnboardingQuestions } from "@/db/seed/seed-questions";
+import { seedOnboardingSlides } from "@/db/seed/onboarding-slides.seed";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { queryClient } from "@/lib/query-client";
 
@@ -98,6 +100,10 @@ export default function RootLayout() {
       if (existingQuestions.length === 0 || __DEV__) {
         await seedOnboardingQuestions();
       }
+      const existingSlides = await db.select().from(onboardingSlides).all();
+      if (existingSlides.length === 0 || __DEV__) {
+        await seedOnboardingSlides();
+      }
     }
 
     initDatabase()
@@ -122,6 +128,13 @@ export default function RootLayout() {
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen
+                name="onboarding-slides"
+                options={{
+                  headerShown: false,
+                  gestureEnabled: false,
+                }}
+              />
+              <Stack.Screen
                 name="onboarding"
                 options={{
                   presentation: "modal",
@@ -129,9 +142,19 @@ export default function RootLayout() {
                   gestureEnabled: false,
                 }}
               />
+              <Stack.Screen
+                name="notification-permission"
+                options={{
+                  headerShown: false,
+                  gestureEnabled: false,
+                }}
+              />
             </Stack>
           </OnboardingGuard>
           <StatusBar style="auto" />
+
+          {/* Global notification permission listener */}
+          <NotificationPermissionListener />
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>

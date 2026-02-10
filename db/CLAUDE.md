@@ -422,7 +422,8 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 
 ## Current Tables
 
-- **settings:** Key-value store (`key`, `value`, `updatedAt`)
+- **settings:** Key-value store (`key`, `value`, `updatedAt`). Used for `onboardingCompleted`, `slidesCompleted`, etc.
+- **onboarding_slides:** Informational slides shown before questions flow (`id`, `order`, `icon`, `title`, `description`, `metadata`, `createdAt`). Metadata stores JSON for benefits cards.
 - **questions:** Questions with context support (`id`, `context`, `key`, `order`, `type`, `category`, `questionText`, `required`, `dependsOnQuestionKey`, `dependsOnValue`, `metadata`, `createdAt`). Unique constraint on (`context`, `key`).
 - **question_answers:** Context-aware answers (`id`, `context`, `questionKey`, `userId`, `answer`, `answeredAt`, `updatedAt`). Unique constraint on (`context`, `questionKey`, `userId`).
 - **onboarding_answers:** @deprecated — Use `question_answers` table instead. (`id`, `questionKey`, `userId`, `answer`, `coinAwarded` (deprecated), `answeredAt`, `updatedAt`)
@@ -435,6 +436,7 @@ npm run db:studio     # Open Drizzle Studio (localhost:4983)
 enum TransactionType {
   ONBOARDING_ANSWER = 'onboarding_answer', // @deprecated - Use QUESTION_ANSWER
   QUESTION_ANSWER = 'question_answer',
+  NOTIFICATION_PERMISSION = 'notification_permission',
   DAILY_REWARD = 'daily_reward',
   PURCHASE = 'purchase',
   BONUS = 'bonus',
@@ -467,6 +469,14 @@ All hooks take a `context` string parameter (e.g., `'onboarding'`).
 | `useOnboardingStatus()` | Query | `['settings', 'onboardingCompleted']` | Returns `boolean` — whether onboarding is done |
 | `useCompleteOnboarding()` | Mutation | Invalidates status | Sets `onboardingCompleted` to `true` |
 
+### Onboarding Slides Repository Hooks
+
+| Hook | Type | Query Key | Description |
+|------|------|-----------|-------------|
+| `useOnboardingSlides()` | Query | `['onboarding-slides']` | Fetches slides ordered by `order` field |
+| `useMarkSlidesCompleted()` | Mutation | Invalidates settings | Sets `slidesCompleted = true` in settings table |
+| `useSlidesStatus()` | Query | `['settings', 'slidesCompleted']` | Returns `boolean` — whether slides are completed |
+
 ### Coin Transaction Repository Hooks
 
 | Hook | Type | Query Key | Description |
@@ -474,6 +484,7 @@ All hooks take a `context` string parameter (e.g., `'onboarding'`).
 | `useUserCoins()` | Query | `['users', 'coins']` | Current coin balance (SUM of all transactions) |
 | `useAwardCoins()` | Mutation | Invalidates coins | Creates transaction and awards coins |
 | `useHasQuestionReward()` | Query | `['transactions', 'question', questionKey]` | Returns boolean - whether question has been rewarded |
+| `useHasNotificationReward()` | Query | `['transactions', 'notification_permission']` | Returns boolean - whether notification permission reward exists |
 | `useResetUserCoins()` | Mutation | Invalidates coins & transactions | Deletes all transactions (used on onboarding reset) |
 
 ### Deprecated Hooks

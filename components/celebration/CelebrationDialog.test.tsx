@@ -308,4 +308,82 @@ describe('CelebrationDialog', () => {
 
     expect(hasFullWidth && hasFullHeight || isAbsoluteFullScreen).toBe(true);
   });
+
+  describe('CelebrationDialog - Auto-dismiss behavior', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.clearAllTimers();
+    });
+
+    it('should not start auto-dismiss timer when autoDismissDelay is 0', () => {
+      jest.useFakeTimers();
+      const onDismiss = jest.fn();
+
+      render(
+        <CelebrationDialog
+          visible={true}
+          onDismiss={onDismiss}
+          title="Test"
+          coinsEarned={10}
+          autoDismissDelay={0}
+        />
+      );
+
+      // Fast-forward time
+      jest.advanceTimersByTime(10000);
+
+      // Should NOT have called onDismiss
+      expect(onDismiss).not.toHaveBeenCalled();
+
+      jest.useRealTimers();
+    });
+
+    it('should not start auto-dismiss timer when autoDismissDelay is undefined', () => {
+      jest.useFakeTimers();
+      const onDismiss = jest.fn();
+
+      render(
+        <CelebrationDialog
+          visible={true}
+          onDismiss={onDismiss}
+          title="Test"
+          coinsEarned={10}
+          autoDismissDelay={undefined}
+        />
+      );
+
+      // Fast-forward time
+      jest.advanceTimersByTime(10000);
+
+      // Should NOT have called onDismiss
+      expect(onDismiss).not.toHaveBeenCalled();
+
+      jest.useRealTimers();
+    });
+
+    it('should start auto-dismiss timer when autoDismissDelay is greater than 0', () => {
+      jest.useFakeTimers();
+      const onDismiss = jest.fn();
+
+      render(
+        <CelebrationDialog
+          visible={true}
+          onDismiss={onDismiss}
+          title="Test"
+          coinsEarned={10}
+          autoDismissDelay={3000}
+        />
+      );
+
+      // Fast-forward to just before timer
+      jest.advanceTimersByTime(2999);
+      expect(onDismiss).not.toHaveBeenCalled();
+
+      // Fast-forward past timer
+      jest.advanceTimersByTime(1);
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+
+      jest.useRealTimers();
+    });
+  });
 });

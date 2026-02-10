@@ -332,30 +332,76 @@ import { useUsers, useCreateUser } from '@/db';
 ```
 /app
   /(tabs)
-    /_layout.tsx    # Tab navigator config
-    /index.tsx      # Home tab
-    /explore.tsx    # Explore tab
-  /_layout.tsx      # Root layout (providers, OnboardingGuard)
-  /onboarding.tsx   # Onboarding screen (modal, no header, no gesture dismiss)
-  /modal.tsx        # Modal screen
-  /+not-found.tsx   # 404 page
+    /_layout.tsx              # Tab navigator config
+    /index.tsx                # Home tab
+    /explore.tsx              # Explore tab
+  /_layout.tsx                # Root layout (providers, OnboardingGuard, AppState listener)
+  /onboarding.tsx             # Onboarding screen (modal, no header, no gesture dismiss)
+  /notification-permission.tsx # Notification permission screen (no header, no gesture dismiss)
+  /modal.tsx                  # Modal screen
+  /+not-found.tsx             # 404 page
 ```
 
 ---
 
 ## Onboarding Flow
 
-The onboarding screen is a full-screen modal (`gestureEnabled: false`) that appears on first launch.
+The app has a multi-stage onboarding flow with priority routing: **slides → questions → notification permission → tabs**
+
+### Stage 1: Onboarding Slides (`/onboarding-slides`)
+
+Informational onboarding phase with 3 swipeable slides shown before the questions flow.
+
+**Route:** `/onboarding-slides` — Registered in `_layout.tsx` with `headerShown: false`, `gestureEnabled: false`.
+
+**Key Features:**
+- FlatList horizontal pagination with haptic feedback (Light on swipe, Medium on CTA)
+- Skip button (visible slide 2+, hidden on last slide)
+- CTA button "Vamos Lá!" (visible slide 3 only)
+- Database-driven content with JSON metadata support
+- Benefits card rendering from slide metadata
+- SVG icon imports (not inline SVG)
+
+**Components Used:**
+- `SlideItem` — Individual slide with icon, title, description, optional benefits card
+- `PaginationDots` — Visual indicator for current slide position
+
+**Completion:** Both Skip and CTA buttons call `useMarkSlidesCompleted()` which sets `slidesCompleted = true` in settings table, then navigate to `/onboarding`.
+
+### Stage 2: Onboarding Questions (`/onboarding`)
+
+The onboarding screen is a full-screen modal (`gestureEnabled: false`) that appears after slides are completed.
 
 **Route:** `/onboarding` — Registered in `_layout.tsx` as a modal `Stack.Screen`.
 
-**Guard:** `OnboardingGuard` component wraps the `Stack` and checks `useOnboardingStatus()`. If onboarding is not completed, it redirects via `router.replace('/onboarding')`.
+**Guard:** `OnboardingGuard` component wraps the `Stack` and checks completion status with priority:
+1. If `slidesCompleted = false` → redirect to `/onboarding-slides`
+2. If `onboardingCompleted = false` → redirect to `/onboarding`
+3. If `notificationPermissionGranted = false` → redirect to `/notification-permission`
+4. Otherwise → allow access to `/(tabs)`
 
 **Implementation:** The onboarding screen uses `QuestionFlowContainer` with `context="onboarding"`. The container handles question display, answer saving, navigation, and coin awards generically.
 
-**Completion:** When the user answers the last question and taps "Concluir", `useCompleteOnboarding()` is called which sets the `onboardingCompleted` setting to `true`, then navigates to `/(tabs)` via `router.replace`.
+**Completion:** When the user answers the last question and taps "Concluir", `useCompleteOnboarding()` is called which sets the `onboardingCompleted` setting to `true`, then navigates to `/notification-permission` via `router.replace`.
 
 **Flow engine:** `lib/question-flow.ts` provides `computeApplicableQuestions()` and `calculateProgress()` for filtering conditional questions and tracking progress.
+
+---
+
+### Stage 3: Notification Permission Flow (`/notification-permission`)
+
+**Route:** `/notification-permission` — Registered in `_layout.tsx` as a stack screen with `gestureEnabled: false`.
+
+**Purpose:** Request notification permission after onboarding completion, with 15 coin reward.
+
+**States:**
+- **Undetermined:** Shows "Permitir Notificações" button → Requests permission inline
+- **Denied:** Shows "Abrir Configurações" button → Opens Settings via `Linking.openSettings()`
+- **Granted:** Shows celebration + awards 15 coins → Navigates to tabs
+
+**Reward Prevention:** Uses `useHasNotificationReward()` to check if reward already given.
+
+**Background Detection:** AppState listener in `_layout.tsx` detects permission changes from Settings.
 
 ---
 
