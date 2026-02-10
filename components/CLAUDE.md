@@ -398,6 +398,67 @@ Animated number counter with digit reels that flip like slot machine.
 
 ---
 
+## Settings Components
+
+Located in `components/settings/`. Used by the settings screens in `/app/settings/`.
+
+### SettingsMenuItem
+
+**File:** `settings/SettingsMenuItem.tsx`
+
+Reusable menu row for the settings hub. Displays an icon, title, optional subtitle, and chevron indicator. Animated scale (0.97) on press with Light haptic feedback.
+
+```typescript
+import { SettingsMenuItem } from '@/components/settings/SettingsMenuItem';
+
+<SettingsMenuItem
+  icon={<Text>👤</Text>}
+  title="Perfil"
+  subtitle={userName}
+  onPress={() => router.push('/settings/profile')}
+/>
+```
+
+**Props:**
+
+- **icon** (`React.ReactNode`) — Icon element (emoji Text or SVG component)
+- **title** (`string`) — Menu item title (Brazilian Portuguese)
+- **subtitle** (`string`, optional) — Secondary text below title
+- **onPress** (`() => void`) — Navigation callback
+- **testID** (`string`, optional) — Test identifier
+
+### ProfileEditModal
+
+**File:** `settings/ProfileEditModal.tsx`
+
+Full-screen modal for editing onboarding answers. Reuses the `QuestionInput` component from the onboarding flow to render the correct input type (text, number, single choice, multiple choice) based on the question being edited.
+
+```typescript
+import { ProfileEditModal } from '@/components/settings/ProfileEditModal';
+
+<ProfileEditModal
+  visible={!!editingQuestion}
+  question={editingQuestion}
+  currentAnswer={currentAnswer}
+  onSave={(answer) => saveAnswer(answer)}
+  onClose={() => setEditingQuestion(null)}
+/>
+```
+
+**Props:**
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `visible` | `boolean` | Controls modal visibility |
+| `question` | `Question \| null` | The question being edited |
+| `currentAnswer` | `string \| null` | Current saved answer value |
+| `onSave` | `(answer: string) => void` | Callback with new answer value |
+| `onClose` | `() => void` | Callback to dismiss modal |
+
+**Key Pattern:** Reuses `QuestionInput` from onboarding — any changes to input components automatically apply to both onboarding and profile editing.
+
+---
+
 ## Design System Components (Planned)
 
 Components being added as part of the gamified design system:

@@ -51,7 +51,7 @@ export function useSaveAnswer(context: string) {
           updatedAt: new Date(),
         })
         .onConflictDoUpdate({
-          target: [questionAnswers.context, questionAnswers.questionKey, questionAnswers.userId],
+          target: [questionAnswers.context, questionAnswers.questionKey],
           set: {
             answer,
             updatedAt: new Date(),

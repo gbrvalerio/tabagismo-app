@@ -1,4 +1,5 @@
-import { View, Text, Button, Alert, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Button, Alert, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, Href } from 'expo-router';
 import {
   useOnboardingStatus,
@@ -8,6 +9,8 @@ import {
   useResetUserCoins,
 } from '@/db';
 import { useResetSlidesCompleted } from '@/db/repositories/onboarding-slides.repository';
+import { impactAsync, ImpactFeedbackStyle } from '@/lib/haptics';
+import { colors, spacing, borderRadius, shadows } from '@/lib/theme/tokens';
 
 export default function HomeScreen() {
   const { data: onboardingCompleted, isLoading } = useOnboardingStatus();
@@ -17,6 +20,7 @@ export default function HomeScreen() {
   const resetCoinsMutation = useResetUserCoins();
   const resetSlidesMutation = useResetSlidesCompleted();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const handleResetOnboarding = () => {
     Alert.alert(
@@ -47,8 +51,21 @@ export default function HomeScreen() {
     );
   }
 
+  const handleGearPress = () => {
+    impactAsync(ImpactFeedbackStyle.Light);
+    router.push('/settings' as Href);
+  };
+
   return (
     <View style={styles.container}>
+      <Pressable
+        style={[styles.gearButton, { top: insets.top + spacing.sm }]}
+        onPress={handleGearPress}
+        hitSlop={8}
+        testID="gear-button"
+      >
+        <Text style={styles.gearIcon}>⚙️</Text>
+      </Pressable>
       <Text style={styles.title}>Database Test</Text>
 
       <View style={styles.statusContainer}>
@@ -103,6 +120,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#fff',
+  },
+  gearButton: {
+    position: 'absolute',
+    right: spacing.md,
+    zIndex: 1,
+    padding: spacing.sm,
+    backgroundColor: colors.neutral.white,
+    borderRadius: borderRadius.full,
+    ...shadows.sm,
+  },
+  gearIcon: {
+    fontSize: 24,
+    color: colors.neutral.gray[600],
   },
   title: {
     fontSize: 24,
