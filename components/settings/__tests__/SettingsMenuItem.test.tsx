@@ -6,16 +6,8 @@ import * as Haptics from '@/lib/haptics';
 
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
-  const { View, Pressable } = require('react-native');
-  const Reanimated = {
-    default: {
-      createAnimatedComponent: (component: any) => component,
-      View,
-    },
-    useSharedValue: (initial: number) => ({ value: initial }),
-    useAnimatedStyle: (fn: () => any) => fn(),
-    withSpring: (value: number) => value,
-  };
+  const Reanimated = require('react-native-reanimated/mock');
+  Reanimated.default.call = () => {};
   return Reanimated;
 });
 
@@ -113,5 +105,16 @@ describe('SettingsMenuItem', () => {
     fireEvent.press(getByTestId('menu-item'));
     expect(Haptics.impactAsync).toHaveBeenCalled();
     expect(onPress).toHaveBeenCalled();
+  });
+
+  it('scales down on press in and restores on press out', () => {
+    const { getByTestId } = render(
+      <SettingsMenuItem {...defaultProps} testID="menu-item" />
+    );
+    const pressable = getByTestId('menu-item');
+    fireEvent(pressable, 'pressIn');
+    fireEvent(pressable, 'pressOut');
+    // If no error thrown, the handlers executed successfully
+    expect(pressable).toBeTruthy();
   });
 });

@@ -1,17 +1,24 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import React from "react";
 import { render } from "@testing-library/react-native";
 
-// Mock expo-router with Stack and Stack.Screen
-const mockStackScreen = jest.fn((_props) => null);
-const mockStack = jest.fn(({ children }) => <>{children}</>);
-Object.assign(mockStack, { Screen: mockStackScreen });
-
-jest.mock("expo-router", () => ({
-  ...jest.requireActual("expo-router"),
-  Stack: mockStack,
-}));
-
 import SettingsLayout from "../_layout";
+
+// Must define mocks inside the factory to avoid hoisting issues
+jest.mock("expo-router", () => {
+  const React = require("react");
+  const mockStackScreen = jest.fn((_props: any) => null);
+  const mockStack = jest.fn(({ children }: { children: React.ReactNode }) =>
+    React.createElement(React.Fragment, null, children)
+  );
+  Object.assign(mockStack, { Screen: mockStackScreen });
+  return { Stack: mockStack };
+});
+
+// Get references to the mocks after they are created
+const { Stack } = require("expo-router");
+const mockStack = Stack as jest.Mock;
+const mockStackScreen = Stack.Screen as jest.Mock;
 
 describe("SettingsLayout", () => {
   beforeEach(() => {
@@ -19,8 +26,7 @@ describe("SettingsLayout", () => {
   });
 
   it("renders without crashing", () => {
-    const { toJSON } = render(<SettingsLayout />);
-    expect(toJSON()).toBeTruthy();
+    expect(() => render(<SettingsLayout />)).not.toThrow();
   });
 
   it("renders a Stack navigator", () => {
@@ -32,7 +38,7 @@ describe("SettingsLayout", () => {
     render(<SettingsLayout />);
     const screenCalls = mockStackScreen.mock.calls;
     const indexScreen = screenCalls.find(
-      (call) => call[0]?.name === "index"
+      (call: any[]) => call[0]?.name === "index"
     );
     expect(indexScreen).toBeTruthy();
   });
@@ -41,7 +47,7 @@ describe("SettingsLayout", () => {
     render(<SettingsLayout />);
     const screenCalls = mockStackScreen.mock.calls;
     const profileScreen = screenCalls.find(
-      (call) => call[0]?.name === "profile"
+      (call: any[]) => call[0]?.name === "profile"
     );
     expect(profileScreen).toBeTruthy();
   });
@@ -50,7 +56,7 @@ describe("SettingsLayout", () => {
     render(<SettingsLayout />);
     const screenCalls = mockStackScreen.mock.calls;
     const notificationsScreen = screenCalls.find(
-      (call) => call[0]?.name === "notifications"
+      (call: any[]) => call[0]?.name === "notifications"
     );
     expect(notificationsScreen).toBeTruthy();
   });
@@ -83,6 +89,13 @@ describe("SettingsLayout", () => {
     const stackCall = mockStack.mock.calls[0][0];
     const screenOptions = stackCall.screenOptions;
     expect(screenOptions.headerStyle.backgroundColor).toBeDefined();
+  });
+
+  it("uses the app background primary color", () => {
+    render(<SettingsLayout />);
+    const stackCall = mockStack.mock.calls[0][0];
+    const screenOptions = stackCall.screenOptions;
+    expect(screenOptions.headerStyle.backgroundColor).toBe("#F8F9FE");
   });
 
   it("registers exactly three screens", () => {

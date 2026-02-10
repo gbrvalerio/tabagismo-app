@@ -149,6 +149,10 @@ export default function RootLayout() {
                   gestureEnabled: false,
                 }}
               />
+              <Stack.Screen
+                name="settings"
+                options={{ headerShown: false }}
+              />
             </Stack>
           </OnboardingGuard>
           <StatusBar style="auto" />
