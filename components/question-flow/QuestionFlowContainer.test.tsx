@@ -851,3 +851,348 @@ describe("QuestionFlowContainer - Layout Structure", () => {
     });
   });
 });
+
+describe("QuestionFlowContainer - Error States", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: jest.fn() });
+    mockUseDeleteDependentAnswers.mockReturnValue({ mutateAsync: jest.fn() });
+  });
+
+  it("should show loading when useQuestions returns error with isLoading true", () => {
+    mockUseQuestions.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: true,
+      error: new Error("Failed to fetch questions"),
+    });
+    mockUseAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(
+      <QuestionFlowContainer context="onboarding" onComplete={jest.fn()} />
+    );
+
+    expect(screen.getByTestId("loading")).toBeDefined();
+  });
+
+  it("should handle when useQuestions returns error state with no data", () => {
+    mockUseQuestions.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error("Network error"),
+    });
+    mockUseAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(
+      <QuestionFlowContainer context="onboarding" onComplete={jest.fn()} />
+    );
+
+    // When data is undefined and not loading, component renders the container
+    // The safe area container should still render
+    expect(screen.getByTestId("safe-area-container")).toBeDefined();
+    expect(screen.getByTestId("keyboard-avoiding-view")).toBeDefined();
+  });
+
+  it("should handle when useAnswers returns error", () => {
+    mockUseQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseAnswers.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error("Failed to load answers"),
+    });
+
+    render(
+      <QuestionFlowContainer context="onboarding" onComplete={jest.fn()} />
+    );
+
+    // Component should still render with questions even if answers fail
+    expect(screen.getByTestId("safe-area-container")).toBeDefined();
+    expect(screen.getByText("Qual é o seu nome?")).toBeDefined();
+  });
+
+  it("should call useSaveAnswer mutation with correct params when input changes", async () => {
+    const mockSaveMutateAsync = jest.fn().mockResolvedValue(undefined);
+    mockUseSaveAnswer.mockReturnValue({ mutateAsync: mockSaveMutateAsync });
+
+    mockUseQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(
+      <QuestionFlowContainer context="onboarding" onComplete={jest.fn()} />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("")).toBeDefined();
+    });
+
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Test");
+
+    await waitFor(() => {
+      expect(mockSaveMutateAsync).toHaveBeenCalledWith({
+        questionKey: "name",
+        answer: JSON.stringify("Test"),
+      });
+    });
+
+    // Component should still be rendered
+    expect(screen.getByTestId("safe-area-container")).toBeDefined();
+  });
+
+  it("should call useAwardCoins mutation with correct params when coinRewardPerQuestion > 0", async () => {
+    const mockAwardMutateAsync = jest.fn().mockResolvedValue(undefined);
+    mockUseAwardCoins.mockReturnValue({
+      mutateAsync: mockAwardMutateAsync,
+    });
+    mockUseSaveAnswer.mockReturnValue({
+      mutateAsync: jest.fn().mockResolvedValue(undefined),
+    });
+
+    mockUseQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(
+      <QuestionFlowContainer
+        context="onboarding"
+        coinRewardPerQuestion={1}
+        onComplete={jest.fn()}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("")).toBeDefined();
+    });
+
+    const input = screen.getByDisplayValue("");
+    fireEvent.changeText(input, "Test");
+
+    await waitFor(() => {
+      expect(mockAwardMutateAsync).toHaveBeenCalledWith({
+        amount: 1,
+        type: "question_answer",
+        metadata: { context: "onboarding", questionKey: "name" },
+      });
+    });
+
+    // Component should still be rendered
+    expect(screen.getByTestId("safe-area-container")).toBeDefined();
+  });
+
+  it("should handle network timeout scenario with loading state", async () => {
+    // Simulate a slow network by keeping isLoading true
+    mockUseQuestions.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isSuccess: false,
+      isFetching: true,
+    });
+    mockUseAnswers.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isSuccess: false,
+      isFetching: true,
+    });
+
+    render(
+      <QuestionFlowContainer context="onboarding" onComplete={jest.fn()} />
+    );
+
+    // Should show loading indicator during network request
+    expect(screen.getByTestId("loading")).toBeDefined();
+  });
+
+  it("should handle when both questions and answers fail simultaneously", () => {
+    mockUseQuestions.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error("Questions fetch failed"),
+    });
+    mockUseAnswers.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error("Answers fetch failed"),
+    });
+
+    render(
+      <QuestionFlowContainer context="onboarding" onComplete={jest.fn()} />
+    );
+
+    // Component should still render the container even with both errors
+    expect(screen.getByTestId("safe-area-container")).toBeDefined();
+    expect(screen.getByTestId("keyboard-avoiding-view")).toBeDefined();
+  });
+
+  it("should call useDeleteDependentAnswers mutation when answering question with dependents", async () => {
+    const mockDeleteMutateAsync = jest.fn().mockResolvedValue(undefined);
+    mockUseDeleteDependentAnswers.mockReturnValue({
+      mutateAsync: mockDeleteMutateAsync,
+    });
+
+    const questionsWithDependency = [
+      {
+        id: 1,
+        key: "smoker",
+        order: 1,
+        type: "SINGLE_CHOICE",
+        category: "PROFILE",
+        context: "onboarding",
+        questionText: "Você fuma?",
+        required: true,
+        dependsOnQuestionKey: null,
+        dependsOnValue: null,
+        metadata: { choices: ["Sim", "Não"] },
+        createdAt: new Date(),
+      },
+      {
+        id: 2,
+        key: "cigarettes_per_day",
+        order: 2,
+        type: "NUMBER",
+        category: "PROFILE",
+        context: "onboarding",
+        questionText: "Quantos cigarros?",
+        required: true,
+        dependsOnQuestionKey: "smoker",
+        dependsOnValue: "Sim",
+        metadata: {},
+        createdAt: new Date(),
+      },
+    ];
+
+    mockUseQuestions.mockReturnValue({
+      data: questionsWithDependency,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseSaveAnswer.mockReturnValue({
+      mutateAsync: jest.fn().mockResolvedValue(undefined),
+    });
+
+    render(
+      <QuestionFlowContainer context="onboarding" onComplete={jest.fn()} />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Você fuma?")).toBeDefined();
+    });
+
+    // Answering question with dependents should trigger delete mutation
+    const simButton = screen.getByText("Sim");
+    fireEvent.press(simButton);
+
+    await waitFor(() => {
+      expect(mockDeleteMutateAsync).toHaveBeenCalledWith({
+        parentQuestionKey: "smoker",
+      });
+    });
+
+    // Component should still be rendered
+    expect(screen.getByTestId("safe-area-container")).toBeDefined();
+  });
+
+  it("should handle empty questions array gracefully", () => {
+    mockUseQuestions.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(
+      <QuestionFlowContainer context="onboarding" onComplete={jest.fn()} />
+    );
+
+    // Component should render the container but no question content
+    expect(screen.getByTestId("safe-area-container")).toBeDefined();
+    expect(screen.queryByTestId("content-scroll-view")).toBeNull();
+  });
+
+  it("should handle null data from useQuestions", () => {
+    mockUseQuestions.mockReturnValue({
+      data: null,
+      isLoading: false,
+      isSuccess: false,
+    });
+    mockUseAnswers.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(
+      <QuestionFlowContainer context="onboarding" onComplete={jest.fn()} />
+    );
+
+    // Component should handle null data gracefully
+    expect(screen.getByTestId("safe-area-container")).toBeDefined();
+    expect(screen.queryByTestId("content-scroll-view")).toBeNull();
+  });
+
+  it("should handle malformed answer data from useAnswers", async () => {
+    mockUseQuestions.mockReturnValue({
+      data: mockQuestions,
+      isLoading: false,
+      isSuccess: true,
+    });
+    mockUseAnswers.mockReturnValue({
+      data: [
+        {
+          questionKey: "name",
+          answer: "not-valid-json{", // Malformed JSON
+        },
+      ],
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    render(
+      <QuestionFlowContainer context="onboarding" onComplete={jest.fn()} />
+    );
+
+    // Component should handle JSON parse errors gracefully
+    await waitFor(() => {
+      expect(screen.getByText("Qual é o seu nome?")).toBeDefined();
+    });
+  });
+});
