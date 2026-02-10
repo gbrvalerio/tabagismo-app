@@ -42,7 +42,7 @@ jest.mock('expo-haptics', () => ({
 }));
 
 jest.mock('react-native-reanimated', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+   
   const { View } = require('react-native');
   return {
     __esModule: true,
@@ -446,7 +446,7 @@ describe('OnboardingSlidesScreen', () => {
   });
 
   it('should trigger haptic feedback on scroll', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     const Haptics = require('expo-haptics');
 
     const mockSlides = [
@@ -696,7 +696,7 @@ describe('OnboardingSlidesScreen', () => {
   });
 
   it('should trigger medium haptic feedback on CTA press', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     const Haptics = require('expo-haptics');
 
     const mockMutateAsync = jest.fn().mockResolvedValue(undefined);
@@ -743,12 +743,14 @@ describe('OnboardingSlidesScreen', () => {
       isSuccess: true,
     });
 
-    const { queryByTestId } = render(<OnboardingSlidesScreen />, {
+    const { queryByTestId, queryAllByTestId } = render(<OnboardingSlidesScreen />, {
       wrapper: createWrapper(),
     });
 
     // Should render without crashing when slides is undefined but not loading
     expect(queryByTestId('slides-flatlist')).toBeTruthy();
+    // The ?? 0 fallback should result in zero pagination dots
+    expect(queryAllByTestId('pagination-dot')).toHaveLength(0);
   });
 
   it('should hide skip button on last slide when CTA is shown', async () => {
