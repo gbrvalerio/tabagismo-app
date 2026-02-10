@@ -95,8 +95,8 @@ export default function NotificationsScreen() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Toggle Card */}
-          <View style={styles.card}>
+          {/* Toggle Section */}
+          <View style={styles.toggleSection}>
             <View style={styles.toggleRow}>
               <Text style={styles.bellEmoji}>🔔</Text>
               <View style={styles.toggleTextContainer}>
@@ -115,8 +115,11 @@ export default function NotificationsScreen() {
             </View>
           </View>
 
-          {/* Benefits Info Card */}
-          <View style={styles.benefitsCard}>
+          <View style={styles.separator} />
+
+          {/* Benefits Section */}
+          <View style={styles.benefitsSection}>
+            <Text style={styles.benefitsTitle}>Benefícios</Text>
             <View style={styles.benefitRow}>
               <Text style={styles.checkmark}>✓</Text>
               <Text style={styles.benefitText}>
@@ -147,14 +150,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: spacing.md,
+    paddingBottom: spacing.xxl,
   },
-  card: {
-    backgroundColor: colors.neutral.white,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    ...shadows.md,
+  toggleSection: {
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
   },
   toggleRow: {
     flexDirection: 'row',
@@ -175,17 +175,27 @@ const styles = StyleSheet.create({
   toggleSubtitle: {
     ...typographyPresets.small,
     color: colors.neutral.gray[500],
+    marginTop: 2,
   },
-  benefitsCard: {
-    backgroundColor: colors.neutral.white,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    ...shadows.md,
+  separator: {
+    height: 8,
+    backgroundColor: colors.neutral.gray[100],
+  },
+  benefitsSection: {
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
+  },
+  benefitsTitle: {
+    fontFamily: typography.fontFamily.poppins.semibold,
+    fontSize: typography.fontSize.sm,
+    color: colors.neutral.gray[500],
+    textTransform: 'uppercase',
+    marginBottom: spacing.md,
   },
   benefitRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   checkmark: {
     fontSize: 18,

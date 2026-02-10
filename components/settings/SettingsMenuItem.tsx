@@ -6,7 +6,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import * as Haptics from '@/lib/haptics';
-import { colors, spacing, typography, borderRadius } from '@/lib/theme/tokens';
+import { colors, spacing, typography, borderRadius, shadows } from '@/lib/theme/tokens';
 
 interface SettingsMenuItemProps {
   icon: React.ReactNode;
@@ -66,8 +66,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.neutral.white,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
     paddingHorizontal: spacing.md,
   },
   iconContainer: {
@@ -91,6 +90,7 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.poppins.regular,
     fontSize: typography.fontSize.sm,
     color: colors.neutral.gray[500],
+    marginTop: 2,
   },
   chevron: {
     fontFamily: typography.fontFamily.poppins.regular,

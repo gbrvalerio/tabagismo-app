@@ -163,31 +163,43 @@ export default function ProfileScreen() {
             const categoryQuestions = groupedQuestions[category];
             if (!categoryQuestions || categoryQuestions.length === 0) return null;
 
+            const categoryColor = CATEGORY_COLORS[category];
+
             return (
               <View key={category} style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <View style={styles.accentBar} />
+                  <View
+                    style={[styles.accentDot, { backgroundColor: categoryColor }]}
+                  />
                   <Text style={styles.sectionTitle}>
                     {CATEGORY_LABELS[category]}
                   </Text>
                 </View>
 
-                {categoryQuestions.map((question) => {
+                {categoryQuestions.map((question, index) => {
                   const answer = answersMap[question.key];
                   const displayAnswer = formatAnswer(answer, question.type);
+                  const isLast = index === categoryQuestions.length - 1;
 
                   return (
-                    <Pressable
-                      key={question.key}
-                      testID={`profile-row-${question.key}`}
-                      style={styles.questionRow}
-                      onPress={() => setEditingQuestion(question)}
-                    >
-                      <Text style={styles.questionText}>
-                        {question.questionText}
-                      </Text>
-                      <Text style={styles.answerText}>{displayAnswer}</Text>
-                    </Pressable>
+                    <View key={question.key}>
+                      <Pressable
+                        testID={`profile-row-${question.key}`}
+                        style={styles.questionRow}
+                        onPress={() => setEditingQuestion(question)}
+                      >
+                        <View style={styles.questionContent}>
+                          <Text style={styles.questionText}>
+                            {question.questionText}
+                          </Text>
+                          <Text style={styles.answerText}>
+                            {displayAnswer}
+                          </Text>
+                        </View>
+                        <Text style={styles.editIcon}>✏️</Text>
+                      </Pressable>
+                      {!isLast && <View style={styles.questionSeparator} />}
+                    </View>
                   );
                 })}
               </View>
@@ -206,6 +218,14 @@ export default function ProfileScreen() {
     </>
   );
 }
+
+const CATEGORY_COLORS = {
+  [QuestionCategory.PROFILE]: colors.primary.base,
+  [QuestionCategory.ADDICTION]: colors.secondary.base,
+  [QuestionCategory.HABITS]: colors.accent.purple,
+  [QuestionCategory.MOTIVATION]: colors.accent.pink,
+  [QuestionCategory.GOALS]: colors.accent.gold,
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -234,22 +254,22 @@ const styles = StyleSheet.create({
     color: colors.neutral.white,
   },
   scrollContent: {
-    padding: spacing.md,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.xxl,
   },
   section: {
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
-  accentBar: {
+  accentDot: {
     width: 3,
     height: '100%',
     minHeight: 20,
-    backgroundColor: colors.primary.base,
     borderRadius: borderRadius.sm,
     marginRight: spacing.sm,
   },
@@ -260,18 +280,32 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   questionRow: {
-    paddingVertical: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
+  },
+  questionSeparator: {
+    height: 1,
+    backgroundColor: colors.neutral.gray[200],
+    marginLeft: spacing.md,
+  },
+  questionContent: {
+    flex: 1,
   },
   questionText: {
     fontFamily: typography.fontFamily.poppins.regular,
     fontSize: typography.fontSize.sm,
     color: colors.neutral.gray[600],
+    marginBottom: spacing.xs,
   },
   answerText: {
     fontFamily: typography.fontFamily.poppins.medium,
     fontSize: typography.fontSize.md,
     color: colors.neutral.black,
-    marginTop: 2,
+  },
+  editIcon: {
+    fontSize: 16,
+    marginLeft: spacing.md,
   },
 });
