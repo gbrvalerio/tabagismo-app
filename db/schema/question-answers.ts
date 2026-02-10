@@ -16,7 +16,7 @@ export const questionAnswers = sqliteTable('question_answers', {
     .notNull()
     .$defaultFn(getDefaultQAUpdatedAt),
 }, (table) => ({
-  contextKeyUserIdx: uniqueIndex('question_answers_context_key_user_unique').on(table.context, table.questionKey, table.userId),
+  contextKeyIdx: uniqueIndex('question_answers_context_key_unique').on(table.context, table.questionKey),
 }));
 
 export type QuestionAnswer = typeof questionAnswers.$inferSelect;

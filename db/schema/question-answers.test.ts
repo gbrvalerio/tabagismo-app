@@ -49,14 +49,14 @@ describe('questionAnswers schema', () => {
     expect(questionAnswers.userId.notNull).toBe(false);
   });
 
-  it('should have a unique index on context, questionKey, userId', () => {
+  it('should have a unique index on context and questionKey', () => {
     const config = getTableConfig(questionAnswers);
     const uniqueIdx = config.indexes.find(
-      (idx) => idx.config.name === 'question_answers_context_key_user_unique'
+      (idx) => idx.config.name === 'question_answers_context_key_unique'
     );
     expect(uniqueIdx).toBeDefined();
     expect(uniqueIdx!.config.unique).toBe(true);
     const columnNames = uniqueIdx!.config.columns.map((c: any) => c.name);
-    expect(columnNames).toEqual(['context', 'question_key', 'user_id']);
+    expect(columnNames).toEqual(['context', 'question_key']);
   });
 });
