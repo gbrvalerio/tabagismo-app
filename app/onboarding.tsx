@@ -18,7 +18,7 @@ export default function OnboardingScreen() {
   const handleCelebrationDismiss = () => {
     setShowCelebration(false);
     // @ts-expect-error - Route not in typed routes
-    router.push('/notification-permission');
+    router.replace('/notification-permission');
   };
 
   return (

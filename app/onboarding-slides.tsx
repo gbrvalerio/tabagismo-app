@@ -38,13 +38,13 @@ export default function OnboardingSlidesScreen() {
   const handleSkip = async () => {
     impactAsync(ImpactFeedbackStyle.Light);
     await markCompleted.mutateAsync();
-    router.push('/onboarding' as never);
+    router.replace('/onboarding' as never);
   };
 
   const handleComplete = async () => {
     impactAsync(ImpactFeedbackStyle.Medium);
     await markCompleted.mutateAsync();
-    router.push('/onboarding' as never);
+    router.replace('/onboarding' as never);
   };
 
   const parseMetadata = (metadataString: string | null) => {

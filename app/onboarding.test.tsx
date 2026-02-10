@@ -358,7 +358,7 @@ describe("OnboardingScreen", () => {
       fireEvent.press(celebrationDialog);
 
       await waitFor(() => {
-        expect(mockRouterPush).toHaveBeenCalledWith("/notification-permission");
+        expect(mockRouterReplace).toHaveBeenCalledWith("/notification-permission");
       });
     });
 

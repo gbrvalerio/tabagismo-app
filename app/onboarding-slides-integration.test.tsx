@@ -342,7 +342,7 @@ describe('Onboarding Slides Integration - Full User Flow', () => {
 
       await waitFor(() => {
         expect(mockMutateAsync).toHaveBeenCalledTimes(1);
-        expect(mockPush).toHaveBeenCalledWith('/onboarding');
+        expect(mockReplace).toHaveBeenCalledWith('/onboarding');
       });
     });
   });
@@ -367,7 +367,7 @@ describe('Onboarding Slides Integration - Full User Flow', () => {
 
       await waitFor(() => {
         expect(mockMutateAsync).toHaveBeenCalledTimes(1);
-        expect(mockPush).toHaveBeenCalledWith('/onboarding');
+        expect(mockReplace).toHaveBeenCalledWith('/onboarding');
       });
     });
 

@@ -63,11 +63,11 @@ jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-const mockPush = jest.fn();
+const mockReplace = jest.fn();
 jest.mock('expo-router', () => ({
   useRouter: () => ({
-    push: mockPush,
-    replace: jest.fn(),
+    push: jest.fn(),
+    replace: mockReplace,
   }),
 }));
 
@@ -567,7 +567,7 @@ describe('OnboardingSlidesScreen', () => {
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalled();
-      expect(mockPush).toHaveBeenCalledWith('/onboarding');
+      expect(mockReplace).toHaveBeenCalledWith('/onboarding');
     });
   });
 
@@ -691,7 +691,7 @@ describe('OnboardingSlidesScreen', () => {
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalled();
-      expect(mockPush).toHaveBeenCalledWith('/onboarding');
+      expect(mockReplace).toHaveBeenCalledWith('/onboarding');
     });
   });
 
