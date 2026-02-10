@@ -51,7 +51,7 @@ export default function HomeScreen() {
 
   const handleGearPress = () => {
     impactAsync(ImpactFeedbackStyle.Light);
-    router.push('/settings');
+    router.push('/settings' as Href);
   };
 
   return (
