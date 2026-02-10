@@ -10,7 +10,8 @@ export default function SettingsLayout() {
           fontFamily: typography.fontFamily.poppins.semibold,
         },
         headerShadowVisible: false,
-        headerBackTitle: "",
+        headerBackButtonDisplayMode: "minimal", // Shows only chevron icon without text
+        headerTintColor: colors.neutral.black, // Black tint for back button
         headerStyle: {
           backgroundColor: colors.background.primary,
         },

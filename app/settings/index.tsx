@@ -1,3 +1,4 @@
+import { HeaderBackButton } from "@react-navigation/elements";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Notifications from "expo-notifications";
 import { Href, Stack, useRouter } from "expo-router";
@@ -41,7 +42,17 @@ export default function SettingsScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Configurações" }} />
+      <Stack.Screen
+        options={{
+          title: "Configurações",
+          headerLeft: () => (
+            <HeaderBackButton
+              onPress={() => router.back()}
+              tintColor={colors.neutral.black}
+            />
+          ),
+        }}
+      />
       <LinearGradient colors={["#FFFFFF", "#F8F9FB"]} style={styles.container}>
         <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
           <View style={styles.content}>

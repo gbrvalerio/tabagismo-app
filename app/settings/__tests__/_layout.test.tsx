@@ -77,11 +77,18 @@ describe("SettingsLayout", () => {
     expect(screenOptions.headerShadowVisible).toBe(false);
   });
 
-  it("sets headerBackTitle to empty string", () => {
+  it("sets headerBackButtonDisplayMode to minimal", () => {
     render(<SettingsLayout />);
     const stackCall = mockStack.mock.calls[0][0];
     const screenOptions = stackCall.screenOptions;
-    expect(screenOptions.headerBackTitle).toBe("");
+    expect(screenOptions.headerBackButtonDisplayMode).toBe("minimal");
+  });
+
+  it("sets headerTintColor to black", () => {
+    render(<SettingsLayout />);
+    const stackCall = mockStack.mock.calls[0][0];
+    const screenOptions = stackCall.screenOptions;
+    expect(screenOptions.headerTintColor).toBe("#1A1A2E");
   });
 
   it("sets background color matching the theme", () => {

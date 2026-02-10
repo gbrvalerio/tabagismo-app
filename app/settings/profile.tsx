@@ -158,7 +158,7 @@ export default function ProfileScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: "Perfil" }} />
+      <Stack.Screen options={{ title: "Perfil", headerBackTitle: "" }} />
       <LinearGradient colors={["#FFFFFF", "#F8F9FB"]} style={styles.container}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
