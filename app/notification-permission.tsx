@@ -11,7 +11,7 @@ import {
 } from '@/lib/theme/tokens';
 import * as Notifications from 'expo-notifications';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useRouter, Href } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -60,8 +60,7 @@ export default function NotificationPermissionScreen() {
           setShowCelebration(true);
         } else if (status === 'granted' && hasReward) {
           // Already rewarded, skip to tabs
-          // @ts-expect-error - Route group (tabs) is not in typed routes
-          router.replace('/(tabs)');
+                    router.replace('/(tabs)' as Href);
         }
       } catch (error) {
         logError(error, 'NotificationPermission');
@@ -143,14 +142,12 @@ export default function NotificationPermissionScreen() {
   };
 
   const handleSkip = () => {
-    // @ts-expect-error - Route group (tabs) is not in typed routes
-    router.replace('/(tabs)');
+    router.replace('/(tabs)' as Href);
   };
 
   const handleCelebrationDismiss = () => {
     setShowCelebration(false);
-    // @ts-expect-error - Route group (tabs) is not in typed routes
-    router.replace('/(tabs)');
+    router.replace('/(tabs)' as Href);
   };
 
   return (

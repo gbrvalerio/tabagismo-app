@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, Href } from 'expo-router';
 import { useOnboardingStatus } from '@/db/repositories';
 import { useSlidesStatus } from '@/db/repositories/onboarding-slides.repository';
 
@@ -19,14 +19,12 @@ export function OnboardingGuard({ children }: OnboardingGuardProps) {
 
     // Priority: slides → onboarding → tabs
     if (slidesCompleted === false) {
-      // @ts-expect-error - Route not in typed routes
-      router.replace('/onboarding-slides');
+      router.replace('/onboarding-slides' as Href);
       return;
     }
 
     if (onboardingCompleted === false) {
-      // @ts-expect-error - Route not in typed routes
-      router.replace('/onboarding');
+      router.replace('/onboarding' as Href);
     }
   }, [slidesCompleted, onboardingCompleted, isLoading, router]);
 

@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { QuestionFlowContainer } from '@/components/question-flow/QuestionFlowContainer';
 import { CelebrationDialog } from '@/components/celebration/CelebrationDialog';
 import { useCompleteOnboarding } from '@/db/repositories';
-import { useRouter } from 'expo-router';
+import { useRouter, Href } from 'expo-router';
 
 export default function OnboardingScreen() {
   const completeOnboardingMutation = useCompleteOnboarding();
@@ -19,8 +19,7 @@ export default function OnboardingScreen() {
 
   const handleCelebrationDismiss = () => {
     setShowCelebration(false);
-    // @ts-expect-error - Route not in typed routes
-    router.replace('/notification-permission');
+    router.replace('/notification-permission' as Href);
   };
 
   return (

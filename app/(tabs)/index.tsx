@@ -1,5 +1,5 @@
 import { View, Text, Button, Alert, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Href } from 'expo-router';
 import {
   useOnboardingStatus,
   useCompleteOnboarding,
@@ -32,8 +32,7 @@ export default function HomeScreen() {
             await resetCoinsMutation.mutateAsync();
             await resetSlidesMutation.mutateAsync();
             await resetMutation.mutateAsync();
-            // @ts-expect-error - Route not in typed routes
-            router.replace('/onboarding-slides');
+            router.replace('/onboarding-slides' as Href);
           },
         },
       ],
