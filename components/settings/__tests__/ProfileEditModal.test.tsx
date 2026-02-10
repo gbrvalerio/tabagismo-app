@@ -46,6 +46,14 @@ jest.mock('@/components/question-flow/QuestionInput', () => ({
   },
 }));
 
+// Mock QuestionText
+jest.mock('@/components/question-flow/QuestionText', () => ({
+  QuestionText: ({ text }: any) => {
+    const { Text } = require('react-native');
+    return <Text testID="question-text">{text}</Text>;
+  },
+}));
+
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children, ...props }: any) => {
@@ -95,10 +103,10 @@ describe('ProfileEditModal', () => {
     expect(queryByTestId('profile-edit-modal-content')).toBeNull();
   });
 
-  it('shows question text in header', () => {
+  it('shows question text', () => {
     const { getByTestId } = render(<ProfileEditModal {...defaultProps} />);
-    const header = getByTestId('profile-edit-modal-header-title');
-    expect(header.props.children).toBe('Há quantos anos você fuma?');
+    const questionText = getByTestId('question-text');
+    expect(questionText.props.children).toBe('Há quantos anos você fuma?');
   });
 
   it('shows close button that calls onClose', () => {
@@ -110,24 +118,17 @@ describe('ProfileEditModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('shows save button', () => {
-    const { getByTestId } = render(<ProfileEditModal {...defaultProps} />);
-    expect(getByTestId('profile-edit-modal-save')).toBeTruthy();
+  it('does not show save button when answer has not changed', () => {
+    const { queryByTestId } = render(<ProfileEditModal {...defaultProps} />);
+    expect(queryByTestId('profile-edit-modal-save')).toBeNull();
   });
 
-  it('save button is disabled when answer has not changed', () => {
-    const { getByTestId } = render(<ProfileEditModal {...defaultProps} />);
-    const saveButton = getByTestId('profile-edit-modal-save');
-    expect(saveButton.props.accessibilityState?.disabled || saveButton.props.disabled).toBeTruthy();
-  });
-
-  it('save button is enabled when answer changes', () => {
+  it('shows save button when answer changes', () => {
     const { getByTestId } = render(<ProfileEditModal {...defaultProps} />);
     const input = getByTestId('mock-question-input');
     fireEvent.changeText(input, '20');
     const saveButton = getByTestId('profile-edit-modal-save');
-    // After changing, the button should be enabled
-    expect(saveButton.props.accessibilityState?.disabled).toBeFalsy();
+    expect(saveButton).toBeTruthy();
   });
 
   it('calls onSave with the new answer when save is pressed', () => {
@@ -172,9 +173,11 @@ describe('ProfileEditModal', () => {
     expect(input.props.value).toBe('10');
   });
 
-  it('shows Salvar text on save button', () => {
-    const { getByText } = render(<ProfileEditModal {...defaultProps} />);
-    expect(getByText('Salvar')).toBeTruthy();
+  it('shows ✓ Salvar text on save button when answer changes', () => {
+    const { getByTestId, getByText } = render(<ProfileEditModal {...defaultProps} />);
+    const input = getByTestId('mock-question-input');
+    fireEvent.changeText(input, '20');
+    expect(getByText('✓ Salvar')).toBeTruthy();
   });
 
   it('calls onClose when close button is pressed without saving', () => {

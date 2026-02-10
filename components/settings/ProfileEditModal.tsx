@@ -7,13 +7,16 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Question } from '@/db/schema/questions';
 import { QuestionInput } from '@/components/question-flow/QuestionInput';
+import { QuestionText } from '@/components/question-flow/QuestionText';
 import * as Haptics from '@/lib/haptics';
-import { colors, spacing, typography, borderRadius } from '@/lib/theme/tokens';
+import { colors, spacing, typography, borderRadius, typographyPresets } from '@/lib/theme/tokens';
 
 interface ProfileEditModalProps {
   visible: boolean;
@@ -60,57 +63,59 @@ export function ProfileEditModal({
           style={styles.gradient}
           testID="profile-edit-modal-content"
         >
-          <SafeAreaView style={styles.safeArea}>
+          <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               style={styles.keyboardView}
             >
               <View style={styles.header}>
-                <Text
-                  testID="profile-edit-modal-header-title"
-                  style={styles.headerTitle}
-                  numberOfLines={2}
-                >
-                  {question.questionText}
-                </Text>
-                <Pressable
-                  testID="profile-edit-modal-close"
-                  onPress={onClose}
-                  style={styles.closeButton}
-                  hitSlop={12}
-                >
-                  <Text style={styles.closeText}>✕</Text>
-                </Pressable>
-              </View>
-
-              <View style={styles.body}>
-                <QuestionInput
-                  question={question}
-                  value={answer}
-                  onChange={setAnswer}
-                />
-              </View>
-
-              <View style={styles.footer}>
-                <Pressable
-                  testID="profile-edit-modal-save"
-                  onPress={handleSave}
-                  disabled={!hasChanged}
-                  accessibilityState={{ disabled: !hasChanged }}
-                  style={[
-                    styles.saveButton,
-                    !hasChanged && styles.saveButtonDisabled,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.saveButtonText,
-                      !hasChanged && styles.saveButtonTextDisabled,
-                    ]}
+                <View style={styles.headerRow}>
+                  <TouchableOpacity
+                    onPress={onClose}
+                    style={styles.backButton}
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    testID="profile-edit-modal-close"
                   >
-                    Salvar
-                  </Text>
-                </Pressable>
+                    <Text style={styles.backButtonText}>← Voltar</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.contentArea}>
+                <View style={styles.content}>
+                  <View style={styles.cardWrapper}>
+                    <View style={styles.questionHeader}>
+                      <QuestionText text={question.questionText} />
+                    </View>
+
+                    <ScrollView
+                      style={styles.scrollView}
+                      contentContainerStyle={styles.scrollContent}
+                      showsVerticalScrollIndicator={false}
+                      testID="profile-edit-scroll-view"
+                    >
+                      <QuestionInput
+                        question={question}
+                        value={answer}
+                        onChange={setAnswer}
+                      />
+                    </ScrollView>
+                  </View>
+                </View>
+
+                <View style={styles.footer}>
+                  {hasChanged && (
+                    <TouchableOpacity
+                      onPress={handleSave}
+                      activeOpacity={0.7}
+                      style={styles.saveButton}
+                      testID="profile-edit-modal-save"
+                    >
+                      <Text style={styles.buttonText}>✓ Salvar</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             </KeyboardAvoidingView>
           </SafeAreaView>
@@ -131,59 +136,72 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.md,
+  },
+  headerRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.md,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
     paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.neutral.gray[200],
+    paddingHorizontal: spacing.xs,
   },
-  headerTitle: {
-    flex: 1,
-    fontFamily: typography.fontFamily.poppins.semibold,
-    fontSize: typography.fontSize.lg,
-    color: colors.neutral.black,
-    marginRight: spacing.md,
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.neutral.gray[100],
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeText: {
+  backButtonText: {
+    fontFamily: typographyPresets.subhead.fontFamily,
     fontSize: typography.fontSize.md,
-    color: colors.neutral.gray[600],
-    lineHeight: 20,
+    color: '#666666',
   },
-  body: {
+  contentArea: {
     flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: spacing.md,
+    justifyContent: 'flex-start',
+    minHeight: 0,
+  },
+  cardWrapper: {
+    flex: 1,
+    minHeight: 0,
+  },
+  questionHeader: {
+    marginBottom: spacing.sm,
+    flexShrink: 0,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 88,
   },
   footer: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
-    paddingTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   saveButton: {
-    backgroundColor: colors.primary.base,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
+    width: '100%',
+    height: 56,
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#10B981',
+    borderRadius: 28,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  saveButtonDisabled: {
-    backgroundColor: colors.neutral.gray[300],
-  },
-  saveButtonText: {
-    fontFamily: typography.fontFamily.poppins.semibold,
-    fontSize: typography.fontSize.lg,
-    color: colors.neutral.white,
-  },
-  saveButtonTextDisabled: {
-    color: colors.neutral.gray[500],
+  buttonText: {
+    ...typographyPresets.button,
+    color: '#FFFFFF',
   },
 });
