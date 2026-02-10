@@ -346,11 +346,39 @@ import { useUsers, useCreateUser } from '@/db';
 
 ## Onboarding Flow
 
-The onboarding screen is a full-screen modal (`gestureEnabled: false`) that appears on first launch.
+The app has a multi-stage onboarding flow with priority routing: **slides → questions → notification permission → tabs**
+
+### Stage 1: Onboarding Slides (`/onboarding-slides`)
+
+Informational onboarding phase with 3 swipeable slides shown before the questions flow.
+
+**Route:** `/onboarding-slides` — Registered in `_layout.tsx` with `headerShown: false`, `gestureEnabled: false`.
+
+**Key Features:**
+- FlatList horizontal pagination with haptic feedback (Light on swipe, Medium on CTA)
+- Skip button (visible slide 2+, hidden on last slide)
+- CTA button "Vamos Lá!" (visible slide 3 only)
+- Database-driven content with JSON metadata support
+- Benefits card rendering from slide metadata
+- SVG icon imports (not inline SVG)
+
+**Components Used:**
+- `SlideItem` — Individual slide with icon, title, description, optional benefits card
+- `PaginationDots` — Visual indicator for current slide position
+
+**Completion:** Both Skip and CTA buttons call `useMarkSlidesCompleted()` which sets `slidesCompleted = true` in settings table, then navigate to `/onboarding`.
+
+### Stage 2: Onboarding Questions (`/onboarding`)
+
+The onboarding screen is a full-screen modal (`gestureEnabled: false`) that appears after slides are completed.
 
 **Route:** `/onboarding` — Registered in `_layout.tsx` as a modal `Stack.Screen`.
 
-**Guard:** `OnboardingGuard` component wraps the `Stack` and checks `useOnboardingStatus()`. If onboarding is not completed, it redirects via `router.replace('/onboarding')`.
+**Guard:** `OnboardingGuard` component wraps the `Stack` and checks completion status with priority:
+1. If `slidesCompleted = false` → redirect to `/onboarding-slides`
+2. If `onboardingCompleted = false` → redirect to `/onboarding`
+3. If `notificationPermissionGranted = false` → redirect to `/notification-permission`
+4. Otherwise → allow access to `/(tabs)`
 
 **Implementation:** The onboarding screen uses `QuestionFlowContainer` with `context="onboarding"`. The container handles question display, answer saving, navigation, and coin awards generically.
 
@@ -360,7 +388,7 @@ The onboarding screen is a full-screen modal (`gestureEnabled: false`) that appe
 
 ---
 
-## Notification Permission Flow
+### Stage 3: Notification Permission Flow (`/notification-permission`)
 
 **Route:** `/notification-permission` — Registered in `_layout.tsx` as a stack screen with `gestureEnabled: false`.
 
