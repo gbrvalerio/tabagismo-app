@@ -12,7 +12,6 @@ import { colors, spacing } from "@/lib/theme/tokens";
 export default function SettingsScreen() {
   const router = useRouter();
   const { data: answers } = useAnswers("onboarding");
-  console.log("answers", answers);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   const nameAnswer = answers?.find((a) => a.questionKey === "name");
