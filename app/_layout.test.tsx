@@ -1,9 +1,27 @@
-import { render } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import RootLayout from './_layout';
 
 // Track registered screens
 const registeredScreens: { name: string; options?: any }[] = [];
+
+// Silence console.error for expected async state updates from initDatabase
+const originalError = console.error;
+beforeAll(() => {
+  console.error = (...args: unknown[]) => {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('not wrapped in act')
+    ) {
+      return;
+    }
+    originalError.apply(console, args);
+  };
+});
+
+afterAll(() => {
+  console.error = originalError;
+});
 
 // Mock expo-router
 jest.mock('expo-router', () => {
@@ -100,14 +118,16 @@ describe('RootLayout - Screen Registration', () => {
   it('should register onboarding-slides screen with correct options', async () => {
     render(<RootLayout />);
 
-    // Wait for component to be fully rendered
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await waitFor(() => {
+      const onboardingSlidesScreen = registeredScreens.find(
+        (screen) => screen.name === 'onboarding-slides'
+      );
+      expect(onboardingSlidesScreen).toBeDefined();
+    });
 
     const onboardingSlidesScreen = registeredScreens.find(
       (screen) => screen.name === 'onboarding-slides'
     );
-
-    expect(onboardingSlidesScreen).toBeDefined();
     expect(onboardingSlidesScreen?.options).toEqual({
       headerShown: false,
       gestureEnabled: false,
@@ -115,16 +135,18 @@ describe('RootLayout - Screen Registration', () => {
   });
 
   it('should register notification-permission screen with correct options', async () => {
-    const { findByTestId } = render(<RootLayout />);
+    render(<RootLayout />);
 
-    // Wait for component to be fully rendered
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await waitFor(() => {
+      const notificationPermissionScreen = registeredScreens.find(
+        (screen) => screen.name === 'notification-permission'
+      );
+      expect(notificationPermissionScreen).toBeDefined();
+    });
 
     const notificationPermissionScreen = registeredScreens.find(
       (screen) => screen.name === 'notification-permission'
     );
-
-    expect(notificationPermissionScreen).toBeDefined();
     expect(notificationPermissionScreen?.options).toEqual({
       headerShown: false,
       gestureEnabled: false,
