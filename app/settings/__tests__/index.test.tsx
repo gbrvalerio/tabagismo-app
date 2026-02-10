@@ -3,6 +3,9 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { AppState } from 'react-native';
 
+import SettingsScreen from '../index';
+import * as Notifications from 'expo-notifications';
+
 // Mock expo-router
 const mockPush = jest.fn();
 jest.mock('expo-router', () => {
@@ -71,9 +74,6 @@ jest.mock('@/lib/haptics', () => ({
   impactAsync: jest.fn(),
   ImpactFeedbackStyle: { Light: 'light' },
 }));
-
-import SettingsScreen from '../index';
-import * as Notifications from 'expo-notifications';
 
 const mockGetPermissionsAsync = Notifications.getPermissionsAsync as jest.Mock;
 
