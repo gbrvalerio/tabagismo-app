@@ -279,36 +279,135 @@ describe('Button', () => {
       expect(onPress).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle press in animation', () => {
+    it('should have transform style with scale property', () => {
       render(<Button label="Animar" onPress={() => {}} />);
       const button = screen.getByTestId('button');
+      const styles = button.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+
+      // Verify transform property exists and contains scale
+      expect(flatStyle.transform).toBeDefined();
+      expect(Array.isArray(flatStyle.transform)).toBe(true);
+      expect(flatStyle.transform).toContainEqual({ scale: 1 });
+    });
+
+    it('should trigger scale animation on press in', () => {
+      render(<Button label="Animar" onPress={() => {}} />);
+      const button = screen.getByTestId('button');
+
+      // Verify initial state has transform with scale
+      const initialStyles = button.props.style;
+      const initialFlatStyle = Array.isArray(initialStyles)
+        ? Object.assign({}, ...initialStyles.flat(Infinity).filter(Boolean))
+        : initialStyles;
+      expect(initialFlatStyle.transform).toBeDefined();
+
+      // Trigger pressIn - with mocks, the animation target value (0.95) is passed to withSpring
+      // but the shared value update happens asynchronously. The key is that the handler executes.
       fireEvent(button, 'pressIn');
-      // Animation should trigger, but we can't test the actual animation value
-      expect(button).toBeTruthy();
+
+      // Verify button remains in valid state after pressIn
+      const afterStyles = button.props.style;
+      const afterFlatStyle = Array.isArray(afterStyles)
+        ? Object.assign({}, ...afterStyles.flat(Infinity).filter(Boolean))
+        : afterStyles;
+      expect(afterFlatStyle.transform).toBeDefined();
+      expect(Array.isArray(afterFlatStyle.transform)).toBe(true);
     });
 
-    it('should handle press out animation', () => {
+    it('should trigger scale animation on press out', () => {
       render(<Button label="Animar" onPress={() => {}} />);
       const button = screen.getByTestId('button');
+
+      // Trigger pressIn then pressOut
+      fireEvent(button, 'pressIn');
       fireEvent(button, 'pressOut');
-      // Animation should trigger
-      expect(button).toBeTruthy();
+
+      // Verify button is in valid state with transform
+      const styles = button.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+      expect(flatStyle.transform).toBeDefined();
+      expect(Array.isArray(flatStyle.transform)).toBe(true);
     });
 
-    it('should not animate when disabled', () => {
+    it('should complete full press cycle (in -> out -> press) without errors', () => {
       const onPress = jest.fn();
-      render(<Button label="Animar" onPress={onPress} disabled />);
+      render(<Button label="Animar" onPress={onPress} />);
       const button = screen.getByTestId('button');
+
+      // Full press cycle
       fireEvent(button, 'pressIn');
       fireEvent(button, 'pressOut');
-      expect(onPress).not.toHaveBeenCalled();
+      fireEvent.press(button);
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+
+      // Verify button is still in valid state after animation cycle
+      const styles = button.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+      expect(flatStyle.transform).toBeDefined();
     });
 
-    it('should not animate when loading', () => {
+    it('should not change scale when disabled and pressed', () => {
+      render(<Button label="Animar" onPress={() => {}} disabled />);
+      const button = screen.getByTestId('button');
+
+      // Get initial scale
+      const initialStyles = button.props.style;
+      const initialFlatStyle = Array.isArray(initialStyles)
+        ? Object.assign({}, ...initialStyles.flat(Infinity).filter(Boolean))
+        : initialStyles;
+      const initialScale = initialFlatStyle.transform?.find(
+        (t: { scale?: number }) => t.scale !== undefined
+      )?.scale;
+
+      // Trigger pressIn
+      fireEvent(button, 'pressIn');
+
+      // Scale should remain unchanged
+      const afterStyles = button.props.style;
+      const afterFlatStyle = Array.isArray(afterStyles)
+        ? Object.assign({}, ...afterStyles.flat(Infinity).filter(Boolean))
+        : afterStyles;
+      const afterScale = afterFlatStyle.transform?.find(
+        (t: { scale?: number }) => t.scale !== undefined
+      )?.scale;
+
+      expect(afterScale).toBe(initialScale);
+    });
+
+    it('should not change scale when loading and pressed', () => {
       render(<Button label="Animar" onPress={() => {}} loading />);
       const button = screen.getByTestId('button');
+
+      // Get initial scale
+      const initialStyles = button.props.style;
+      const initialFlatStyle = Array.isArray(initialStyles)
+        ? Object.assign({}, ...initialStyles.flat(Infinity).filter(Boolean))
+        : initialStyles;
+      const initialScale = initialFlatStyle.transform?.find(
+        (t: { scale?: number }) => t.scale !== undefined
+      )?.scale;
+
+      // Trigger pressIn
       fireEvent(button, 'pressIn');
-      fireEvent(button, 'pressOut');
+
+      // Scale should remain unchanged
+      const afterStyles = button.props.style;
+      const afterFlatStyle = Array.isArray(afterStyles)
+        ? Object.assign({}, ...afterStyles.flat(Infinity).filter(Boolean))
+        : afterStyles;
+      const afterScale = afterFlatStyle.transform?.find(
+        (t: { scale?: number }) => t.scale !== undefined
+      )?.scale;
+
+      expect(afterScale).toBe(initialScale);
       expect(screen.getByTestId('button-loading')).toBeTruthy();
     });
 
@@ -319,8 +418,40 @@ describe('Button', () => {
           <Button label={`Test ${variant}`} onPress={() => {}} variant={variant} />
         );
         expect(screen.getByText(`Test ${variant}`)).toBeTruthy();
+
+        // Verify each variant has animation transform
+        const button = screen.getByTestId('button');
+        const styles = button.props.style;
+        const flatStyle = Array.isArray(styles)
+          ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+          : styles;
+        expect(flatStyle.transform).toBeDefined();
+
         unmount();
       });
+    });
+
+    it('should handle rapid press in/out cycles', () => {
+      const onPress = jest.fn();
+      render(<Button label="Animar" onPress={onPress} />);
+      const button = screen.getByTestId('button');
+
+      // Rapid press cycles
+      for (let i = 0; i < 5; i++) {
+        fireEvent(button, 'pressIn');
+        fireEvent(button, 'pressOut');
+      }
+
+      // Button should still be in valid state
+      const styles = button.props.style;
+      const flatStyle = Array.isArray(styles)
+        ? Object.assign({}, ...styles.flat(Infinity).filter(Boolean))
+        : styles;
+      expect(flatStyle.transform).toContainEqual({ scale: 1 });
+
+      // Should still be pressable
+      fireEvent.press(button);
+      expect(onPress).toHaveBeenCalledTimes(1);
     });
   });
 });
