@@ -10,6 +10,8 @@ import {
 import { Linking } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
+import NotificationsScreen from '../notifications';
+
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => {
   const { View } = require('react-native');
@@ -68,8 +70,6 @@ jest.mock('expo-linear-gradient', () => ({
 }));
 
 jest.spyOn(Linking, 'openSettings').mockImplementation(jest.fn());
-
-import NotificationsScreen from '../notifications';
 
 describe('NotificationsScreen', () => {
   beforeEach(() => {
@@ -134,7 +134,7 @@ describe('NotificationsScreen', () => {
         expect.objectContaining({
           options: expect.objectContaining({ title: 'Notificações' }),
         }),
-        expect.anything()
+        undefined
       );
     });
   });
@@ -338,6 +338,52 @@ describe('NotificationsScreen', () => {
     });
   });
 
+  describe('Switch in Granted State', () => {
+    it('does not call openSettings or requestPermissions when already granted', async () => {
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: 'granted',
+      });
+
+      render(<NotificationsScreen />);
+
+      await waitFor(() => {
+        screen.getByTestId('notification-switch');
+      });
+
+      fireEvent(screen.getByTestId('notification-switch'), 'valueChange', false);
+
+      await waitFor(() => {
+        expect(Linking.openSettings).not.toHaveBeenCalled();
+        expect(Notifications.requestPermissionsAsync).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('AppState Non-Active', () => {
+    it('does not re-check permission when app goes to background', async () => {
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: 'undetermined',
+      });
+
+      render(<NotificationsScreen />);
+
+      await waitFor(() => {
+        expect(mockAddEventListener).toHaveBeenCalled();
+      });
+
+      // Clear getPermissionsAsync calls from mount
+      (Notifications.getPermissionsAsync as jest.Mock).mockClear();
+
+      await act(async () => {
+        if (appStateListener) {
+          await appStateListener('background');
+        }
+      });
+
+      expect(Notifications.getPermissionsAsync).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Error Handling', () => {
     let consoleErrorSpy: jest.SpyInstance;
 
@@ -378,6 +424,33 @@ describe('NotificationsScreen', () => {
       });
 
       fireEvent(screen.getByTestId('notification-switch'), 'valueChange', true);
+
+      await waitFor(() => {
+        expect(consoleErrorSpy).toHaveBeenCalled();
+      });
+    });
+
+    it('handles error when AppState listener re-checks permissions', async () => {
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: 'denied',
+      });
+
+      render(<NotificationsScreen />);
+
+      await waitFor(() => {
+        expect(mockAddEventListener).toHaveBeenCalled();
+      });
+
+      // Make next getPermissionsAsync fail
+      (Notifications.getPermissionsAsync as jest.Mock).mockRejectedValue(
+        new Error('AppState permission check failed')
+      );
+
+      await act(async () => {
+        if (appStateListener) {
+          await appStateListener('active');
+        }
+      });
 
       await waitFor(() => {
         expect(consoleErrorSpy).toHaveBeenCalled();

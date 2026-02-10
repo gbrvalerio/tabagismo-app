@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { AppState } from 'react-native';
 
 // Mock expo-router
 const mockPush = jest.fn();
@@ -18,9 +19,8 @@ jest.mock('expo-router', () => {
 });
 
 // Mock expo-notifications
-const mockGetPermissionsAsync = jest.fn();
 jest.mock('expo-notifications', () => ({
-  getPermissionsAsync: mockGetPermissionsAsync,
+  getPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
 }));
 
 // Mock expo-linear-gradient
@@ -50,20 +50,17 @@ jest.mock('@/db/repositories/questions.repository', () => ({
 // Mock SettingsMenuItem
 jest.mock('@/components/settings/SettingsMenuItem', () => {
   const React = require('react');
+  const { Pressable, Text, View } = require('react-native');
   return {
-    SettingsMenuItem: ({ icon, title, subtitle, onPress, testID }: any) =>
+    SettingsMenuItem: ({ title, subtitle, onPress, testID }: any) =>
       React.createElement(
-        'View',
+        View,
         { testID },
-        React.createElement('View', { testID: `${testID}-icon` }, icon),
-        React.createElement('View', null,
-          React.createElement('View', null, title),
-          subtitle ? React.createElement('View', null, subtitle) : null
-        ),
-        React.createElement('View', {
+        React.createElement(Text, null, title),
+        subtitle ? React.createElement(Text, null, subtitle) : null,
+        React.createElement(Pressable, {
           testID: `${testID}-pressable`,
           onPress,
-          accessibilityRole: 'button',
         })
       ),
   };
@@ -76,6 +73,13 @@ jest.mock('@/lib/haptics', () => ({
 }));
 
 import SettingsScreen from '../index';
+import * as Notifications from 'expo-notifications';
+
+const mockGetPermissionsAsync = Notifications.getPermissionsAsync as jest.Mock;
+
+// Mock AppState.addEventListener
+const mockRemove = jest.fn();
+const originalAddEventListener = AppState.addEventListener;
 
 describe('SettingsScreen', () => {
   beforeEach(() => {
@@ -87,10 +91,15 @@ describe('SettingsScreen', () => {
         { questionKey: 'age', answer: '30' },
       ],
     });
+    AppState.addEventListener = jest.fn().mockReturnValue({ remove: mockRemove });
   });
 
-  it('renders without crashing', async () => {
-    expect(() => render(<SettingsScreen />)).not.toThrow();
+  afterEach(() => {
+    AppState.addEventListener = originalAddEventListener;
+  });
+
+  it('renders without crashing', () => {
+    render(<SettingsScreen />);
   });
 
   it('sets screen title to Configurações', () => {
@@ -158,12 +167,12 @@ describe('SettingsScreen', () => {
 
   it('handles case when answers data is undefined', () => {
     mockUseAnswers.mockReturnValue({ data: undefined });
-    expect(() => render(<SettingsScreen />)).not.toThrow();
+    render(<SettingsScreen />);
   });
 
   it('handles case when answers data is empty array', () => {
     mockUseAnswers.mockReturnValue({ data: [] });
-    expect(() => render(<SettingsScreen />)).not.toThrow();
+    render(<SettingsScreen />);
   });
 
   it('calls useAnswers with onboarding context', () => {
@@ -177,17 +186,28 @@ describe('SettingsScreen', () => {
   });
 
   it('re-checks notification permission when app comes to foreground', async () => {
-    const { AppState } = require('react-native');
     render(<SettingsScreen />);
 
-    // Initial call
-    expect(mockGetPermissionsAsync).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockGetPermissionsAsync).toHaveBeenCalledTimes(1);
+    });
+
+    // Get the AppState listener
+    const addEventListenerMock = AppState.addEventListener as jest.Mock;
+    expect(addEventListenerMock).toHaveBeenCalledWith('change', expect.any(Function));
+    const listener = addEventListenerMock.mock.calls[0][1];
 
     // Simulate app coming to foreground
-    const listener = AppState.addEventListener.mock?.calls?.[0]?.[1];
-    if (listener) {
-      await listener('active');
+    await listener('active');
+
+    await waitFor(() => {
       expect(mockGetPermissionsAsync).toHaveBeenCalledTimes(2);
-    }
+    });
+  });
+
+  it('cleans up AppState listener on unmount', () => {
+    const { unmount } = render(<SettingsScreen />);
+    unmount();
+    expect(mockRemove).toHaveBeenCalled();
   });
 });
