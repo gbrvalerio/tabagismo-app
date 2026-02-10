@@ -1,4 +1,5 @@
 import { View, Text, Button, Alert, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, Href } from 'expo-router';
 import {
   useOnboardingStatus,
@@ -9,7 +10,7 @@ import {
 } from '@/db';
 import { useResetSlidesCompleted } from '@/db/repositories/onboarding-slides.repository';
 import { impactAsync, ImpactFeedbackStyle } from '@/lib/haptics';
-import { colors, spacing } from '@/lib/theme/tokens';
+import { colors, spacing, borderRadius, shadows } from '@/lib/theme/tokens';
 
 export default function HomeScreen() {
   const { data: onboardingCompleted, isLoading } = useOnboardingStatus();
@@ -19,6 +20,7 @@ export default function HomeScreen() {
   const resetCoinsMutation = useResetUserCoins();
   const resetSlidesMutation = useResetSlidesCompleted();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const handleResetOnboarding = () => {
     Alert.alert(
@@ -57,7 +59,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Pressable
-        style={styles.gearButton}
+        style={[styles.gearButton, { top: insets.top + spacing.sm }]}
         onPress={handleGearPress}
         hitSlop={8}
         testID="gear-button"
@@ -121,10 +123,12 @@ const styles = StyleSheet.create({
   },
   gearButton: {
     position: 'absolute',
-    top: 0,
     right: spacing.md,
     zIndex: 1,
-    padding: 10,
+    padding: spacing.sm,
+    backgroundColor: colors.neutral.white,
+    borderRadius: borderRadius.full,
+    ...shadows.sm,
   },
   gearIcon: {
     fontSize: 24,

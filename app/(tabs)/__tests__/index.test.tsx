@@ -1,6 +1,9 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
+ 
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import * as haptics from '@/lib/haptics';
+
+import HomeScreen from '../index';
 
 // Mock expo-router with useRouter returning a trackable push
 const mockPush = jest.fn();
@@ -9,12 +12,16 @@ jest.mock('expo-router', () => ({
   Href: {},
 }));
 
+// Mock safe area insets
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+}));
+
 // Mock haptics
 jest.mock('@/lib/haptics', () => ({
   impactAsync: jest.fn(),
   ImpactFeedbackStyle: { Light: 'Light', Medium: 'Medium', Heavy: 'Heavy' },
 }));
-import * as haptics from '@/lib/haptics';
 const mockImpactAsync = haptics.impactAsync as jest.Mock;
 
 // Mock db repositories
@@ -29,8 +36,6 @@ jest.mock('@/db', () => ({
 jest.mock('@/db/repositories/onboarding-slides.repository', () => ({
   useResetSlidesCompleted: () => ({ mutateAsync: jest.fn(), isPending: false }),
 }));
-
-import HomeScreen from '../index';
 
 describe('HomeScreen', () => {
   beforeEach(() => {
@@ -59,18 +64,20 @@ describe('HomeScreen', () => {
       expect(mockImpactAsync).toHaveBeenCalled();
     });
 
-    it('has absolute positioning styles for top-right placement', () => {
+    it('has absolute positioning styles for top-right placement with safe area', () => {
       const { getByTestId } = render(<HomeScreen />);
       const gearButton = getByTestId('gear-button');
       const style = gearButton.props.style;
-      // Flatten style if it's an array
+      // Flatten style array (static stylesheet + dynamic inline style)
       const flatStyle = Array.isArray(style)
-        ? Object.assign({}, ...style)
+        ? Object.assign({}, ...style.flat(Infinity).filter(Boolean))
         : style;
       expect(flatStyle.position).toBe('absolute');
-      expect(flatStyle.top).toBeDefined();
+      expect(flatStyle.top).toBeGreaterThan(0); // safe area inset + spacing
       expect(flatStyle.right).toBeDefined();
       expect(flatStyle.zIndex).toBe(1);
+      expect(flatStyle.backgroundColor).toBeDefined();
+      expect(flatStyle.borderRadius).toBeDefined();
     });
   });
 });

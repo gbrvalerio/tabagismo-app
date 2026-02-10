@@ -8,10 +8,22 @@ import { useOnboardingStatus, useCompleteOnboarding, useResetOnboarding, useDele
 import { useResetSlidesCompleted } from '@/db/repositories/onboarding-slides.repository';
 import { Alert } from 'react-native';
 
+// Mock safe area insets
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+}));
+
+// Mock haptics
+jest.mock('@/lib/haptics', () => ({
+  impactAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: 'Light', Medium: 'Medium', Heavy: 'Heavy' },
+}));
+
 // Mock expo-router
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ replace: mockReplace }),
+  useRouter: () => ({ replace: mockReplace, push: mockPush }),
 }));
 
 // Mock the database hooks
