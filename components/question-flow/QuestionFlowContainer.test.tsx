@@ -646,7 +646,7 @@ describe("QuestionFlowContainer - Navigation", () => {
       isSuccess: true,
     });
     mockUseAnswers.mockReturnValue({
-      data: [{ questionKey: "q1", answer: JSON.stringify("Answer") }],
+      data: [{ questionKey: "q1", answer: "Answer" }], // TEXT stored directly
       isLoading: false,
       isSuccess: true,
     });
@@ -735,7 +735,7 @@ describe("QuestionFlowContainer - Answer Handling", () => {
     await waitFor(() => {
       expect(mockSaveMutateAsync).toHaveBeenCalledWith({
         questionKey: "name",
-        answer: JSON.stringify("João"),
+        answer: "João", // TEXT stored directly, not JSON
       });
     });
   });
@@ -953,7 +953,7 @@ describe("QuestionFlowContainer - Error States", () => {
     await waitFor(() => {
       expect(mockSaveMutateAsync).toHaveBeenCalledWith({
         questionKey: "name",
-        answer: JSON.stringify("Test"),
+        answer: "Test", // TEXT type returns string directly, not JSON
       });
     });
 

@@ -17,6 +17,7 @@ import { QuestionInput } from '@/components/question-flow/QuestionInput';
 import { QuestionText } from '@/components/question-flow/QuestionText';
 import * as Haptics from '@/lib/haptics';
 import { colors, spacing, typography, borderRadius, typographyPresets } from '@/lib/theme/tokens';
+import { deserializeAnswer, serializeAnswer, areAnswersEqual } from '@/lib/answer-serialization';
 
 interface ProfileEditModalProps {
   visible: boolean;
@@ -36,17 +37,25 @@ export function ProfileEditModal({
   const [answer, setAnswer] = useState<string | number | string[] | null>(currentAnswer);
 
   useEffect(() => {
-    if (visible) {
-      setAnswer(currentAnswer);
+    if (visible && question) {
+      // Deserialize answer based on question type
+      const deserialized = deserializeAnswer(currentAnswer, question.type);
+      setAnswer(deserialized);
     }
-  }, [visible, currentAnswer]);
+  }, [visible, currentAnswer, question]);
 
-  const hasChanged = answer !== currentAnswer;
+  // Compare using type-aware equality check
+  const hasChanged = question
+    ? !areAnswersEqual(answer, currentAnswer, question.type)
+    : false;
 
   const handleSave = () => {
-    if (!hasChanged) return;
+    if (!hasChanged || !question) return;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    onSave(String(answer ?? ''));
+
+    // Serialize answer based on question type
+    const serialized = serializeAnswer(answer, question.type);
+    onSave(serialized);
   };
 
   return (

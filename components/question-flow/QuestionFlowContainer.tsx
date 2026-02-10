@@ -10,6 +10,7 @@ import { computeApplicableQuestions } from "@/lib/question-flow";
 import * as Haptics from "@/lib/haptics";
 import { db } from "@/db/client";
 import { eq, and, sql } from "drizzle-orm";
+import { deserializeAnswer, serializeAnswer, type AnswerValue } from "@/lib/answer-serialization";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -85,9 +86,15 @@ export function QuestionFlowContainer({
 
     const cache = existingAnswers.reduce(
       (acc, answer) => {
-        try {
-          acc[answer.questionKey] = JSON.parse(answer.answer);
-        } catch {
+        // Find the question to get its type
+        const question = allQuestions.find((q) => q.key === answer.questionKey);
+        if (question) {
+          acc[answer.questionKey] = deserializeAnswer(
+            answer.answer,
+            question.type
+          );
+        } else {
+          // Fallback for missing questions
           acc[answer.questionKey] = answer.answer;
         }
         return acc;
@@ -185,9 +192,15 @@ export function QuestionFlowContainer({
     const newCache = { ...answersCache, [questionKey]: value };
     setAnswersCache(newCache);
 
+    // Find the question to get its type for proper serialization
+    const question = allQuestions?.find((q) => q.key === questionKey);
+    const serialized = question
+      ? serializeAnswer(value as AnswerValue, question.type)
+      : JSON.stringify(value);
+
     await saveAnswerMutation.mutateAsync({
       questionKey,
-      answer: JSON.stringify(value),
+      answer: serialized,
     });
 
     if (coinRewardPerQuestion > 0) {

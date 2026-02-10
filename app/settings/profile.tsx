@@ -1,4 +1,6 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import { LinearGradient } from "expo-linear-gradient";
+import { Href, Stack, useRouter } from "expo-router";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -6,26 +8,19 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Stack, useRouter, Href } from 'expo-router';
+} from "react-native";
 
-import { ProfileEditModal } from '@/components/settings/ProfileEditModal';
+import { ProfileEditModal } from "@/components/settings/ProfileEditModal";
 import {
-  useQuestions,
   useAnswers,
-  useSaveAnswer,
   useDeleteDependentAnswers,
-} from '@/db/repositories/questions.repository';
-import type { Question } from '@/db/schema/questions';
-import { QuestionCategory, QuestionType } from '@/db/schema/questions';
-import { computeApplicableQuestions } from '@/lib/question-flow';
-import {
-  borderRadius,
-  colors,
-  spacing,
-  typography,
-} from '@/lib/theme/tokens';
+  useQuestions,
+  useSaveAnswer,
+} from "@/db/repositories/questions.repository";
+import type { Question } from "@/db/schema/questions";
+import { QuestionCategory, QuestionType } from "@/db/schema/questions";
+import { computeApplicableQuestions } from "@/lib/question-flow";
+import { borderRadius, colors, spacing, typography } from "@/lib/theme/tokens";
 
 const CATEGORY_ORDER: QuestionCategory[] = [
   QuestionCategory.PROFILE,
@@ -36,21 +31,24 @@ const CATEGORY_ORDER: QuestionCategory[] = [
 ];
 
 const CATEGORY_LABELS: Record<QuestionCategory, string> = {
-  [QuestionCategory.PROFILE]: 'PERFIL',
-  [QuestionCategory.ADDICTION]: 'VICIO',
-  [QuestionCategory.HABITS]: 'HABITOS',
-  [QuestionCategory.MOTIVATION]: 'MOTIVACAO',
-  [QuestionCategory.GOALS]: 'OBJETIVOS',
+  [QuestionCategory.PROFILE]: "PERFIL",
+  [QuestionCategory.ADDICTION]: "VICIO",
+  [QuestionCategory.HABITS]: "HABITOS",
+  [QuestionCategory.MOTIVATION]: "MOTIVACAO",
+  [QuestionCategory.GOALS]: "OBJETIVOS",
 };
 
-function formatAnswer(answer: string | undefined, questionType: string): string {
-  if (!answer) return '—';
+function formatAnswer(
+  answer: string | undefined,
+  questionType: string,
+): string {
+  if (!answer) return "—";
 
   if (questionType === QuestionType.MULTIPLE_CHOICE) {
     try {
       const parsed = JSON.parse(answer);
       if (Array.isArray(parsed)) {
-        return parsed.join(', ');
+        return parsed.join(", ");
       }
     } catch {
       return answer;
@@ -62,10 +60,11 @@ function formatAnswer(answer: string | undefined, questionType: string): string 
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { data: questions, isLoading: questionsLoading } = useQuestions('onboarding');
-  const { data: answers, isLoading: answersLoading } = useAnswers('onboarding');
-  const saveAnswer = useSaveAnswer('onboarding');
-  const deleteDependentAnswers = useDeleteDependentAnswers('onboarding');
+  const { data: questions, isLoading: questionsLoading } =
+    useQuestions("onboarding");
+  const { data: answers, isLoading: answersLoading } = useAnswers("onboarding");
+  const saveAnswer = useSaveAnswer("onboarding");
+  const deleteDependentAnswers = useDeleteDependentAnswers("onboarding");
 
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
 
@@ -106,15 +105,15 @@ export default function ProfileScreen() {
         answer,
       });
 
-      if (editingQuestion.key === 'addiction_type') {
+      if (editingQuestion.key === "addiction_type") {
         await deleteDependentAnswers.mutateAsync({
-          parentQuestionKey: 'addiction_type',
+          parentQuestionKey: "addiction_type",
         });
       }
 
       setEditingQuestion(null);
     },
-    [editingQuestion, saveAnswer, deleteDependentAnswers]
+    [editingQuestion, saveAnswer, deleteDependentAnswers],
   );
 
   const hasAnswers = answers && answers.length > 0;
@@ -122,8 +121,11 @@ export default function ProfileScreen() {
   if (isLoading) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Perfil' }} />
-        <LinearGradient colors={['#FFFFFF', '#F8F9FB']} style={styles.container}>
+        <Stack.Screen options={{ title: "Perfil" }} />
+        <LinearGradient
+          colors={["#FFFFFF", "#F8F9FB"]}
+          style={styles.container}
+        >
           <View style={styles.loadingContainer} testID="profile-loading">
             <ActivityIndicator size="large" color={colors.primary.base} />
           </View>
@@ -135,13 +137,16 @@ export default function ProfileScreen() {
   if (!hasAnswers) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Perfil' }} />
-        <LinearGradient colors={['#FFFFFF', '#F8F9FB']} style={styles.container}>
+        <Stack.Screen options={{ title: "Perfil" }} />
+        <LinearGradient
+          colors={["#FFFFFF", "#F8F9FB"]}
+          style={styles.container}
+        >
           <View style={styles.emptyContainer}>
             <Pressable
               testID="complete-profile-button"
               style={styles.completeButton}
-              onPress={() => router.push('/onboarding' as Href)}
+              onPress={() => router.push("/onboarding" as Href)}
             >
               <Text style={styles.completeButtonText}>Completar perfil</Text>
             </Pressable>
@@ -153,15 +158,16 @@ export default function ProfileScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Perfil' }} />
-      <LinearGradient colors={['#FFFFFF', '#F8F9FB']} style={styles.container}>
+      <Stack.Screen options={{ title: "Perfil" }} />
+      <LinearGradient colors={["#FFFFFF", "#F8F9FB"]} style={styles.container}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           {CATEGORY_ORDER.map((category) => {
             const categoryQuestions = groupedQuestions[category];
-            if (!categoryQuestions || categoryQuestions.length === 0) return null;
+            if (!categoryQuestions || categoryQuestions.length === 0)
+              return null;
 
             const categoryColor = CATEGORY_COLORS[category];
 
@@ -169,7 +175,10 @@ export default function ProfileScreen() {
               <View key={category} style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <View
-                    style={[styles.accentDot, { backgroundColor: categoryColor }]}
+                    style={[
+                      styles.accentDot,
+                      { backgroundColor: categoryColor },
+                    ]}
                   />
                   <Text style={styles.sectionTitle}>
                     {CATEGORY_LABELS[category]}
@@ -192,9 +201,7 @@ export default function ProfileScreen() {
                           <Text style={styles.questionText}>
                             {question.questionText}
                           </Text>
-                          <Text style={styles.answerText}>
-                            {displayAnswer}
-                          </Text>
+                          <Text style={styles.answerText}>{displayAnswer}</Text>
                         </View>
                         <Text style={styles.editIcon}>✏️</Text>
                       </Pressable>
@@ -210,7 +217,9 @@ export default function ProfileScreen() {
         <ProfileEditModal
           visible={!!editingQuestion}
           question={editingQuestion}
-          currentAnswer={editingQuestion ? answersMap[editingQuestion.key] ?? null : null}
+          currentAnswer={
+            editingQuestion ? (answersMap[editingQuestion.key] ?? null) : null
+          }
           onSave={handleSave}
           onClose={() => setEditingQuestion(null)}
         />
@@ -233,13 +242,13 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: spacing.lg,
   },
   completeButton: {
@@ -261,14 +270,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: spacing.sm,
     paddingHorizontal: spacing.md,
   },
   accentDot: {
     width: 3,
-    height: '100%',
+    height: "100%",
     minHeight: 20,
     borderRadius: borderRadius.sm,
     marginRight: spacing.sm,
@@ -277,11 +286,11 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.poppins.semibold,
     fontSize: typography.fontSize.sm,
     color: colors.neutral.gray[500],
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   questionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
   },

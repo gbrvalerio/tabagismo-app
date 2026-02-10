@@ -32,7 +32,29 @@ jest.mock('@/lib/haptics', () => ({
 // Mock QuestionInput
 jest.mock('@/components/question-flow/QuestionInput', () => ({
   QuestionInput: ({ question, value, onChange }: any) => {
-    const { TextInput, Text } = require('react-native');
+    const { TextInput, Text, Button, View } = require('react-native');
+
+    // For MULTIPLE_CHOICE, render value as array
+    if (question.type === 'MULTIPLE_CHOICE') {
+      const currentValue = Array.isArray(value) ? value : [];
+      return (
+        <View>
+          <Text testID="question-input-label">{question.questionText}</Text>
+          <Text testID="mock-question-input-value">
+            {JSON.stringify(currentValue)}
+          </Text>
+          <Button
+            testID="mock-add-choice"
+            title="Add Choice"
+            onPress={() => {
+              onChange([...currentValue, 'New Choice']);
+            }}
+          />
+        </View>
+      );
+    }
+
+    // For other types, use text input
     return (
       <>
         <Text testID="question-input-label">{question.questionText}</Text>
@@ -189,5 +211,86 @@ describe('ProfileEditModal', () => {
     fireEvent.press(getByTestId('profile-edit-modal-close'));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onSave).not.toHaveBeenCalled();
+  });
+
+  describe('MULTIPLE_CHOICE questions', () => {
+    it('parses JSON string answer to array for QuestionInput', () => {
+      const multipleChoiceQuestion = makeQuestion({
+        type: 'MULTIPLE_CHOICE',
+        questionText: 'Quais são suas motivações?',
+        metadata: {
+          choices: ['Melhorar saúde', 'Economizar dinheiro', 'Dar exemplo'],
+        },
+      });
+
+      // Database stores multiple choice answers as JSON strings
+      const jsonAnswer = '["Melhorar saúde","Economizar dinheiro"]';
+
+      const { getByTestId } = render(
+        <ProfileEditModal
+          {...defaultProps}
+          question={multipleChoiceQuestion}
+          currentAnswer={jsonAnswer}
+        />
+      );
+
+      // QuestionInput should receive the parsed array, not the JSON string
+      const valueDisplay = getByTestId('mock-question-input-value');
+      expect(valueDisplay.props.children).toBe('["Melhorar saúde","Economizar dinheiro"]');
+    });
+
+    it('stringifies array answer to JSON when saving', () => {
+      const onSave = jest.fn();
+      const multipleChoiceQuestion = makeQuestion({
+        type: 'MULTIPLE_CHOICE',
+        questionText: 'Quais são suas motivações?',
+        metadata: {
+          choices: ['Melhorar saúde', 'Economizar dinheiro', 'Dar exemplo'],
+        },
+      });
+
+      const jsonAnswer = '["Melhorar saúde"]';
+
+      const { getByTestId } = render(
+        <ProfileEditModal
+          {...defaultProps}
+          question={multipleChoiceQuestion}
+          currentAnswer={jsonAnswer}
+          onSave={onSave}
+        />
+      );
+
+      // Simulate user adding a choice via QuestionInput
+      const addButton = getByTestId('mock-add-choice');
+      fireEvent.press(addButton);
+
+      fireEvent.press(getByTestId('profile-edit-modal-save'));
+
+      // Should save as JSON string
+      expect(onSave).toHaveBeenCalledWith('["Melhorar saúde","New Choice"]');
+    });
+
+    it('does not show save button when answer has not changed for MULTIPLE_CHOICE', () => {
+      const multipleChoiceQuestion = makeQuestion({
+        type: 'MULTIPLE_CHOICE',
+        questionText: 'Quais são suas motivações?',
+        metadata: {
+          choices: ['Melhorar saúde', 'Economizar dinheiro', 'Dar exemplo'],
+        },
+      });
+
+      const jsonAnswer = '["Melhorar saúde","Economizar dinheiro"]';
+
+      const { queryByTestId } = render(
+        <ProfileEditModal
+          {...defaultProps}
+          question={multipleChoiceQuestion}
+          currentAnswer={jsonAnswer}
+        />
+      );
+
+      // Save button should NOT appear if user hasn't changed anything
+      expect(queryByTestId('profile-edit-modal-save')).toBeNull();
+    });
   });
 });
