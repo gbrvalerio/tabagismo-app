@@ -1,3 +1,4 @@
+// Mock AppState listener
 // Mock dependencies BEFORE imports
 import { render, screen, waitFor, fireEvent } from '@testing-library/react-native';
 import { Linking, Alert } from 'react-native';
@@ -5,6 +6,22 @@ import * as Notifications from 'expo-notifications';
 import NotificationPermissionScreen from './notification-permission';
 import { useHasNotificationReward, useAwardCoins } from '@/db/repositories';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+let appStateListener: ((state: string) => void) | null = null;
+const mockRemove = jest.fn();
+const mockAddEventListener = jest.fn((_event: string, callback: (state: string) => void) => {
+  appStateListener = callback;
+  return { remove: mockRemove };
+});
+
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  return Object.defineProperty(RN, 'AppState', {
+    get: () => ({
+      addEventListener: mockAddEventListener,
+    }),
+  });
+});
 
 const mockRouterReplace = jest.fn();
 const mockRouterPush = jest.fn();
@@ -67,6 +84,7 @@ describe('NotificationPermissionScreen', () => {
     jest.clearAllMocks();
     mockRouterReplace.mockClear();
     mockRouterPush.mockClear();
+    appStateListener = null;
     (useHasNotificationReward as jest.Mock).mockReturnValue({ data: false });
   });
 
@@ -311,6 +329,96 @@ describe('NotificationPermissionScreen', () => {
 
       await waitFor(() => {
         expect(mockRouterReplace).toHaveBeenCalledWith('/(tabs)');
+      });
+    });
+  });
+
+  describe('OS Settings Return Flow', () => {
+    it('should show celebration and navigate when permission granted via OS settings', async () => {
+      const mockAwardCoins = jest.fn().mockResolvedValue({});
+      (useAwardCoins as jest.Mock).mockReturnValue({
+        mutateAsync: mockAwardCoins,
+        isPending: false,
+      });
+      // Start with denied permission
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: 'denied',
+      });
+      (useHasNotificationReward as jest.Mock).mockReturnValue({ data: false });
+
+      const { getByTestId } = render(<NotificationPermissionScreen />, {
+        wrapper: createWrapper(),
+      });
+
+      // Wait for initial render
+      await waitFor(() => {
+        expect(screen.getByText('Abrir Configurações')).toBeTruthy();
+      });
+
+      // Simulate returning from OS settings with permission now granted
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: 'granted',
+      });
+
+      // Trigger AppState active (user returns from settings)
+      if (appStateListener) {
+        await appStateListener('active');
+      }
+
+      // Celebration should appear
+      await waitFor(() => {
+        expect(getByTestId('celebration-dialog-overlay')).toBeTruthy();
+      });
+
+      // Coins should be awarded
+      expect(mockAwardCoins).toHaveBeenCalledWith({
+        amount: 15,
+        type: 'notification_permission',
+        metadata: expect.objectContaining({
+          source: 'notification_permission',
+        }),
+      });
+
+      // Dismiss celebration
+      fireEvent.press(getByTestId('celebration-dialog-overlay'));
+
+      // Should navigate to tabs
+      await waitFor(() => {
+        expect(mockRouterReplace).toHaveBeenCalledWith('/(tabs)');
+      });
+    });
+
+    it('should not award coins when returning from settings if already rewarded', async () => {
+      const mockAwardCoins = jest.fn().mockResolvedValue({});
+      (useAwardCoins as jest.Mock).mockReturnValue({
+        mutateAsync: mockAwardCoins,
+        isPending: false,
+      });
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: 'denied',
+      });
+      (useHasNotificationReward as jest.Mock).mockReturnValue({ data: true });
+
+      render(<NotificationPermissionScreen />, {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Abrir Configurações')).toBeTruthy();
+      });
+
+      // Simulate returning from OS settings with permission granted
+      (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+        status: 'granted',
+      });
+
+      if (appStateListener) {
+        await appStateListener('active');
+      }
+
+      // Should not award coins since already rewarded
+      await waitFor(() => {
+        expect(mockAwardCoins).not.toHaveBeenCalled();
       });
     });
   });

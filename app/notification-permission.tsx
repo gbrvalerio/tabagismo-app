@@ -12,9 +12,11 @@ import {
 import * as Notifications from 'expo-notifications';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  AppState,
+  AppStateStatus,
   Linking,
   Pressable,
   SafeAreaView,
@@ -69,6 +71,37 @@ export default function NotificationPermissionScreen() {
     checkPermission();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps - run once on mount
+
+  // Re-check permission when returning from OS settings
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      'change',
+      async (nextAppState: AppStateStatus) => {
+        if (nextAppState === 'active') {
+          try {
+            const { status } = await Notifications.getPermissionsAsync();
+            setPermissionStatus(status as PermissionStatus);
+
+            if (status === 'granted' && !hasReward) {
+              await awardCoins.mutateAsync({
+                amount: 15,
+                type: TransactionType.NOTIFICATION_PERMISSION,
+                metadata: {
+                  source: 'notification_permission',
+                  grantedAt: new Date().toISOString(),
+                },
+              });
+              setShowCelebration(true);
+            }
+          } catch (error) {
+            logError(error, 'NotificationPermission');
+          }
+        }
+      }
+    );
+
+    return () => subscription.remove();
+  }, [hasReward, awardCoins]);
 
   const handleRequestPermission = async () => {
     try {

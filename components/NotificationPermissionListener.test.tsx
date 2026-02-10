@@ -19,6 +19,12 @@ jest.mock("expo-notifications", () => ({
   getPermissionsAsync: jest.fn(),
 }));
 
+// Mock expo-router
+const mockUsePathname = jest.fn(() => '/some-other-screen');
+jest.mock("expo-router", () => ({
+  usePathname: () => mockUsePathname(),
+}));
+
 // Mock repositories
 jest.mock("@/db/repositories", () => ({
   useHasNotificationReward: jest.fn(),
@@ -232,6 +238,46 @@ describe("NotificationPermissionListener", () => {
     });
 
     // Should not award coins (no change from granted to granted)
+    expect(mockMutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("should skip handling when on notification-permission screen", async () => {
+    const mockMutateAsync = jest.fn().mockResolvedValue(undefined);
+    (repositories.useHasNotificationReward as jest.Mock).mockReturnValue({
+      data: false,
+    });
+    (repositories.useAwardCoins as jest.Mock).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+    });
+
+    // Start with denied
+    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: "denied",
+    });
+
+    // Simulate being on the notification-permission screen
+    mockUsePathname.mockReturnValue('/notification-permission');
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(Notifications.getPermissionsAsync).toHaveBeenCalledTimes(1);
+    });
+
+    // Change to granted
+    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: "granted",
+    });
+
+    if (appStateListener) {
+      await appStateListener("active");
+    }
+
+    await waitFor(() => {
+      expect(Notifications.getPermissionsAsync).toHaveBeenCalledTimes(2);
+    });
+
+    // Should NOT award coins — the notification-permission screen handles this
     expect(mockMutateAsync).not.toHaveBeenCalled();
   });
 
