@@ -13,7 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { impactAsync, ImpactFeedbackStyle } from '@/lib/haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import {
   useOnboardingSlides,
@@ -27,6 +27,7 @@ export default function OnboardingSlidesScreen() {
   const { data: slides, isLoading } = useOnboardingSlides();
   const markCompleted = useMarkSlidesCompleted();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -76,7 +77,7 @@ export default function OnboardingSlidesScreen() {
         {currentIndex >= 1 && !isLastSlide && (
           <Animated.View
             entering={FadeInDown.springify()}
-            style={styles.skipContainer}
+            style={[styles.skipContainer, { top: insets.top + spacing.md }]}
           >
             <Pressable onPress={handleSkip} style={styles.skipButton}>
               <Text style={styles.skipText}>Pular</Text>
@@ -147,7 +148,6 @@ const styles = StyleSheet.create({
   },
   skipContainer: {
     position: 'absolute',
-    top: spacing.md,
     right: spacing.md,
     zIndex: 10,
   },

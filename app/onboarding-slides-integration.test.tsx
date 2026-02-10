@@ -62,6 +62,7 @@ jest.mock('react-native-reanimated', () => {
 
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
+  useSafeAreaInsets: () => ({ top: 44, bottom: 0, left: 0, right: 0 }),
 }));
 
 const mockPush = jest.fn();
