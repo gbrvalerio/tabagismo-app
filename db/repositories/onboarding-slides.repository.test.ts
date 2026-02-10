@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { createTestQueryClient } from '@/lib/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { useOnboardingSlides, useMarkSlidesCompleted, useSlidesStatus } from './onboarding-slides.repository';
+import { useOnboardingSlides, useMarkSlidesCompleted, useResetSlidesCompleted, useSlidesStatus } from './onboarding-slides.repository';
 import { db } from '../client';
 
 const mockSlides = [
@@ -50,16 +50,24 @@ jest.mock('../client', () => {
   const mockValues = jest.fn(() => ({ onConflictDoUpdate: mockOnConflictDoUpdate }));
   const mockInsert = jest.fn(() => ({ values: mockValues }));
 
+  const mockUpdateWhere = jest.fn().mockResolvedValue(undefined);
+  const mockSet = jest.fn(() => ({ where: mockUpdateWhere }));
+  const mockUpdate = jest.fn(() => ({ set: mockSet }));
+
   return {
     db: {
       select: jest.fn(() => ({ from: mockFrom })),
       insert: mockInsert,
+      update: mockUpdate,
     },
     __mockAll: mockAll,
     __mockGet: mockGet,
     __mockInsert: mockInsert,
     __mockValues: mockValues,
     __mockOnConflictDoUpdate: mockOnConflictDoUpdate,
+    __mockUpdate: mockUpdate,
+    __mockSet: mockSet,
+    __mockUpdateWhere: mockUpdateWhere,
   };
 });
 
@@ -69,12 +77,18 @@ const {
   __mockInsert,
   __mockValues,
   __mockOnConflictDoUpdate,
+  __mockUpdate,
+  __mockSet,
+  __mockUpdateWhere,
 } = jest.requireMock('../client') as {
   __mockAll: jest.Mock;
   __mockGet: jest.Mock;
   __mockInsert: jest.Mock;
   __mockValues: jest.Mock;
   __mockOnConflictDoUpdate: jest.Mock;
+  __mockUpdate: jest.Mock;
+  __mockSet: jest.Mock;
+  __mockUpdateWhere: jest.Mock;
 };
 
 const createWrapper = () => {
@@ -330,6 +344,84 @@ describe('onboarding-slides.repository', () => {
 
       expect(result.current.reset).toBeDefined();
       expect(typeof result.current.reset).toBe('function');
+    });
+  });
+
+  describe('useResetSlidesCompleted', () => {
+    it('should provide a working mutate function', () => {
+      const { result } = renderHook(() => useResetSlidesCompleted(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.mutate).toBeDefined();
+      expect(typeof result.current.mutate).toBe('function');
+    });
+
+    it('should call db.update when mutated', async () => {
+      const { result } = renderHook(() => useResetSlidesCompleted(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        result.current.mutate(undefined);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(__mockUpdate).toHaveBeenCalled();
+    });
+
+    it('should set slidesCompleted to false', async () => {
+      const { result } = renderHook(() => useResetSlidesCompleted(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        result.current.mutate(undefined);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(__mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ value: 'false' })
+      );
+    });
+
+    it('should invalidate slidesCompleted query on success', async () => {
+      const queryClient = createTestQueryClient();
+      const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+
+      const wrapper = function Wrapper({ children }: { children: React.ReactNode }) {
+        return React.createElement(QueryClientProvider, { client: queryClient }, children);
+      };
+
+      const { result } = renderHook(() => useResetSlidesCompleted(), {
+        wrapper,
+      });
+
+      await act(async () => {
+        result.current.mutate(undefined);
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ['settings', 'slidesCompleted'],
+      });
+    });
+
+    it('should provide mutateAsync', () => {
+      const { result } = renderHook(() => useResetSlidesCompleted(), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.mutateAsync).toBeDefined();
     });
   });
 

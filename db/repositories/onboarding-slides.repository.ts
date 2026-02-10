@@ -41,6 +41,24 @@ export function useMarkSlidesCompleted() {
   });
 }
 
+export function useResetSlidesCompleted() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      await db
+        .update(settings)
+        .set({ value: 'false', updatedAt: new Date() })
+        .where(eq(settings.key, 'slidesCompleted'));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['settings', 'slidesCompleted'],
+      });
+    },
+  });
+}
+
 export function useSlidesStatus() {
   return useQuery({
     queryKey: ['settings', 'slidesCompleted'],
