@@ -1,9 +1,32 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import OnboardingSlidesScreen from './onboarding-slides';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as repository from '@/db/repositories/onboarding-slides.repository';
+
+// Mock SVG imports used by SlideItem
+jest.mock('@/assets/images/onboarding-1.svg', () => {
+  const { View } = require('react-native');
+  const MockIcon = (props: any) => <View {...props} testID={props.testID || 'onboarding-1-icon'} />;
+  MockIcon.displayName = 'MockOnboarding1';
+  return MockIcon;
+});
+
+jest.mock('@/assets/images/onboarding-2.svg', () => {
+  const { View } = require('react-native');
+  const MockIcon = (props: any) => <View {...props} testID={props.testID || 'onboarding-2-icon'} />;
+  MockIcon.displayName = 'MockOnboarding2';
+  return MockIcon;
+});
+
+jest.mock('@/assets/images/onboarding-3.svg', () => {
+  const { View } = require('react-native');
+  const MockIcon = (props: any) => <View {...props} testID={props.testID || 'onboarding-3-icon'} />;
+  MockIcon.displayName = 'MockOnboarding3';
+  return MockIcon;
+});
 
 jest.mock('expo-linear-gradient', () => ({
   LinearGradient: ({ children }: { children: React.ReactNode }) => children,

@@ -1,6 +1,29 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { SlideItem } from './SlideItem';
+
+// Mock SVG imports
+jest.mock('@/assets/images/onboarding-1.svg', () => {
+  const { View } = require('react-native');
+  const MockIcon = (props: any) => <View {...props} testID={props.testID || 'onboarding-1-icon'} />;
+  MockIcon.displayName = 'MockOnboarding1';
+  return MockIcon;
+});
+
+jest.mock('@/assets/images/onboarding-2.svg', () => {
+  const { View } = require('react-native');
+  const MockIcon = (props: any) => <View {...props} testID={props.testID || 'onboarding-2-icon'} />;
+  MockIcon.displayName = 'MockOnboarding2';
+  return MockIcon;
+});
+
+jest.mock('@/assets/images/onboarding-3.svg', () => {
+  const { View } = require('react-native');
+  const MockIcon = (props: any) => <View {...props} testID={props.testID || 'onboarding-3-icon'} />;
+  MockIcon.displayName = 'MockOnboarding3';
+  return MockIcon;
+});
 
 describe('SlideItem', () => {
   it('should render title and description', () => {
@@ -14,6 +37,30 @@ describe('SlideItem', () => {
 
     expect(getByText('Test Title')).toBeTruthy();
     expect(getByText('Test Description')).toBeTruthy();
+  });
+
+  it('should render SVG icon when icon matches iconMap', () => {
+    const { getByTestId } = render(
+      <SlideItem
+        icon="@/assets/images/onboarding-1.svg"
+        title="Title"
+        description="Description"
+      />
+    );
+
+    expect(getByTestId('slide-icon')).toBeTruthy();
+  });
+
+  it('should render icon placeholder when icon does not match iconMap', () => {
+    const { getByTestId } = render(
+      <SlideItem
+        icon="@/assets/images/unknown.svg"
+        title="Title"
+        description="Description"
+      />
+    );
+
+    expect(getByTestId('icon-placeholder')).toBeTruthy();
   });
 
   it('should render benefits card when showBenefits is true', () => {
@@ -75,18 +122,6 @@ describe('SlideItem', () => {
     );
 
     expect(queryByTestId('benefits-card')).toBeNull();
-  });
-
-  it('should render icon placeholder', () => {
-    const { getByTestId } = render(
-      <SlideItem
-        icon="@/assets/images/onboarding-1.svg"
-        title="Title"
-        description="Description"
-      />
-    );
-
-    expect(getByTestId('icon-placeholder')).toBeTruthy();
   });
 
   it('should render checkmarks for each benefit', () => {

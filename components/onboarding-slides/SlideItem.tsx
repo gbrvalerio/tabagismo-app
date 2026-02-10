@@ -1,6 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
+import { SvgProps } from 'react-native-svg';
+import Onboarding1 from '@/assets/images/onboarding-1.svg';
+import Onboarding2 from '@/assets/images/onboarding-2.svg';
+import Onboarding3 from '@/assets/images/onboarding-3.svg';
 import { colors, spacing, borderRadius, shadows, typographyPresets } from '@/lib/theme/tokens';
+
+const iconMap: Record<string, React.FC<SvgProps>> = {
+  '@/assets/images/onboarding-1.svg': Onboarding1,
+  '@/assets/images/onboarding-2.svg': Onboarding2,
+  '@/assets/images/onboarding-3.svg': Onboarding3,
+};
 
 interface SlideItemProps {
   icon: string;
@@ -11,16 +21,22 @@ interface SlideItemProps {
 }
 
 export function SlideItem({
+  icon,
   title,
   description,
   showBenefits,
   benefits,
 }: SlideItemProps) {
   const { width } = useWindowDimensions();
+  const IconComponent = iconMap[icon];
 
   return (
     <View style={[styles.container, { width }]}>
-      <View style={styles.iconPlaceholder} testID="icon-placeholder" />
+      {IconComponent ? (
+        <IconComponent width={120} height={120} testID="slide-icon" />
+      ) : (
+        <View style={styles.iconPlaceholder} testID="icon-placeholder" />
+      )}
 
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
