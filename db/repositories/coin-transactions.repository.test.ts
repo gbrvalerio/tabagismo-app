@@ -1,11 +1,29 @@
 import React from 'react';
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from '@jest/globals';
 import { renderHook, waitFor , act } from '@testing-library/react-native';
 import { createTestQueryClient } from '@/lib/test-utils';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useUserCoins, useAwardCoins, useHasQuestionReward, useResetUserCoins } from './coin-transactions.repository';
 import { db } from '../client';
 import { coinTransactions, TransactionType } from '../schema';
+
+// Silence TanStack Query act() warnings - these are internal to the library
+const originalError = console.error;
+beforeAll(() => {
+  console.error = (...args: unknown[]) => {
+    if (
+      typeof args[0] === 'string' &&
+      args[0].includes('not wrapped in act')
+    ) {
+      return;
+    }
+    originalError.apply(console, args);
+  };
+});
+
+afterAll(() => {
+  console.error = originalError;
+});
 
 // Shared state for the mock database
 const mockDbState = {

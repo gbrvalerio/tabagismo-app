@@ -152,7 +152,14 @@ const users = await db.select().from(users);
 - 90% coverage is required, push and CI will fail.
 - In the red phase of the TDD development, use --no-verify to commit code skipping failing tests.
 
-### 5. Claude Files
+### 5. Git Workflow
+
+- **NEVER commit directly to main.** Always create a feature/fix branch first.
+- Branch naming: `feat/<feature-name>`, `fix/<issue-name>`, `chore/<task-name>`
+- After completing work, push to the branch and create a PR for review.
+- Only merge to main via PR.
+
+### 6. Claude Files
 
 - At the end of a feature creation, fix or update, update/create the relevant CLAUDE.md files for that feature. No need to be super granular, just add relevant quick information that would affect future development.
 
