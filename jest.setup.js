@@ -71,5 +71,4 @@ jest.setTimeout(5000);
 // Clean up after each test
 afterEach(() => {
   jest.clearAllTimers();
-  jest.useRealTimers();
 });

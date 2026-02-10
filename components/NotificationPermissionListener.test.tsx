@@ -1,10 +1,26 @@
-import { render, waitFor } from "@testing-library/react-native";
+import { render, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
 
 import { NotificationPermissionListener } from "./NotificationPermissionListener";
 import * as repositories from "@/db/repositories";
 import { TransactionType } from "@/db/schema/coin-transactions";
+
+// Mock CelebrationDialog
+jest.mock("@/components/celebration", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View } = require("react-native");
+  const MockCelebrationDialog = ({ visible }: any) => {
+    if (!visible) return null;
+    return React.createElement(View, { testID: "celebration-dialog" });
+  };
+  MockCelebrationDialog.displayName = "MockCelebrationDialog";
+  return {
+    CelebrationDialog: MockCelebrationDialog,
+  };
+});
 
 // Mock AppState listener
 let appStateListener: ((state: string) => void) | null = null;
@@ -156,9 +172,11 @@ describe("NotificationPermissionListener", () => {
     });
 
     // Trigger app becoming active
-    if (appStateListener) {
-      await appStateListener("active");
-    }
+    await act(async () => {
+      if (appStateListener) {
+        await appStateListener("active");
+      }
+    });
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith({
@@ -196,9 +214,11 @@ describe("NotificationPermissionListener", () => {
       status: "granted",
     });
 
-    if (appStateListener) {
-      await appStateListener("active");
-    }
+    await act(async () => {
+      if (appStateListener) {
+        await appStateListener("active");
+      }
+    });
 
     await waitFor(() => {
       expect(Notifications.getPermissionsAsync).toHaveBeenCalledTimes(2);
@@ -229,9 +249,11 @@ describe("NotificationPermissionListener", () => {
     });
 
     // Trigger app becoming active (permission still granted)
-    if (appStateListener) {
-      await appStateListener("active");
-    }
+    await act(async () => {
+      if (appStateListener) {
+        await appStateListener("active");
+      }
+    });
 
     await waitFor(() => {
       expect(Notifications.getPermissionsAsync).toHaveBeenCalledTimes(2);
@@ -269,9 +291,11 @@ describe("NotificationPermissionListener", () => {
       status: "granted",
     });
 
-    if (appStateListener) {
-      await appStateListener("active");
-    }
+    await act(async () => {
+      if (appStateListener) {
+        await appStateListener("active");
+      }
+    });
 
     await waitFor(() => {
       expect(Notifications.getPermissionsAsync).toHaveBeenCalledTimes(2);

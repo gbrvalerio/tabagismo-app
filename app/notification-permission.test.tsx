@@ -1,11 +1,22 @@
 // Mock AppState listener
 // Mock dependencies BEFORE imports
-import { render, screen, waitFor, fireEvent } from '@testing-library/react-native';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react-native';
 import { Linking, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import NotificationPermissionScreen from './notification-permission';
 import { useHasNotificationReward, useAwardCoins } from '@/db/repositories';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View } = require('react-native');
+  return {
+    SafeAreaView: View,
+    SafeAreaProvider: View,
+    useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  };
+});
 
 let appStateListener: ((state: string) => void) | null = null;
 const mockRemove = jest.fn();
@@ -47,7 +58,7 @@ jest.mock('@/components/celebration', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require('react');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { View, Text, TouchableOpacity } = require('react-native');
+  const { Text, TouchableOpacity } = require('react-native');
   const MockCelebrationDialog = ({ visible, title, onDismiss }: any) => {
     if (!visible) return null;
     return React.createElement(
@@ -361,9 +372,11 @@ describe('NotificationPermissionScreen', () => {
       });
 
       // Trigger AppState active (user returns from settings)
-      if (appStateListener) {
-        await appStateListener('active');
-      }
+      await act(async () => {
+        if (appStateListener) {
+          await appStateListener('active');
+        }
+      });
 
       // Celebration should appear
       await waitFor(() => {
@@ -412,9 +425,11 @@ describe('NotificationPermissionScreen', () => {
         status: 'granted',
       });
 
-      if (appStateListener) {
-        await appStateListener('active');
-      }
+      await act(async () => {
+        if (appStateListener) {
+          await appStateListener('active');
+        }
+      });
 
       // Should not award coins since already rewarded
       await waitFor(() => {
@@ -447,8 +462,17 @@ describe('NotificationPermissionScreen', () => {
   });
 
   describe('Error Handling', () => {
+    let consoleErrorSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      consoleErrorSpy.mockRestore();
+    });
+
     it('should log error when initial permission check fails', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       (Notifications.getPermissionsAsync as jest.Mock).mockRejectedValue(
         new Error('Permission check failed')
       );
@@ -461,8 +485,6 @@ describe('NotificationPermissionScreen', () => {
           expect.any(Error)
         );
       });
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should show alert when permission request fails', async () => {
