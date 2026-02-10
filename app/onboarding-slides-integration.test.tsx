@@ -82,9 +82,9 @@ const mockUseMarkSlidesCompleted = jest.fn(() => ({
 const mockUseSlidesStatus = jest.fn();
 
 jest.mock('@/db/repositories/onboarding-slides.repository', () => ({
-  useOnboardingSlides: (...args: any[]) => mockUseOnboardingSlides(...args),
-  useMarkSlidesCompleted: (...args: any[]) => mockUseMarkSlidesCompleted(...args),
-  useSlidesStatus: (...args: any[]) => mockUseSlidesStatus(...args),
+  useOnboardingSlides: (...args: unknown[]) => mockUseOnboardingSlides(...args),
+  useMarkSlidesCompleted: () => mockUseMarkSlidesCompleted(),
+  useSlidesStatus: (...args: unknown[]) => mockUseSlidesStatus(...args),
 }));
 
 const mockUseOnboardingStatus = jest.fn();

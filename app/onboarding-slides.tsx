@@ -9,7 +9,7 @@ import {
   Pressable,
   Text,
 } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { impactAsync, ImpactFeedbackStyle } from '@/lib/haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,17 +31,17 @@ export default function OnboardingSlidesScreen() {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / event.nativeEvent.layoutMeasurement.width);
     setCurrentIndex(index);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impactAsync(ImpactFeedbackStyle.Light);
   };
 
   const handleSkip = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    impactAsync(ImpactFeedbackStyle.Light);
     await markCompleted.mutateAsync();
     router.push('/onboarding' as never);
   };
 
   const handleComplete = async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    impactAsync(ImpactFeedbackStyle.Medium);
     await markCompleted.mutateAsync();
     router.push('/onboarding' as never);
   };
