@@ -406,25 +406,26 @@ Located in `components/settings/`. Used by the settings screens in `/app/setting
 
 **File:** `settings/SettingsMenuItem.tsx`
 
-Reusable menu row for the settings hub. Displays an icon, label, and chevron indicator.
+Reusable menu row for the settings hub. Displays an icon, title, optional subtitle, and chevron indicator. Animated scale (0.97) on press with Light haptic feedback.
 
 ```typescript
 import { SettingsMenuItem } from '@/components/settings/SettingsMenuItem';
 
 <SettingsMenuItem
-  icon="person-outline"
-  label="Perfil"
+  icon={<Text>👤</Text>}
+  title="Perfil"
+  subtitle={userName}
   onPress={() => router.push('/settings/profile')}
 />
 ```
 
 **Props:**
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `icon` | `string` | Ionicons icon name |
-| `label` | `string` | Menu item text (Brazilian Portuguese) |
-| `onPress` | `() => void` | Navigation callback |
+- **icon** (`React.ReactNode`) — Icon element (emoji Text or SVG component)
+- **title** (`string`) — Menu item title (Brazilian Portuguese)
+- **subtitle** (`string`, optional) — Secondary text below title
+- **onPress** (`() => void`) — Navigation callback
+- **testID** (`string`, optional) — Test identifier
 
 ### ProfileEditModal
 
